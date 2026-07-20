@@ -97,49 +97,51 @@ export default function Sidebar({ role }) {
 
       <style>{`
         .sidebar-container {
-          width: 260px;
-          background-color: var(--sidebar-bg);
-          color: var(--sidebar-text);
+          width: 280px;
+          background-color: #FFFFFF;
+          color: var(--text-primary);
           display: flex;
           flex-direction: column;
           min-height: 100vh;
-          border-right: 1px solid rgba(239, 231, 211, 0.1);
+          border-right: 2px solid var(--border-color);
           flex-shrink: 0;
+          position: relative;
+          z-index: 10;
         }
 
         .sidebar-header {
-          padding: 2rem 1.5rem;
+          padding: 2rem 1.5rem 1.5rem 1.5rem;
           display: flex;
           flex-direction: column;
-          gap: 0.5rem;
-          border-bottom: 1px solid rgba(239, 231, 211, 0.05);
+          gap: 0.75rem;
+          border-bottom: 2px solid var(--border-color);
         }
 
         .sidebar-logo {
           display: flex;
           align-items: center;
           gap: 0.75rem;
-          font-family: var(--font-serif);
-          font-size: 1.5rem;
+          font-family: var(--font-display);
+          font-size: 1.6rem;
           font-weight: 700;
-          color: #FFFFFF;
+          color: var(--text-primary);
           text-decoration: none;
         }
 
         .logo-sparkle {
-          color: var(--story-gold);
-          font-size: 1.25rem;
+          color: var(--coral);
+          font-size: 1.35rem;
         }
 
         .role-badge {
           align-self: flex-start;
           font-size: 0.75rem;
-          font-weight: 600;
+          font-weight: 800;
           text-transform: uppercase;
-          background-color: rgba(228, 238, 219, 0.15);
-          color: var(--sidebar-text);
-          padding: 0.15rem 0.5rem;
-          border-radius: 4px;
+          background: linear-gradient(135deg, var(--coral-light), var(--pink-light));
+          color: var(--coral);
+          padding: 0.25rem 0.75rem;
+          border-radius: var(--radius-full);
           letter-spacing: 0.05em;
         }
 
@@ -148,78 +150,85 @@ export default function Sidebar({ role }) {
           padding: 1.5rem 1rem;
           display: flex;
           flex-direction: column;
-          gap: 0.35rem;
+          gap: 0.5rem;
         }
 
         .sidebar-section-header {
           font-size: 0.75rem;
           text-transform: uppercase;
           letter-spacing: 0.1em;
-          color: rgba(217, 226, 206, 0.4);
-          font-weight: 700;
-          padding: 1rem 0.5rem 0.5rem 0.5rem;
+          color: var(--text-muted);
+          font-weight: 800;
+          padding: 1rem 0.75rem 0.25rem 0.75rem;
         }
 
         .sidebar-nav-item {
           display: flex;
           align-items: center;
-          gap: 0.75rem;
-          padding: 0.75rem 1rem;
+          gap: 0.85rem;
+          padding: 0.85rem 1.25rem;
           border-radius: var(--radius-sm);
           font-size: 0.95rem;
-          font-weight: 500;
-          color: var(--sidebar-text);
-          transition: var(--transition-fast);
+          font-weight: 700;
+          color: var(--text-secondary);
+          transition: var(--transition-bounce);
           text-decoration: none;
+          border: 1.5px solid transparent;
         }
 
         .sidebar-nav-item:hover {
-          color: var(--sidebar-text-hover);
-          background-color: rgba(255, 255, 255, 0.05);
+          color: var(--coral);
+          background-color: var(--coral-light);
+          transform: translateX(4px);
         }
 
         .sidebar-nav-item.active {
           color: #FFFFFF;
-          background-color: var(--sidebar-active-bg);
-          font-weight: 600;
+          background: linear-gradient(135deg, var(--coral), var(--pink));
+          font-weight: 800;
+          box-shadow: var(--shadow-glow-coral);
+          transform: scale(1.02);
         }
 
         .nav-item-icon {
-          font-size: 1rem;
+          font-size: 1.1rem;
           flex-shrink: 0;
         }
 
         .sidebar-footer {
-          padding: 1rem;
-          border-top: 1px solid rgba(239, 231, 211, 0.05);
+          padding: 1.25rem 1rem;
+          border-top: 2px solid var(--border-color);
         }
 
         .back-home {
-          opacity: 0.8;
-          font-size: 0.9rem;
+          background-color: var(--bg-color);
+          border: 1.5px solid var(--border-color);
         }
 
         .back-home:hover {
-          opacity: 1;
-          background-color: rgba(180, 82, 82, 0.1) !important;
-          color: #ff9b9b !important;
+          background-color: var(--danger-light) !important;
+          border-color: var(--danger-color) !important;
+          color: var(--danger-color) !important;
         }
 
         @media (max-width: 768px) {
           .sidebar-container {
             width: 100%;
             min-height: auto;
+            border-right: none;
+            border-bottom: 2px solid var(--border-color);
           }
           .sidebar-header {
             flex-direction: row;
             justify-content: space-between;
             align-items: center;
             padding: 1rem 1.5rem;
+            border-bottom: none;
           }
           .sidebar-nav {
             flex-direction: row;
             overflow-x: auto;
-            padding: 0.75rem 1rem;
+            padding: 0.5rem 1rem 1rem 1rem;
             gap: 0.5rem;
           }
           .sidebar-section-header {
