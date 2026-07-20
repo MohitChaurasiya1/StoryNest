@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import { 
   FaArrowLeft, 
   FaArrowRight, 
@@ -9,183 +10,73 @@ import {
   FaBookOpen,
   FaMagic,
   FaChild,
-  FaKeyboard
+  FaKeyboard,
+  FaSmile,
+  FaHeart,
+  FaUserFriends,
+  FaStar,
+  FaBolt,
+  FaMoon
 } from 'react-icons/fa';
 
 export default function StoryCreator() {
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
+  const [builderMode, setBuilderMode] = useState('child'); // 'child' or 'custom'
 
-  // Toggle mode: 'child' (Visual builder/questionnaire) or 'custom' (parent writes text prompt)
-  const [builderMode, setBuilderMode] = useState('child');
+  // --- Step 1: Basic Child Info (6 questions) ---
+  const [childName, setChildName] = useState('');
+  const [childAge, setChildAge] = useState('');
+  const [childGender, setChildGender] = useState('boy');
+  const [familyDetails, setFamilyDetails] = useState('');
+  const [favoriteThings, setFavoriteThings] = useState('');
+  const [specialInterests, setSpecialInterests] = useState('');
 
-  // Step 1 - Child Friendly state
-  const [childName, setChildName] = useState('Leo');
-  const [heroAnimal, setHeroAnimal] = useState('lion'); // 'bear', 'lion', 'fox', 'unicorn', 'frog', 'rabbit', 'owl'
-  const [heroColor, setHeroColor] = useState('gold'); // 'blue', 'gold', 'pink', 'green'
-  const [heroJob, setHeroJob] = useState('astronaut'); // 'astronaut', 'wizard', 'explorer', 'superhero', 'chef'
-  const [setting, setSetting] = useState('space'); // 'forest', 'space', 'candyland', 'sea', 'castle'
-  const [goal, setGoal] = useState('rocket'); // 'sharing', 'lostkey', 'rocket', 'honey', 'singing'
+  // --- Step 2 (Kid Mode): 8 Fun Questions ---
+  const [heroAnimal, setHeroAnimal] = useState('lion');
+  const [heroJob, setHeroJob] = useState('astronaut');
+  const [heroColor, setHeroColor] = useState('gold');
+  const [setting, setSetting] = useState('space');
+  const [companion, setCompanion] = useState('funny-robot');
+  const [storyMood, setStoryMood] = useState('happy');
+  const [magicPower, setMagicPower] = useState('fly');
+  const [storyEnding, setStoryEnding] = useState('happy');
 
-  // Step 1 - Custom text state
-  const [prompt, setPrompt] = useState('A friendly bear learns how to share honey with forest friends');
-
-  // Step 2 state
+  // --- Step 2 (Parent / Teacher Mode): 16 Detailed Questions ---
+  const [moral, setMoral] = useState('kindness');
+  const [vocabTheme, setVocabTheme] = useState('science');
+  const [language, setLanguage] = useState('bilingual');
+  const [storyLength, setStoryLength] = useState('medium');
+  const [encouragedBehavior, setEncouragedBehavior] = useState('');
+  const [sidekick, setSidekick] = useState('wise-owl');
+  const [magicObject, setMagicObject] = useState('secret-map');
   const [artStyle, setArtStyle] = useState('watercolor');
   const [tone, setTone] = useState('whimsical');
   const [grade, setGrade] = useState('grade-2');
+  const [pronoun, setPronoun] = useState('he');
+  const [rival, setRival] = useState('none');
+  const [numPages, setNumPages] = useState('5');
+  const [readingDifficulty, setReadingDifficulty] = useState('medium');
+  const [culturalElements, setCulturalElements] = useState('mixed');
+  const [bedtimeSafe, setBedtimeSafe] = useState('yes');
 
-  // Step 3 state
+  // API Generation State
   const [genProgress, setGenProgress] = useState(0);
   const [genMessages, setGenMessages] = useState([]);
   const [genDone, setGenDone] = useState(false);
+  const [generatedStoryId, setGeneratedStoryId] = useState(null);
 
-  // Step 4 state — generated pages
-  const [pages, setPages] = useState([
-    {
-      text: 'Bruno the bear woke up one sunny morning to find his honey jar overflowing. "There\'s too much for just me!" he laughed, golden drops rolling down his fuzzy chin.',
-      editText: '',
-    },
-    {
-      text: 'He walked through the whispering pines until he found Rosie the rabbit. "Would you like some honey?" Bruno asked, holding out a tiny cup. Rosie\'s ears perked up with joy.',
-      editText: '',
-    },
-    {
-      text: 'By sunset, every creature in the forest had tasted Bruno\'s honey. And Bruno discovered that sharing made every drop taste even sweeter.',
-      editText: '',
-    },
-  ]);
+  // Generated Pages preview
+  const [pages, setPages] = useState([]);
   const [editingPage, setEditingPage] = useState(null);
 
-  // Construct prompt dynamic text based on child options
-  useEffect(() => {
-    if (builderMode === 'child') {
-      const animalMap = {
-        bear: '🐻 bear',
-        lion: '🦁 lion',
-        fox: '🦊 fox',
-        unicorn: '🦄 unicorn',
-        frog: '🐸 frog',
-        rabbit: '🐰 rabbit',
-        owl: '🦉 owl'
-      };
-      const jobMap = {
-        astronaut: 'an astronaut 🚀',
-        wizard: 'a wizard 🪄',
-        explorer: 'a brave explorer 🧭',
-        superhero: 'a superhero 🦸',
-        chef: 'a master chef 🧑‍🍳'
-      };
-      const settingMap = {
-        forest: 'the whispering pines forest 🌲',
-        space: 'cosmic outer space 🌌',
-        candyland: 'sweet candy land 🍬',
-        sea: 'the deep blue sea 🌊',
-        castle: 'an ancient magic castle 🏰'
-      };
-      const goalMap = {
-        sharing: 'learns how to share sweet treats with forest friends 🤝',
-        lostkey: 'searches for a mysterious lost key that opens a secret door 🔑',
-        rocket: 'works together with friends to build a shiny new rocket ship 🚀',
-        honey: 'gathers delicious golden honey for a big cozy campfire party 🍯',
-        singing: 'discovers their voice and learns a beautiful happy song 🎵'
-      };
+  // ========== DATA OPTIONS ==========
 
-      const builtPrompt = `A child-created story about a friendly ${animalMap[heroAnimal]} named ${childName || 'Leo'} who is ${jobMap[heroJob]} wearing a beautiful ${heroColor} cape. The adventure takes place in ${settingMap[setting]} where they must ${goalMap[goal]}.`;
-      setPrompt(builtPrompt);
-    }
-  }, [childName, heroAnimal, heroColor, heroJob, setting, goal, builderMode]);
-
-  // Construct Custom Story Content based on Child Selection when entering step 4
-  useEffect(() => {
-    if (step === 3 && builderMode === 'child') {
-      const animalName = heroAnimal === 'bear' ? 'bear' : heroAnimal === 'lion' ? 'lion' : heroAnimal === 'fox' ? 'fox' : heroAnimal === 'unicorn' ? 'unicorn' : heroAnimal === 'frog' ? 'frog' : heroAnimal === 'rabbit' ? 'rabbit' : 'owl';
-      const mainCharacter = `${childName || 'Leo'} the ${animalName}`;
-      const friendCharacter = heroAnimal === 'rabbit' ? 'Rosie the rabbit' : 'Rosie';
-
-      const customPages = [
-        {
-          text: `${childName || 'Leo'} the ${animalName} woke up one sunny morning in ${
-            setting === 'forest' ? 'the whispering pines forest 🌲' : setting === 'space' ? 'cosmic outer space 🌌' : setting === 'candyland' ? 'sweet candy land 🍬' : setting === 'sea' ? 'the deep blue sea 🌊' : 'the ancient magic castle 🏰'
-          }. With a beautiful ${heroColor} cape shining, it was time for a great adventure!`,
-          editText: ''
-        },
-        {
-          text: `As ${mainCharacter} explored, they met their friend Rosie. "Will you help me?" ${childName || 'Leo'} asked, showing their plan to ${
-            goal === 'sharing' ? 'share sweet treats with everyone' : goal === 'lostkey' ? 'find the secret lost key' : goal === 'rocket' ? 'build a shiny space rocket' : goal === 'honey' ? 'gather golden honey jars' : 'learn a happy new song'
-          }. Rosie perked up with joy!`,
-          editText: ''
-        },
-        {
-          text: `By sunset, they had completed their quest! ${mainCharacter} and Rosie laughed happily together. Working together made the entire day even sweeter.`,
-          editText: ''
-        }
-      ];
-      setPages(customPages);
-    }
-  }, [step, builderMode, childName, heroAnimal, heroColor, setting, goal]);
-
-  // Dynamic loading messages reflecting choice
-  const getLoadingMessages = () => {
-    if (builderMode === 'child') {
-      const animalName = heroAnimal;
-      const setLabel = setting === 'forest' ? 'pine forest 🌲' : setting === 'space' ? 'cosmic space 🌌' : setting === 'candyland' ? 'candy land 🍬' : setting === 'sea' ? 'deep sea 🌊' : 'magic castle 🏰';
-      return [
-        '🎨 Analyzing kid-created prompt...',
-        `📖 Setting narrative arc in the ${setLabel}...`,
-        `🖌️ Loading matching ${artStyle} textures...`,
-        `🦁 Sketching ${childName || 'Leo'} the ${animalName}...`,
-        `🌌 Rendering ${setLabel}...`,
-        `✨ Adding magical ${heroColor} cape detailing...`,
-        '🐰 Illustrating companion characters...',
-        '✨ Applying final magic touches...',
-        '📘 Binding your customized storybook...',
-      ];
-    }
-    return [
-      '🎨 Analyzing your story prompt...',
-      '📖 Building narrative arc...',
-      '🖌️ Selecting watercolor textures...',
-      '🐻 Sketching Bruno the bear...',
-      '🌲 Rendering whispering pine forest...',
-      '🍯 Adding golden honey details...',
-      '🐰 Illustrating Rosie the rabbit...',
-      '✨ Applying final magic touches...',
-      '📘 Binding your storybook pages...',
-    ];
-  };
-
-  useEffect(() => {
-    if (step === 3 && !genDone) {
-      setGenProgress(0);
-      setGenMessages([]);
-      let msgIdx = 0;
-      const loadingMsgs = getLoadingMessages();
-      const interval = setInterval(() => {
-        setGenProgress(prev => {
-          const next = Math.min(prev + Math.random() * 15 + 5, 100);
-          if (next >= 100) {
-            clearInterval(interval);
-            setGenDone(true);
-            return 100;
-          }
-          return next;
-        });
-        if (msgIdx < loadingMsgs.length) {
-          setGenMessages(prev => [...prev, loadingMsgs[msgIdx]]);
-          msgIdx++;
-        }
-      }, 600);
-      return () => clearInterval(interval);
-    }
-  }, [step]);
-
-  const handlePageEdit = (idx, newText) => {
-    const updated = [...pages];
-    updated[idx].text = newText;
-    setPages(updated);
-    setEditingPage(null);
-  };
+  const genders = [
+    { id: 'boy', label: '👦 Boy', desc: 'He / Him' },
+    { id: 'girl', label: '👧 Girl', desc: 'She / Her' },
+    { id: 'nonbinary', label: '🧒 Non-Binary', desc: 'They / Them' }
+  ];
 
   const animals = [
     { id: 'lion', label: 'Lion 🦁', desc: 'Brave & Roaring' },
@@ -194,7 +85,8 @@ export default function StoryCreator() {
     { id: 'unicorn', label: 'Unicorn 🦄', desc: 'Sweet & Magic' },
     { id: 'frog', label: 'Frog 🐸', desc: 'Happy & Bouncy' },
     { id: 'rabbit', label: 'Rabbit 🐰', desc: 'Fast & Playful' },
-    { id: 'owl', label: 'Owl 🦉', desc: 'Wise & Gentle' }
+    { id: 'owl', label: 'Owl 🦉', desc: 'Wise & Gentle' },
+    { id: 'dragon', label: 'Dragon 🐉', desc: 'Fierce & Loyal' }
   ];
 
   const jobs = [
@@ -202,140 +94,244 @@ export default function StoryCreator() {
     { id: 'wizard', label: 'Wizard 🪄', desc: 'Casts fun spells' },
     { id: 'explorer', label: 'Explorer 🧭', desc: 'Finds lost paths' },
     { id: 'superhero', label: 'Superhero 🦸', desc: 'Helps everyone' },
-    { id: 'chef', label: 'Master Chef 🧑‍🍳', desc: 'Bakes yummy cookies' }
+    { id: 'chef', label: 'Master Chef 🧑‍🍳', desc: 'Bakes yummy cookies' },
+    { id: 'detective', label: 'Detective 🔍', desc: 'Solves mysteries' }
   ];
 
-  const settings = [
-    { id: 'space', label: 'Cosmic Outer Space 🌌', bg: '#4A3E72' },
-    { id: 'forest', label: 'Whispering Pine Forest 🌲', bg: '#3D5C34' },
-    { id: 'candyland', label: 'Sweet Candy Land 🍬', bg: '#D38F9B' },
-    { id: 'sea', label: 'Deep Blue Sea 🌊', bg: '#418C84' },
-    { id: 'castle', label: 'Ancient Magic Castle 🏰', bg: '#726053' }
+  const settingsData = [
+    { id: 'space', label: 'Cosmic Space 🌌' },
+    { id: 'forest', label: 'Whispering Forest 🌲' },
+    { id: 'candyland', label: 'Sweet Candy Land 🍬' },
+    { id: 'sea', label: 'Deep Blue Sea 🌊' },
+    { id: 'castle', label: 'Magic Castle 🏰' },
+    { id: 'volcano', label: 'Fire Volcano 🌋' }
   ];
 
-  const goals = [
-    { id: 'rocket', label: 'Building a space rocket 🚀' },
-    { id: 'sharing', label: 'Learning to share sweet treats 🤝' },
-    { id: 'lostkey', label: 'Finding a secret lost key 🔑' },
-    { id: 'honey', label: 'Gathering honey for a campfire 🍯' },
-    { id: 'singing', label: 'Learning to sing a happy song 🎵' }
+  const companions = [
+    { id: 'funny-robot', label: 'Funny Robot 🤖' },
+    { id: 'playful-puppy', label: 'Playful Puppy 🐶' },
+    { id: 'wise-fairy', label: 'Wise Fairy 🧚' },
+    { id: 'cute-squirrel', label: 'Cute Squirrel 🐿️' },
+    { id: 'baby-dragon', label: 'Baby Dragon 🐲' }
   ];
 
   const colors = [
-    { id: 'gold', label: 'Gold 🟡', value: '#B5822A' },
-    { id: 'blue', label: 'Blue 🔵', value: '#3A86C8' },
-    { id: 'pink', label: 'Pink 🌸', value: '#E47DA2' },
-    { id: 'green', label: 'Green 🟢', value: '#3D5C34' }
+    { id: 'gold', label: 'Gold 🟡', value: '#FFD93D' },
+    { id: 'blue', label: 'Blue 🔵', value: '#6BCBF5' },
+    { id: 'pink', label: 'Pink 🌸', value: '#F472B6' },
+    { id: 'green', label: 'Green 🟢', value: '#6BCB77' },
+    { id: 'purple', label: 'Purple 🟣', value: '#A78BFA' }
   ];
 
-  const artStyles = [
-    { id: 'watercolor', label: 'Watercolor', emoji: '🎨' },
-    { id: 'oil-paint', label: 'Oil Paint', emoji: '🖼️' },
-    { id: 'claymation', label: 'Claymation', emoji: '🧸' },
-    { id: 'pixel-art', label: 'Pixel Art', emoji: '👾' },
+  const moods = [
+    { id: 'happy', label: '😊 Happy', desc: 'Bright & joyful' },
+    { id: 'silly', label: '🤪 Silly', desc: 'Lots of giggles' },
+    { id: 'mysterious', label: '🔮 Mysterious', desc: 'Full of secrets' },
+    { id: 'exciting', label: '🎢 Exciting', desc: 'Heart-pounding' }
   ];
 
-  const tones = [
-    { id: 'whimsical', label: 'Whimsical' },
-    { id: 'cozy', label: 'Cozy' },
-    { id: 'adventurous', label: 'Adventurous' },
-    { id: 'educational', label: 'Educational' },
+  const magicPowers = [
+    { id: 'fly', label: '🦅 Fly', desc: 'Soar through skies' },
+    { id: 'invisible', label: '👻 Invisible', desc: 'Disappear at will' },
+    { id: 'time-travel', label: '⏰ Time Travel', desc: 'Visit past & future' },
+    { id: 'talk-animals', label: '🐾 Talk to Animals', desc: 'Chat with critters' },
+    { id: 'super-strength', label: '💪 Super Strength', desc: 'Lift anything' }
   ];
 
-  const grades = [
-    { id: 'grade-1', label: 'Grade 1 (Ages 5–6)' },
-    { id: 'grade-2', label: 'Grade 2 (Ages 7–8)' },
-    { id: 'grade-3', label: 'Grade 3 (Ages 8–9)' },
-    { id: 'grade-4', label: 'Grade 4 (Ages 9–10)' },
+  const storyEndings = [
+    { id: 'happy', label: '🌈 Happy Ending', desc: 'Everyone smiles' },
+    { id: 'surprise', label: '🎁 Surprise Twist', desc: 'Unexpected turn' },
+    { id: 'cliffhanger', label: '🧗 Cliffhanger', desc: 'To be continued...' },
+    { id: 'lesson', label: '📚 Moral Lesson', desc: 'Learn something new' }
   ];
 
-  const pageIllustrations = [
-    (
-      <svg viewBox="0 0 400 280" className="page-illustration">
-        <defs>
-          <linearGradient id="morningGrad" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#FCE38A" stopOpacity="0.3" />
-            <stop offset="100%" stopColor="#5AB0A6" stopOpacity="0.2" />
-          </linearGradient>
-        </defs>
-        <rect width="400" height="280" fill="url(#morningGrad)" rx="12" />
-        <circle cx="340" cy="60" r="30" fill="#FCE38A" opacity="0.7" />
-        <path d="M 0 200 Q 100 170 200 210 T 400 180 L 400 280 L 0 280 Z" fill="#8FCB9B" opacity="0.5" />
-        <path d="M 0 220 Q 150 200 300 240 L 400 230 L 400 280 L 0 280 Z" fill="#E8C27A" opacity="0.4" />
-        {/* Customized Animal Icon */}
-        <g transform="translate(140, 120)">
-          {heroAnimal === 'lion' ? (
-            <text x="0" y="50" fontSize="60">🦁</text>
-          ) : heroAnimal === 'bear' ? (
-            <text x="0" y="50" fontSize="60">🐻</text>
-          ) : heroAnimal === 'fox' ? (
-            <text x="0" y="50" fontSize="60">🦊</text>
-          ) : heroAnimal === 'unicorn' ? (
-            <text x="0" y="50" fontSize="60">🦄</text>
-          ) : heroAnimal === 'frog' ? (
-            <text x="0" y="50" fontSize="60">🐸</text>
-          ) : heroAnimal === 'rabbit' ? (
-            <text x="0" y="50" fontSize="60">🐰</text>
-          ) : (
-            <text x="0" y="50" fontSize="60">🦉</text>
-          )}
-          {/* Cape */}
-          <path d="M -10 50 Q -30 65 -20 85 Q 0 80 5 55 Z" fill={colors.find(c => c.id === heroColor)?.value || '#B5822A'} opacity="0.8" />
-        </g>
-        {/* Dynamic accessory */}
-        {heroJob === 'astronaut' && <text x="130" y="140" fontSize="20">🚀</text>}
-        {heroJob === 'wizard' && <text x="130" y="140" fontSize="20">🪄</text>}
-        {heroJob === 'explorer' && <text x="130" y="140" fontSize="20">🧭</text>}
-        {heroJob === 'superhero' && <text x="130" y="140" fontSize="20">🦸</text>}
-        {heroJob === 'chef' && <text x="130" y="140" fontSize="20">🧑‍🍳</text>}
-      </svg>
-    ),
-    (
-      <svg viewBox="0 0 400 280" className="page-illustration">
-        <rect width="400" height="280" fill="#5AB0A6" opacity="0.15" rx="12" />
-        <path d="M 0 180 Q 80 160 160 190 T 400 170 L 400 280 L 0 280 Z" fill="#8FCB9B" opacity="0.4" />
-        {/* Hero character */}
-        <g transform="translate(100, 130)">
-          {heroAnimal === 'lion' ? <text fontSize="50">🦁</text> : heroAnimal === 'bear' ? <text fontSize="50">🐻</text> : <text fontSize="50">🦊</text>}
-        </g>
-        {/* Rosie Rabbit friend */}
-        <g transform="translate(230, 140)">
-          <text fontSize="50">🐰</text>
-        </g>
-        {/* Goal accessory */}
-        {goal === 'rocket' && <text x="180" y="170" fontSize="30">🚀</text>}
-        {goal === 'sharing' && <text x="180" y="170" fontSize="30">🤝</text>}
-        {goal === 'lostkey' && <text x="180" y="170" fontSize="30">🔑</text>}
-        {goal === 'honey' && <text x="180" y="170" fontSize="30">🍯</text>}
-        {goal === 'singing' && <text x="180" y="170" fontSize="30">🎵</text>}
-      </svg>
-    ),
-    (
-      <svg viewBox="0 0 400 280" className="page-illustration">
-        <defs>
-          <linearGradient id="sunsetGrad" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#F4A5A0" stopOpacity="0.35" />
-            <stop offset="100%" stopColor="#FCE38A" stopOpacity="0.2" />
-          </linearGradient>
-        </defs>
-        <rect width="400" height="280" fill="url(#sunsetGrad)" rx="12" />
-        <circle cx="200" cy="50" r="35" fill="#FCE38A" opacity="0.5" />
-        <path d="M 0 190 Q 100 160 200 200 T 400 180 L 400 280 L 0 280 Z" fill="#8FCB9B" opacity="0.45" />
-        {/* Happy group */}
-        <g transform="translate(130, 140)">
-          <text fontSize="45">🦁</text>
-        </g>
-        <g transform="translate(190, 150)">
-          <text fontSize="40">🐰</text>
-        </g>
-        <g transform="translate(240, 145)">
-          <text fontSize="40">🦊</text>
-        </g>
-        <circle cx="150" cy="110" r="3" fill="#FCE38A" opacity="0.7" />
-        <circle cx="210" cy="105" r="2.5" fill="#FCE38A" opacity="0.5" />
-      </svg>
-    ),
-  ];
+  // Dynamic loading messages
+  const getLoadingMessages = () => {
+    return [
+      `✨ Reading ${childName || 'your child'}'s profile...`,
+      `🧒 Setting up a ${childGender} protagonist...`,
+      `🧠 Setting grade level difficulty to ${grade}...`,
+      `📖 Building narrative arc incorporating ${builderMode === 'child' ? heroAnimal : moral}...`,
+      `🧭 Constructing the setting: ${builderMode === 'child' ? setting : 'the magical world'}...`,
+      `🎨 Instructing Gemini for structured page responses...`,
+      `🦁 Drawing matching illustrations in ${artStyle} style...`,
+      `🌍 Adding bilingual English & Spanish translations...`,
+      `🔑 Generating interactive vocabulary blocks...`,
+      `📘 Binding your custom Storybook...`
+    ];
+  };
+
+  // Call Django API on entering Step 3
+  useEffect(() => {
+    if (step === 3 && !genDone) {
+      setGenProgress(0);
+      setGenMessages([]);
+      let msgIdx = 0;
+      const loadingMsgs = getLoadingMessages();
+      
+      const timer = setInterval(() => {
+        setGenProgress(prev => {
+          const next = Math.min(prev + Math.random() * 12 + 4, 99);
+          return next;
+        });
+        if (msgIdx < loadingMsgs.length) {
+          setGenMessages(prev => [...prev, loadingMsgs[msgIdx]]);
+          msgIdx++;
+        }
+      }, 700);
+
+      // Build API payload
+      const payload = {
+        childName: childName || 'Leo',
+        childAge: childAge || '7',
+        childGender,
+        familyDetails: familyDetails || 'Mom, Dad',
+        favoriteThings: favoriteThings || 'adventures',
+        specialInterests: specialInterests || '',
+        builderMode,
+        // Kids mode fields
+        heroAnimal,
+        heroJob,
+        heroColor,
+        setting,
+        companion,
+        storyMood,
+        magicPower,
+        storyEnding,
+        // Parent/Teacher mode fields
+        moral,
+        vocabTheme,
+        language,
+        storyLength,
+        encouragedBehavior,
+        sidekick,
+        magicObject,
+        artStyle,
+        tone,
+        grade,
+        pronoun,
+        rival,
+        numPages: parseInt(numPages) || 5,
+        readingDifficulty,
+        culturalElements,
+        bedtimeSafe
+      };
+
+      axios.post('http://localhost:8000/api/stories/generate/', payload)
+        .then(response => {
+          clearInterval(timer);
+          setGenProgress(100);
+          setGenMessages(prev => [...prev, '✨ Story generated successfully!']);
+          setPages(response.data.pages || []);
+          setGeneratedStoryId(response.data.id);
+          setGenDone(true);
+        })
+        .catch(err => {
+          console.error(err);
+          clearInterval(timer);
+          setGenProgress(100);
+          setGenMessages(prev => [...prev, '❌ API Offline — Loading offline demo story...']);
+          
+          // Offline fallback
+          setTimeout(() => {
+            const pageCount = builderMode === 'custom' ? (parseInt(numPages) || 5) : 5;
+            const fallbackPages = generateOfflineFallback(pageCount);
+            setPages(fallbackPages);
+            setGenDone(true);
+          }, 1500);
+        });
+
+      return () => clearInterval(timer);
+    }
+  }, [step]);
+
+  // Offline fallback story generator
+  const generateOfflineFallback = (pageCount) => {
+    const heroName = childName || 'Leo';
+    const animal = heroAnimal || 'lion';
+    const place = setting || 'space';
+    const buddy = companion || sidekick || 'a friendly robot';
+    const color = heroColor || 'gold';
+    const power = magicPower || 'fly';
+    const mood = storyMood || 'happy';
+
+    const templates = [
+      {
+        text_en: `Once upon a time, ${heroName} the brave ${animal} woke up in the ${place} wearing a shimmering ${color} cape! Today was the day of the Grand Adventure.`,
+        text_es: `Érase una vez, ${heroName} el valiente ${animal} se despertó en el ${place} con una capa brillante de color ${color}. ¡Hoy era el día de la Gran Aventura!`,
+        illustration_prompt: `A cute ${animal} character with a ${color} cape standing in ${place}, children's book illustration style`,
+        dictionary: { adventure: 'An exciting journey into the unknown', cape: 'A flowing cloth worn on the shoulders' }
+      },
+      {
+        text_en: `${heroName} discovered ${buddy} hiding behind a giant crystal. "Want to come along?" asked ${heroName}. The ${buddy} jumped with joy!`,
+        text_es: `${heroName} descubrió a ${buddy} escondido detrás de un cristal gigante. "¿Quieres venir?" preguntó ${heroName}. ¡El ${buddy} saltó de alegría!`,
+        illustration_prompt: `The ${animal} meeting ${buddy} near a giant crystal in ${place}`,
+        dictionary: { companion: 'A friend who travels with you', crystal: 'A beautiful clear stone' }
+      },
+      {
+        text_en: `Together, they faced the Twisting Tunnel of Echoes. ${heroName} used the power to ${power} and carried everyone safely across!`,
+        text_es: `Juntos, enfrentaron el Túnel Retorcido de los Ecos. ¡${heroName} usó el poder de ${power} y llevó a todos a salvo al otro lado!`,
+        illustration_prompt: `The heroes navigating through a magical tunnel with echoing lights`,
+        dictionary: { tunnel: 'A long underground passage', courage: 'Being brave when scared' }
+      },
+      {
+        text_en: `At the heart of the ${place}, they found a golden treasure chest glowing with rainbow light. Inside was the Jewel of ${mood === 'happy' ? 'Happiness' : mood === 'silly' ? 'Laughter' : 'Wonder'}.`,
+        text_es: `En el corazón del ${place}, encontraron un cofre del tesoro dorado brillando con luz de arcoíris. Dentro estaba la Joya de ${mood === 'happy' ? 'la Felicidad' : mood === 'silly' ? 'la Risa' : 'la Maravilla'}.`,
+        illustration_prompt: `A magical treasure chest glowing with rainbow light in ${place}`,
+        dictionary: { treasure: 'Something very valuable and special', jewel: 'A precious sparkling stone' }
+      },
+      {
+        text_en: `${heroName} brought the jewel home and shared its magic with the whole family. From that day on, every bedtime story became a new adventure! The End. 🌟`,
+        text_es: `${heroName} llevó la joya a casa y compartió su magia con toda la familia. ¡Desde ese día, cada cuento antes de dormir se convirtió en una nueva aventura! Fin. 🌟`,
+        illustration_prompt: `The ${animal} hero back home sharing a glowing jewel with a happy family`,
+        dictionary: { family: 'The people you love and live with', share: 'To give part of something to others' }
+      },
+      {
+        text_en: `But wait — the ${buddy} noticed a tiny map hidden inside the treasure chest. It pointed to an even BIGGER adventure beyond the stars!`,
+        text_es: `¡Pero espera! El ${buddy} notó un pequeño mapa escondido dentro del cofre del tesoro. ¡Apuntaba a una aventura AÚN MÁS GRANDE más allá de las estrellas!`,
+        illustration_prompt: `A tiny magical map unfurling from the treasure chest with glowing star paths`,
+        dictionary: { map: 'A drawing that shows where places are', mystery: 'Something secret waiting to be discovered' }
+      },
+      {
+        text_en: `${heroName} and ${buddy} looked at each other and smiled. "Are you ready?" asked ${heroName}. "Always!" replied the ${buddy}. And off they went, soaring into the sunset.`,
+        text_es: `${heroName} y ${buddy} se miraron y sonrieron. "¿Estás listo?" preguntó ${heroName}. "¡Siempre!" respondió el ${buddy}. Y se fueron, volando hacia el atardecer.`,
+        illustration_prompt: `Two friends soaring into a colorful sunset sky together`,
+        dictionary: { friendship: 'A close bond between two beings', sunset: 'When the sun goes down beautifully' }
+      },
+      {
+        text_en: `And so, the legend of ${heroName} the ${animal} grew across the land. Every child who heard the tale felt a spark of bravery in their heart. 🌟✨`,
+        text_es: `Y así, la leyenda de ${heroName} el ${animal} creció por toda la tierra. Cada niño que escuchó la historia sintió una chispa de valentía en su corazón. 🌟✨`,
+        illustration_prompt: `A legendary hero ${animal} silhouette against a starry sky, children's storybook ending`,
+        dictionary: { legend: 'A famous story passed down through time', bravery: 'Having the courage to do something hard' }
+      }
+    ];
+
+    return templates.slice(0, pageCount).map((t, i) => ({
+      page_number: i + 1,
+      ...t
+    }));
+  };
+
+  const handlePageEdit = (idx, newText) => {
+    const updated = [...pages];
+    updated[idx].text_en = newText;
+    setPages(updated);
+    setEditingPage(null);
+  };
+
+  const handlePageEditEs = (idx, newText) => {
+    const updated = [...pages];
+    updated[idx].text_es = newText;
+    setPages(updated);
+    setEditingPage(null);
+  };
+
+  const canProceed = () => {
+    if (step === 1) {
+      return childName.trim() !== '' && childAge.trim() !== '';
+    }
+    return true;
+  };
 
   return (
     <div className="creator-container animate-fade-in">
@@ -345,7 +341,7 @@ export default function StoryCreator() {
           <FaArrowLeft /> Back to Home
         </Link>
         <div className="creator-logo">
-          <FaMagic style={{ color: 'var(--secondary-accent)' }} />
+          <FaMagic style={{ color: 'var(--coral)' }} />
           <span className="serif-heading">StoryNest Creator</span>
         </div>
         <div className="mode-toggle-pill">
@@ -353,13 +349,13 @@ export default function StoryCreator() {
             className={`mode-btn ${builderMode === 'child' ? 'active' : ''}`}
             onClick={() => setBuilderMode('child')}
           >
-            <FaChild /> Kid Mode
+            <FaChild /> Kids Mode (8 Questions)
           </button>
           <button 
             className={`mode-btn ${builderMode === 'custom' ? 'active' : ''}`}
             onClick={() => setBuilderMode('custom')}
           >
-            <FaKeyboard /> Custom Mode
+            <FaKeyboard /> Parents/Teachers (16 Questions)
           </button>
         </div>
       </header>
@@ -367,8 +363,8 @@ export default function StoryCreator() {
       {/* Stepper */}
       <div className="stepper-bar">
         {[
-          { num: 1, label: builderMode === 'child' ? 'Choose Hero & Goal' : 'Write Prompt' },
-          { num: 2, label: 'Choose Style' },
+          { num: 1, label: 'About the Child' },
+          { num: 2, label: 'Story Options' },
           { num: 3, label: 'AI Generation' },
           { num: 4, label: 'Preview & Edit' },
         ].map((s, idx) => (
@@ -384,226 +380,481 @@ export default function StoryCreator() {
 
       {/* Step Content */}
       <div className="step-content-wrapper">
-        {/* Step 1: Write Prompt / Visual questionnaire */}
-        {step === 1 && builderMode === 'child' && (
-          <div className="step-panel step-1-panel child-builder-workspace">
+        
+        {/* STEP 1: Basic Child Info */}
+        {step === 1 && (
+          <div className="step-panel">
+            <div className="step-heading-group">
+              <span className="kid-badge">🧒 STEP 1: ABOUT THE CHILD</span>
+              <h2>Let's personalize your story!</h2>
+              <p>Tell us about the reader so we can make them the hero of their own adventure.</p>
+            </div>
+
+            <div className="child-builder-workspace">
+              {/* Q1: Child Name */}
+              <div className="question-block">
+                <label className="question-title">
+                  <FaSmile style={{ marginRight: '8px', color: 'var(--coral)' }} /> What is the child's name? <span className="required-star">*</span>
+                </label>
+                <input 
+                  type="text"
+                  className="form-control name-input"
+                  placeholder="e.g. Leo, Mohit, Emma"
+                  value={childName}
+                  onChange={e => setChildName(e.target.value)}
+                />
+              </div>
+
+              {/* Q2: Age */}
+              <div className="question-block">
+                <label className="question-title">
+                  <FaChild style={{ marginRight: '8px', color: 'var(--sky)' }} /> How old is the child? <span className="required-star">*</span>
+                </label>
+                <input 
+                  type="number"
+                  className="form-control name-input"
+                  placeholder="e.g. 7"
+                  min="3"
+                  max="14"
+                  value={childAge}
+                  onChange={e => setChildAge(e.target.value)}
+                />
+              </div>
+
+              {/* Q3: Gender */}
+              <div className="question-block">
+                <label className="question-title">
+                  <FaStar style={{ marginRight: '8px', color: 'var(--orange)' }} /> Child's Gender
+                </label>
+                <div className="avatar-grid-select compact-grid">
+                  {genders.map(g => (
+                    <button
+                      key={g.id}
+                      className={`avatar-select-card ${childGender === g.id ? 'active' : ''}`}
+                      onClick={() => setChildGender(g.id)}
+                    >
+                      <span className="avatar-select-emoji">{g.label.split(' ')[0]}</span>
+                      <span className="avatar-select-name">{g.label.split(' ')[1]}</span>
+                      <span className="avatar-select-desc">{g.desc}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Q4: Family Members */}
+              <div className="question-block">
+                <label className="question-title">
+                  <FaUserFriends style={{ marginRight: '8px', color: 'var(--purple)' }} /> Family Details (Who lives at home? Name them!)
+                </label>
+                <input 
+                  type="text"
+                  className="form-control name-input"
+                  placeholder="e.g. Mom, Dad, and baby sister Mira"
+                  value={familyDetails}
+                  onChange={e => setFamilyDetails(e.target.value)}
+                />
+              </div>
+
+              {/* Q5: Favorite Things */}
+              <div className="question-block">
+                <label className="question-title">
+                  <FaHeart style={{ marginRight: '8px', color: 'var(--pink)' }} /> Favorite Things (Hobbies, toys, favorite food)
+                </label>
+                <input 
+                  type="text"
+                  className="form-control name-input"
+                  placeholder="e.g. dinosaurs, building blocks, and mangoes"
+                  value={favoriteThings}
+                  onChange={e => setFavoriteThings(e.target.value)}
+                />
+              </div>
+
+              {/* Q6: Special Interests / Fears */}
+              <div className="question-block">
+                <label className="question-title">
+                  <FaBolt style={{ marginRight: '8px', color: 'var(--mint)' }} /> Special Interests or Fears (Optional)
+                </label>
+                <input 
+                  type="text"
+                  className="form-control name-input"
+                  placeholder="e.g. loves trains, scared of thunder, curious about volcanoes"
+                  value={specialInterests}
+                  onChange={e => setSpecialInterests(e.target.value)}
+                />
+                <span className="helper-text">We'll weave interests into the story and avoid scary triggers.</span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* STEP 2 (Kids Mode): 8 Fun Questions */}
+        {step === 2 && builderMode === 'child' && (
+          <div className="step-panel">
             <div className="step-heading-group">
               <span className="kid-badge">🧒 KIDS WORKSPACE</span>
-              <h2 className="serif-heading">Let's build your story!</h2>
-              <p className="text-muted">Answer these simple questions to make a magical tale.</p>
+              <h2>Let's build your story outline!</h2>
+              <p>Answer these 8 fun questions to shape your adventure.</p>
             </div>
 
-            {/* Q1: Child Name */}
-            <div className="question-block">
-              <label className="question-title">What is your hero's name?</label>
-              <input 
-                type="text"
-                className="form-control name-input"
-                placeholder="e.g. Leo, Bruno, Mohit"
-                value={childName}
-                onChange={e => setChildName(e.target.value)}
-              />
-            </div>
-
-            {/* Q2: Select Hero Character */}
-            <div className="question-block">
-              <label className="question-title">Who is the main hero?</label>
-              <div className="avatar-grid-select">
-                {animals.map(item => (
-                  <button
-                    key={item.id}
-                    className={`avatar-select-card ${heroAnimal === item.id ? 'active' : ''}`}
-                    onClick={() => setHeroAnimal(item.id)}
-                  >
-                    <span className="avatar-select-emoji">{item.label.split(' ')[1]}</span>
-                    <span className="avatar-select-name">{item.label.split(' ')[0]}</span>
-                    <span className="avatar-select-desc">{item.desc}</span>
-                  </button>
-                ))}
+            <div className="child-builder-workspace">
+              {/* Q1: Hero character */}
+              <div className="question-block">
+                <label className="question-title">1. 🦁 Choose your main character:</label>
+                <div className="avatar-grid-select">
+                  {animals.map(item => (
+                    <button
+                      key={item.id}
+                      className={`avatar-select-card ${heroAnimal === item.id ? 'active' : ''}`}
+                      onClick={() => setHeroAnimal(item.id)}
+                    >
+                      <span className="avatar-select-emoji">{item.label.split(' ')[1]}</span>
+                      <span className="avatar-select-name">{item.label.split(' ')[0]}</span>
+                      <span className="avatar-select-desc">{item.desc}</span>
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
 
-            {/* Q3: Job/Superpower */}
-            <div className="question-block">
-              <label className="question-title">What is their job or superpower?</label>
-              <div className="avatar-grid-select">
-                {jobs.map(item => (
-                  <button
-                    key={item.id}
-                    className={`avatar-select-card ${heroJob === item.id ? 'active' : ''}`}
-                    onClick={() => setHeroJob(item.id)}
-                  >
-                    <span className="avatar-select-emoji">{item.label.split(' ')[1]}</span>
-                    <span className="avatar-select-name">{item.label.split(' ')[0]}</span>
-                    <span className="avatar-select-desc">{item.desc}</span>
-                  </button>
-                ))}
+              {/* Q2: Job */}
+              <div className="question-block">
+                <label className="question-title">2. 🎭 What is their job or superpower?</label>
+                <div className="avatar-grid-select">
+                  {jobs.map(item => (
+                    <button
+                      key={item.id}
+                      className={`avatar-select-card ${heroJob === item.id ? 'active' : ''}`}
+                      onClick={() => setHeroJob(item.id)}
+                    >
+                      <span className="avatar-select-emoji">{item.label.split(' ')[1]}</span>
+                      <span className="avatar-select-name">{item.label.split(' ')[0]}</span>
+                      <span className="avatar-select-desc">{item.desc}</span>
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
 
-            {/* Q4: Favorite Cape Color */}
-            <div className="question-block">
-              <label className="question-title">What color is their magic cape?</label>
-              <div className="color-selectors-row">
-                {colors.map(c => (
-                  <button
-                    key={c.id}
-                    className={`color-pill-btn ${heroColor === c.id ? 'active' : ''}`}
-                    style={{ '--color-tint': c.value }}
-                    onClick={() => setHeroColor(c.id)}
-                  >
-                    <span className="color-swatch-circle" style={{ backgroundColor: c.value }}></span>
-                    <span>{c.label}</span>
-                  </button>
-                ))}
+              {/* Q3: Magic Cape Color */}
+              <div className="question-block">
+                <label className="question-title">3. 🎨 Pick a magic cape color:</label>
+                <div className="color-selectors-row">
+                  {colors.map(c => (
+                    <button
+                      key={c.id}
+                      className={`color-pill-btn ${heroColor === c.id ? 'active' : ''}`}
+                      style={{ '--color-tint': c.value }}
+                      onClick={() => setHeroColor(c.id)}
+                    >
+                      <span className="color-swatch-circle" style={{ backgroundColor: c.value }}></span>
+                      <span>{c.label}</span>
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
 
-            {/* Q5: Location Setting */}
-            <div className="question-block">
-              <label className="question-title">Where does the adventure happen?</label>
-              <div className="location-cards-row">
-                {settings.map(s => (
-                  <button
-                    key={s.id}
-                    className={`setting-select-card ${setting === s.id ? 'active' : ''}`}
-                    onClick={() => setSetting(s.id)}
-                  >
-                    <span className="setting-label">{s.label}</span>
-                  </button>
-                ))}
+              {/* Q4: Setting */}
+              <div className="question-block">
+                <label className="question-title">4. 🌍 Where should the story take place?</label>
+                <div className="location-cards-row">
+                  {settingsData.map(s => (
+                    <button
+                      key={s.id}
+                      className={`setting-select-card ${setting === s.id ? 'active' : ''}`}
+                      onClick={() => setSetting(s.id)}
+                    >
+                      <span className="setting-label">{s.label}</span>
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
 
-            {/* Q6: Story Goal */}
-            <div className="question-block">
-              <label className="question-title">What is the story's challenge or goal?</label>
-              <div className="goals-selectors-stack">
-                {goals.map(g => (
-                  <button
-                    key={g.id}
-                    className={`goal-stack-bar ${goal === g.id ? 'active' : ''}`}
-                    onClick={() => setGoal(g.id)}
-                  >
-                    <span>{g.label}</span>
-                  </button>
-                ))}
+              {/* Q5: Companion */}
+              <div className="question-block">
+                <label className="question-title">5. 🤝 Who is the funny sidekick?</label>
+                <div className="location-cards-row">
+                  {companions.map(c => (
+                    <button
+                      key={c.id}
+                      className={`setting-select-card ${companion === c.id ? 'active' : ''}`}
+                      onClick={() => setCompanion(c.id)}
+                    >
+                      <span className="setting-label">{c.label}</span>
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
 
-            {/* Preview Box of dynamic prompt for parents to see */}
-            <div className="prompt-live-preview-box">
-              <h5 className="preview-label">📝 AI STORY PROMPT CONSTRUCTED:</h5>
-              <p className="preview-text">"{prompt}"</p>
+              {/* Q6: Story Mood */}
+              <div className="question-block">
+                <label className="question-title">6. 🎭 What mood should the story have?</label>
+                <div className="avatar-grid-select compact-grid">
+                  {moods.map(item => (
+                    <button
+                      key={item.id}
+                      className={`avatar-select-card ${storyMood === item.id ? 'active' : ''}`}
+                      onClick={() => setStoryMood(item.id)}
+                    >
+                      <span className="avatar-select-emoji">{item.label.split(' ')[0]}</span>
+                      <span className="avatar-select-name">{item.label.split(' ').slice(1).join(' ')}</span>
+                      <span className="avatar-select-desc">{item.desc}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Q7: Magic Power */}
+              <div className="question-block">
+                <label className="question-title">7. ⚡ What magic power does your hero have?</label>
+                <div className="avatar-grid-select">
+                  {magicPowers.map(item => (
+                    <button
+                      key={item.id}
+                      className={`avatar-select-card ${magicPower === item.id ? 'active' : ''}`}
+                      onClick={() => setMagicPower(item.id)}
+                    >
+                      <span className="avatar-select-emoji">{item.label.split(' ')[0]}</span>
+                      <span className="avatar-select-name">{item.label.split(' ').slice(1).join(' ')}</span>
+                      <span className="avatar-select-desc">{item.desc}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Q8: Story Ending */}
+              <div className="question-block">
+                <label className="question-title">8. 🏁 How should the story end?</label>
+                <div className="avatar-grid-select compact-grid">
+                  {storyEndings.map(item => (
+                    <button
+                      key={item.id}
+                      className={`avatar-select-card ${storyEnding === item.id ? 'active' : ''}`}
+                      onClick={() => setStoryEnding(item.id)}
+                    >
+                      <span className="avatar-select-emoji">{item.label.split(' ')[0]}</span>
+                      <span className="avatar-select-name">{item.label.split(' ').slice(1).join(' ')}</span>
+                      <span className="avatar-select-desc">{item.desc}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
         )}
 
-        {/* Step 1 (Custom Mode): Traditional prompt textarea */}
-        {step === 1 && builderMode === 'custom' && (
-          <div className="step-panel step-1-panel">
+        {/* STEP 2 (Parents / Teachers Mode): 16 Advanced Questions */}
+        {step === 2 && builderMode === 'custom' && (
+          <div className="step-panel">
             <div className="step-heading-group">
-              <FaPen className="step-heading-icon" />
-              <h2 className="serif-heading">Write your custom prompt</h2>
-              <p className="text-muted">Perfect for parents or teachers. Describe any custom narrative outline you want.</p>
-            </div>
-            <div className="prompt-input-group">
-              <textarea
-                className="form-control prompt-textarea"
-                rows="5"
-                placeholder="A friendly bear learns how to share honey..."
-                value={prompt}
-                onChange={e => setPrompt(e.target.value)}
-              />
-              <div className="prompt-char-count text-muted">
-                {prompt.length} / 500 characters
-              </div>
+              <span className="kid-badge">🛠️ PARENT & TEACHER CONTROL</span>
+              <h2>Customize the educational experience</h2>
+              <p>Configure advanced plot outlines, moral lessons, and reading complexity parameters.</p>
             </div>
 
-            <div className="prompt-suggestions">
-              <span className="text-muted" style={{ fontSize: '0.8rem', fontWeight: 700 }}>Try these:</span>
-              {[
-                'A brave kite that flies above the clouds',
-                'Two siblings discover a map inside an old clock',
-                'A shy caterpillar finds its singing voice'
-              ].map((s, i) => (
-                <button key={i} className="suggestion-chip" onClick={() => setPrompt(s)}>
-                  {s}
-                </button>
-              ))}
+            <div className="child-builder-workspace">
+              
+              {/* GROUP 1: Learning Config */}
+              <div className="style-section">
+                <h4 className="style-section-title">📚 Reading & Learning Settings</h4>
+                <div className="form-group">
+                  <label className="form-label">Story Language</label>
+                  <select className="form-control" value={language} onChange={e => setLanguage(e.target.value)}>
+                    <option value="bilingual">Bilingual (English + Spanish Side-by-Side)</option>
+                    <option value="en">English Only</option>
+                    <option value="es">Spanish Only</option>
+                    <option value="hi">Hindi + English</option>
+                  </select>
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">Grade / Vocabulary Level</label>
+                  <select className="form-control" value={grade} onChange={e => setGrade(e.target.value)}>
+                    <option value="grade-1">Grade 1 (Ages 5-6)</option>
+                    <option value="grade-2">Grade 2 (Ages 7-8)</option>
+                    <option value="grade-3">Grade 3 (Ages 8-9)</option>
+                    <option value="grade-4">Grade 4 (Ages 9-10)</option>
+                    <option value="grade-5">Grade 5 (Ages 10-12)</option>
+                  </select>
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">Vocabulary Focus Theme</label>
+                  <select className="form-control" value={vocabTheme} onChange={e => setVocabTheme(e.target.value)}>
+                    <option value="science">Science & Space Vocabulary</option>
+                    <option value="nature">Nature & Animals Vocabulary</option>
+                    <option value="emotions">Emotions & Social-Emotional Words</option>
+                    <option value="everyday">Everyday household objects & verbs</option>
+                    <option value="math">Math & Numbers Vocabulary</option>
+                  </select>
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">📖 Reading Difficulty Level</label>
+                  <select className="form-control" value={readingDifficulty} onChange={e => setReadingDifficulty(e.target.value)}>
+                    <option value="easy">Easy — Short sentences, simple words</option>
+                    <option value="medium">Medium — Mixed sentence lengths, some new words</option>
+                    <option value="hard">Hard — Complex vocabulary, longer paragraphs</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* GROUP 2: Moral & Behavior */}
+              <div className="style-section">
+                <h4 className="style-section-title">🌟 Moral & Behavioral Focus</h4>
+                <div className="form-group">
+                  <label className="form-label">Core Story Moral / Life Lesson</label>
+                  <select className="form-control" value={moral} onChange={e => setMoral(e.target.value)}>
+                    <option value="kindness">Kindness & Helping others</option>
+                    <option value="sharing">Sharing and collaboration</option>
+                    <option value="persistence">Persistence (Never giving up)</option>
+                    <option value="honesty">Honesty and integrity</option>
+                    <option value="empathy">Empathy & understanding feelings</option>
+                    <option value="gratitude">Gratitude & being thankful</option>
+                  </select>
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">Habit or Action to Encourage (e.g. bedtime, eating greens)</label>
+                  <input 
+                    type="text" 
+                    className="form-control" 
+                    value={encouragedBehavior} 
+                    onChange={e => setEncouragedBehavior(e.target.value)} 
+                    placeholder="e.g. brushing teeth, packing school bags"
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">🌙 Bedtime Safe? (No scary elements)</label>
+                  <select className="form-control" value={bedtimeSafe} onChange={e => setBedtimeSafe(e.target.value)}>
+                    <option value="yes">Yes — Calm, cozy, no scary scenes</option>
+                    <option value="no">No — Mild tension & suspense is OK</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* GROUP 3: Characters & Artifacts */}
+              <div className="style-section">
+                <h4 className="style-section-title">🔮 Characters & Adventure Details</h4>
+                <div className="form-group">
+                  <label className="form-label">Hero's Companion / Sidekick</label>
+                  <select className="form-control" value={sidekick} onChange={e => setSidekick(e.target.value)}>
+                    <option value="wise-owl">A wise old owl 🦉</option>
+                    <option value="helpful-robot">A helpful little robot 🤖</option>
+                    <option value="bouncy-pup">A bouncy playful puppy 🐶</option>
+                    <option value="magical-fairy">A guide fairy 🧚</option>
+                    <option value="baby-dragon">A baby dragon 🐲</option>
+                  </select>
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">Key Magical Tool / Artifact</label>
+                  <select className="form-control" value={magicObject} onChange={e => setMagicObject(e.target.value)}>
+                    <option value="secret-map">A secret glowing map 🧭</option>
+                    <option value="talking-key">A talking key that fits any door 🔑</option>
+                    <option value="truth-compass">A truth compass that points to what you need 🧭</option>
+                    <option value="magic-wand">A bubble-blowing magic wand 🪄</option>
+                    <option value="enchanted-book">An enchanted book of spells 📖</option>
+                  </select>
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">Story Antagonist / Rival</label>
+                  <select className="form-control" value={rival} onChange={e => setRival(e.target.value)}>
+                    <option value="none">None (Focus entirely on exploration)</option>
+                    <option value="silly-shadow">A silly shadow that hides things 👥</option>
+                    <option value="greedy-goblin">A greedy goblin who keeps all the keys 👹</option>
+                    <option value="mischief-monkey">A mischievous monkey causing chaos 🐒</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* GROUP 4: Tone & Art Direction */}
+              <div className="style-section">
+                <h4 className="style-section-title">🎨 Art & Tone Direction</h4>
+                <div className="form-group">
+                  <label className="form-label">Illustration Art Style</label>
+                  <select className="form-control" value={artStyle} onChange={e => setArtStyle(e.target.value)}>
+                    <option value="watercolor">Watercolor Children's Book 🎨</option>
+                    <option value="claymation">Cozy Claymation 🧸</option>
+                    <option value="pixel-art">Retro 8-Bit Pixel Art 👾</option>
+                    <option value="sketch">Beautiful Pencil Sketches ✏️</option>
+                    <option value="anime">Anime / Manga Style 🎌</option>
+                  </select>
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">Narrative Tone</label>
+                  <select className="form-control" value={tone} onChange={e => setTone(e.target.value)}>
+                    <option value="whimsical">Whimsical & Magical ✨</option>
+                    <option value="cozy">Cozy & Calm (Good for bedtime) 🌙</option>
+                    <option value="adventurous">Exciting & Action-Packed 🚀</option>
+                    <option value="funny">Funny & Silly 🤣</option>
+                  </select>
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">Child Pronoun Preferences</label>
+                  <select className="form-control" value={pronoun} onChange={e => setPronoun(e.target.value)}>
+                    <option value="he">He / Him</option>
+                    <option value="she">She / Her</option>
+                    <option value="they">They / Them</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* GROUP 5: Story Structure */}
+              <div className="style-section">
+                <h4 className="style-section-title">📐 Story Structure</h4>
+                <div className="form-group">
+                  <label className="form-label">📄 Number of Story Pages</label>
+                  <div className="page-count-selector">
+                    {['3', '5', '8', '10'].map(n => (
+                      <button
+                        key={n}
+                        type="button"
+                        className={`page-count-btn ${numPages === n ? 'active' : ''}`}
+                        onClick={() => setNumPages(n)}
+                      >
+                        {n} pages
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">Story Length (words per page)</label>
+                  <select className="form-control" value={storyLength} onChange={e => setStoryLength(e.target.value)}>
+                    <option value="short">Short (30-50 words per page)</option>
+                    <option value="medium">Medium (50-80 words per page)</option>
+                    <option value="long">Long (80-120 words per page)</option>
+                  </select>
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">🌏 Cultural Elements & Setting Inspiration</label>
+                  <select className="form-control" value={culturalElements} onChange={e => setCulturalElements(e.target.value)}>
+                    <option value="mixed">Mixed / Universal</option>
+                    <option value="indian">Indian (Festivals, food, desi values)</option>
+                    <option value="western">Western (Fairy tales, knights, forests)</option>
+                    <option value="japanese">Japanese (Sakura, shrines, honor)</option>
+                    <option value="african">African (Savannas, drums, oral tradition)</option>
+                    <option value="latin-american">Latin American (Festivals, jungle, warmth)</option>
+                  </select>
+                </div>
+              </div>
             </div>
           </div>
         )}
 
-        {/* Step 2: Choose Style */}
-        {step === 2 && (
-          <div className="step-panel step-2-panel">
-            <div className="step-heading-group">
-              <FaPaintBrush className="step-heading-icon" />
-              <h2 className="serif-heading">Choose your art direction</h2>
-              <p className="text-muted">Select illustration style, tone, and reading level for the story.</p>
-            </div>
-
-            <div className="style-section">
-              <h4 className="style-section-title">Illustration Style</h4>
-              <div className="style-options-row">
-                {artStyles.map(s => (
-                  <button 
-                    key={s.id} 
-                    className={`style-option-card ${artStyle === s.id ? 'selected' : ''}`}
-                    onClick={() => setArtStyle(s.id)}
-                  >
-                    <span className="style-emoji">{s.emoji}</span>
-                    <span className="style-label">{s.label}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="style-section">
-              <h4 className="style-section-title">Story Tone</h4>
-              <div className="style-options-row">
-                {tones.map(t => (
-                  <button 
-                    key={t.id} 
-                    className={`tone-chip ${tone === t.id ? 'selected' : ''}`}
-                    onClick={() => setTone(t.id)}
-                  >
-                    {t.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="style-section">
-              <h4 className="style-section-title">Grade Level</h4>
-              <div className="grade-options">
-                {grades.map(g => (
-                  <button
-                    key={g.id}
-                    className={`grade-option ${grade === g.id ? 'selected' : ''}`}
-                    onClick={() => setGrade(g.id)}
-                  >
-                    {g.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Step 3: AI Generation Loader */}
+        {/* STEP 3: AI Generation Loader */}
         {step === 3 && (
           <div className="step-panel step-3-panel">
             <div className="gen-center-wrapper">
               <div className="gen-magic-orb">
                 <FaMagic className={`gen-magic-icon ${genDone ? 'done' : 'spinning'}`} />
               </div>
-
-              <h2 className="serif-heading gen-title">
-                {genDone ? 'Your story is ready!' : 'Creating your storybook...'}
+              <h2 className="gen-title serif-heading">
+                {genDone ? 'Storybook Bound & Ready!' : 'Calling Gemini to Write Story...'}
               </h2>
-
               <div className="gen-progress-bar-track">
                 <div 
                   className="gen-progress-bar-fill" 
@@ -611,58 +862,77 @@ export default function StoryCreator() {
                 />
               </div>
               <span className="gen-progress-pct">{Math.round(genProgress)}%</span>
-
               <div className="gen-messages-feed">
                 {genMessages.map((msg, idx) => (
-                  <div 
-                    key={idx} 
-                    className="gen-message-item"
-                    style={{ animationDelay: `${idx * 0.1}s` }}
-                  >
-                    {msg}
-                  </div>
+                  <div key={idx} className="gen-message-item">{msg}</div>
                 ))}
               </div>
             </div>
           </div>
         )}
 
-        {/* Step 4: Preview & Edit */}
+        {/* STEP 4: Interactive Preview */}
         {step === 4 && (
           <div className="step-panel step-4-panel">
             <div className="step-heading-group">
               <FaBookOpen className="step-heading-icon" />
-              <h2 className="serif-heading">Preview your storybook</h2>
-              <p className="text-muted">Review and edit each page before publishing. Click any text to modify it.</p>
+              <h2 className="serif-heading">Preview your Storybook</h2>
+              <p className="text-muted">Click any page block below to edit or tweak the generated text.</p>
             </div>
 
             <div className="preview-pages">
               {pages.map((page, idx) => (
                 <div key={idx} className="preview-page-card">
                   <div className="preview-page-illustration">
-                    {pageIllustrations[idx]}
-                    <span className="page-number-badge">Page {idx + 1}</span>
+                    <span className="page-number-badge">Page {page.page_number}</span>
+                    <div style={{ textAlign: 'center', padding: '2rem' }}>
+                      <span style={{ fontSize: '3rem' }}>🎨</span>
+                      <p className="text-muted" style={{ fontSize: '0.8rem', marginTop: '0.5rem', fontWeight: 700 }}>
+                        {page.illustration_prompt || 'Custom illustration details'}
+                      </p>
+                    </div>
                   </div>
+                  
                   <div className="preview-page-text-area">
                     {editingPage === idx ? (
                       <div className="edit-mode">
+                        <label style={{ fontSize: '0.75rem', fontWeight: 800 }}>English Page Content</label>
                         <textarea
                           className="form-control page-edit-textarea"
-                          rows="4"
-                          defaultValue={page.text}
-                          autoFocus
+                          rows="3"
+                          defaultValue={page.text_en}
                           onBlur={(e) => handlePageEdit(idx, e.target.value)}
                         />
-                        <span className="text-muted" style={{ fontSize: '0.75rem' }}>Click away or Tab to save</span>
+                        <label style={{ fontSize: '0.75rem', fontWeight: 800, marginTop: '0.5rem' }}>Spanish/Hindi Translation</label>
+                        <textarea
+                          className="form-control page-edit-textarea"
+                          rows="3"
+                          defaultValue={page.text_es}
+                          onBlur={(e) => handlePageEditEs(idx, e.target.value)}
+                        />
+                        <span className="text-muted" style={{ fontSize: '0.75rem' }}>Click out of input box to save changes</span>
                       </div>
                     ) : (
-                      <p 
-                        className="page-text serif-heading" 
-                        onClick={() => setEditingPage(idx)}
-                        title="Click to edit"
-                      >
-                        {page.text}
-                      </p>
+                      <div style={{ width: '100%' }}>
+                        <p className="page-text serif-heading" onClick={() => setEditingPage(idx)} title="Click to edit English text">
+                          {page.text_en}
+                        </p>
+                        {page.text_es && (
+                          <p className="page-text serif-heading text-muted" onClick={() => setEditingPage(idx)} title="Click to edit translation text" style={{ borderTop: '1px solid var(--border-color)', marginTop: '0.5rem', paddingTop: '0.5rem' }}>
+                            {page.text_es}
+                          </p>
+                        )}
+                        {page.dictionary && Object.keys(page.dictionary).length > 0 && (
+                          <div className="page-vocab-section">
+                            <span className="vocab-badge">📖 Vocabulary</span>
+                            {Object.entries(page.dictionary).map(([word, def]) => (
+                              <div key={word} className="vocab-entry">
+                                <strong>{word}:</strong> {def}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
                     )}
                   </div>
                 </div>
@@ -674,27 +944,33 @@ export default function StoryCreator() {
 
       {/* Navigation Buttons */}
       <div className="creator-nav-buttons">
-        {step > 1 && (
+        {step > 1 && step !== 3 && (
           <button className="btn btn-outline" onClick={() => { setStep(step - 1); if (step === 4) setGenDone(false); }}>
             <FaArrowLeft /> Back
           </button>
         )}
         <div style={{ flex: 1 }}></div>
-        {step < 4 ? (
+        {step < 3 ? (
           <button 
             className="btn btn-primary" 
             onClick={() => setStep(step + 1)}
-            disabled={step === 1 && builderMode === 'custom' && !prompt.trim()}
+            disabled={!canProceed()}
+            title={!canProceed() ? 'Please fill required fields' : ''}
           >
-            {step === 3 ? (genDone ? 'See Preview' : 'Generating...') : 'Continue'} <FaArrowRight />
+            Continue <FaArrowRight />
+          </button>
+        ) : step === 3 ? (
+          <button className="btn btn-primary" onClick={() => setStep(4)} disabled={!genDone}>
+            See Preview <FaArrowRight />
           </button>
         ) : (
-          <button className="btn btn-primary" onClick={() => navigate('/story/1')}>
-            <FaBookOpen /> Read This Story
+          <button className="btn btn-primary" onClick={() => navigate(`/story/${generatedStoryId || 1}`)}>
+            <FaBookOpen /> Open Reader
           </button>
         )}
       </div>
 
+      {/* Stylesheet Block */}
       <style>{`
         .creator-container {
           min-height: 100vh;
@@ -971,6 +1247,8 @@ export default function StoryCreator() {
         .name-input:focus {
           background-color: #FFFFFF;
           border-color: var(--coral);
+          outline: none;
+          box-shadow: var(--shadow-glow-coral);
         }
 
         .avatar-grid-select {
@@ -1104,111 +1382,7 @@ export default function StoryCreator() {
           box-shadow: var(--shadow-glow-sky);
         }
 
-        .goals-selectors-stack {
-          display: flex;
-          flex-direction: column;
-          gap: 0.65rem;
-        }
-
-        .goal-stack-bar {
-          padding: 1.15rem 1.5rem;
-          border-radius: var(--radius-md);
-          border: 2px solid var(--border-color);
-          border-bottom: 4px solid var(--border-color);
-          background-color: #FFFFFF;
-          font-size: 1rem;
-          font-weight: 700;
-          color: var(--text-primary);
-          text-align: left;
-          cursor: pointer;
-          transition: var(--transition-bounce);
-        }
-
-        .goal-stack-bar:hover {
-          transform: translateX(4px);
-          border-color: var(--text-secondary);
-        }
-
-        .goal-stack-bar.active {
-          background-color: var(--mint-light);
-          border-color: var(--mint);
-          border-bottom-color: var(--mint);
-          font-weight: 800;
-          transform: translateX(6px) translateY(-2px);
-          box-shadow: var(--shadow-glow-mint);
-        }
-
-        .prompt-live-preview-box {
-          background: linear-gradient(135deg, var(--coral-light), var(--sunshine-light));
-          border: 2px dashed rgba(255, 107, 107, 0.4);
-          border-radius: var(--radius-lg);
-          padding: 1.75rem;
-          box-shadow: var(--shadow-sm);
-        }
-
-        .preview-label {
-          font-size: 0.8rem;
-          letter-spacing: 0.08em;
-          color: var(--coral);
-          margin-bottom: 0.65rem;
-          font-weight: 900;
-        }
-
-        .preview-text {
-          font-size: 1.15rem;
-          line-height: 1.6;
-          font-family: var(--font-display);
-          color: var(--text-primary);
-          margin: 0;
-        }
-
-        /* Step 1 (Custom) */
-        .prompt-textarea {
-          font-family: var(--font-sans);
-          font-size: 1.15rem;
-          font-weight: 600;
-          line-height: 1.6;
-          resize: vertical;
-          min-height: 140px;
-          border: 2px solid var(--border-color);
-          border-radius: var(--radius-md);
-          padding: 1.25rem;
-        }
-
-        .prompt-char-count {
-          text-align: right;
-          font-size: 0.85rem;
-          font-weight: 700;
-          margin-top: 0.5rem;
-        }
-
-        .prompt-suggestions {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 0.65rem;
-          margin-top: 2rem;
-          align-items: center;
-        }
-
-        .suggestion-chip {
-          padding: 0.5rem 1.15rem;
-          border-radius: var(--radius-full);
-          font-size: 0.85rem;
-          font-weight: 700;
-          background-color: #FFFFFF;
-          color: var(--text-primary);
-          border: 2px solid var(--border-color);
-          transition: var(--transition-bounce);
-        }
-
-        .suggestion-chip:hover {
-          border-color: var(--coral);
-          color: var(--coral);
-          background-color: var(--coral-light);
-          transform: translateY(-2px);
-        }
-
-        /* Step 2 */
+        /* Parents / Teachers custom styling overrides */
         .style-section {
           margin-bottom: 2.5rem;
           background-color: #FFFFFF;
@@ -1221,111 +1395,117 @@ export default function StoryCreator() {
         .style-section-title {
           font-size: 1.15rem;
           font-weight: 800;
-          margin-bottom: 1.25rem;
+          margin-bottom: 1.5rem;
           color: var(--text-primary);
           border-bottom: 2px solid var(--bg-color);
           padding-bottom: 0.5rem;
         }
 
-        .style-options-row {
-          display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-          gap: 1rem;
-        }
-
-        .style-option-card {
+        .form-group {
+          margin-bottom: 1.5rem;
           display: flex;
           flex-direction: column;
-          align-items: center;
-          gap: 0.65rem;
-          padding: 1.5rem;
-          border: 2px solid var(--border-color);
-          border-bottom: 5px solid var(--border-color);
-          border-radius: var(--radius-md);
-          background-color: #FFFFFF;
-          transition: var(--transition-bounce);
+          gap: 0.5rem;
         }
 
-        .style-option-card:hover {
-          transform: translateY(-4px);
-          border-color: var(--text-secondary);
-        }
-
-        .style-option-card.selected {
-          border-color: var(--purple);
-          border-bottom-color: var(--purple);
-          background-color: var(--purple-light);
-          transform: translateY(-6px);
-          box-shadow: var(--shadow-glow-purple);
-        }
-
-        .style-emoji {
-          font-size: 2.5rem;
-          transition: var(--transition-bounce);
-        }
-
-        .style-option-card:hover .style-emoji {
-          transform: scale(1.15) rotate(4deg);
-        }
-
-        .style-label {
+        .form-label {
           font-size: 0.95rem;
+          font-weight: 800;
+          color: var(--text-primary);
+        }
+
+        .form-control {
+          font-size: 1rem;
+          font-weight: 700;
+          padding: 0.75rem 1.25rem;
+          border: 2px solid var(--border-color);
+          border-radius: var(--radius-sm);
+          background-color: var(--bg-color);
+          transition: var(--transition-fast);
+          width: 100%;
+        }
+
+        .form-control:focus {
+          background-color: #FFFFFF;
+          border-color: var(--coral);
+          outline: none;
+        }
+
+        /* Required star styling */
+        .required-star {
+          color: var(--coral);
           font-weight: 800;
         }
 
-        .tone-chip {
-          padding: 0.65rem 1.5rem;
-          border-radius: var(--radius-full);
-          border: 2px solid var(--border-color);
-          border-bottom: 4px solid var(--border-color);
-          font-size: 0.95rem;
-          font-weight: 700;
-          background-color: #FFFFFF;
-          transition: var(--transition-bounce);
+        .helper-text {
+          display: block;
+          font-size: 0.78rem;
+          color: var(--text-muted);
+          margin-top: 0.4rem;
+          font-style: italic;
         }
 
-        .tone-chip:hover {
-          transform: translateY(-2px);
+        .compact-grid {
+          grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)) !important;
         }
 
-        .tone-chip.selected {
-          border-color: var(--coral);
-          border-bottom-color: var(--coral);
-          background-color: var(--coral-light);
+        .page-vocab-section {
+          margin-top: 0.75rem;
+          padding: 0.75rem;
+          background: var(--bg-warm);
+          border-radius: 12px;
+          border: 1.5px dashed var(--coral);
+        }
+
+        .vocab-badge {
+          display: inline-block;
+          font-size: 0.7rem;
+          font-weight: 900;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
           color: var(--coral);
-          transform: translateY(-4px);
-          box-shadow: var(--shadow-glow-coral);
+          margin-bottom: 0.4rem;
         }
 
-        .grade-options {
-          display: grid;
-          grid-template-columns: repeat(2, 1fr);
+        .vocab-entry {
+          font-size: 0.82rem;
+          margin-top: 0.25rem;
+          color: var(--text-secondary);
+        }
+
+        .vocab-entry strong {
+          color: var(--text-primary);
+          text-transform: capitalize;
+        }
+
+        .page-count-selector {
+          display: flex;
           gap: 0.75rem;
+          flex-wrap: wrap;
         }
 
-        .grade-option {
-          padding: 1rem 1.25rem;
+        .page-count-btn {
+          padding: 0.6rem 1.4rem;
+          border-radius: 50px;
           border: 2px solid var(--border-color);
           border-bottom: 4px solid var(--border-color);
-          border-radius: var(--radius-md);
-          text-align: left;
-          font-weight: 700;
-          font-size: 0.95rem;
-          background-color: #FFFFFF;
+          background: white;
+          font-weight: 800;
+          font-size: 0.9rem;
+          cursor: pointer;
           transition: var(--transition-bounce);
         }
 
-        .grade-option:hover {
+        .page-count-btn:hover {
           transform: translateY(-2px);
         }
 
-        .grade-option.selected {
-          border-color: var(--mint);
-          border-bottom-color: var(--mint);
-          background-color: var(--mint-light);
-          color: var(--mint);
+        .page-count-btn.active {
+          background: linear-gradient(135deg, var(--coral), var(--pink));
+          color: white;
+          border-color: transparent;
+          box-shadow: var(--shadow-glow-coral);
           transform: translateY(-4px);
-          box-shadow: var(--shadow-glow-mint);
         }
 
         /* Step 3: Glowing Magic Orb Loader */
@@ -1463,13 +1643,6 @@ export default function StoryCreator() {
           border-right: 2px solid var(--border-color);
         }
 
-        .page-illustration {
-          width: 100%;
-          height: auto;
-          border-radius: var(--radius-sm);
-          box-shadow: var(--shadow-sm);
-        }
-
         .page-number-badge {
           position: absolute;
           top: 16px;
@@ -1537,6 +1710,33 @@ export default function StoryCreator() {
           z-index: 100;
         }
 
+        /* Animations */
+        @keyframes float {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-10px); }
+        }
+
+        @keyframes gradientShift {
+          0%, 100% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+        }
+
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+
+        @keyframes fadeInUp {
+          from {
+            opacity: 0;
+            transform: translateY(20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
         @media (max-width: 768px) {
           .creator-header {
             padding: 1rem 1.5rem;
@@ -1561,12 +1761,6 @@ export default function StoryCreator() {
           }
           .creator-nav-buttons {
             padding: 1.25rem 1.5rem;
-          }
-          .style-options-row {
-            grid-template-columns: 1fr;
-          }
-          .grade-options {
-            grid-template-columns: 1fr;
           }
         }
       `}</style>
