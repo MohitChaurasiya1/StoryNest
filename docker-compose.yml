@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: smart_learning_db
+    environment:
+      POSTGRES_DB: smart_learning
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgrespassword
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  backend:
+    build: ./backend
+    container_name: smart_learning_backend
+    command: >
+      sh -c "python manage.py makemigrations &&
+             python manage.py migrate &&
+             python manage.py runserver 0.0.0.0:8000"
+    volumes:
+      - ./backend:/app
+    ports:
+      - "8000:8000"
+    environment:
+      - DEBUG=True
+      - SECRET_KEY=django-insecure-+hjul9!h6iqz8ks077zcol654unzwi6cj$b_xsy@5lgw@*n#q)
+      - DB_HOST=db
+      - DB_NAME=smart_learning
+      - DB_USER=postgres
+      - DB_PASSWORD=postgrespassword
+      - DB_PORT=5432
+    depends_on:
+      - db
+
+  frontend:
+    build: ./frontend
+    container_name: smart_learning_frontend
+    command: npm run dev -- --host
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:

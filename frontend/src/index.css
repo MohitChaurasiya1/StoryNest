@@ -1,0 +1,314 @@
+/* StoryNest — Global CSS Design Tokens & Styling */
+
+/* Core Design Tokens */
+:root {
+  /* Sage & Cream Palette (Adult / Admin Dashboard / UI) */
+  --bg-color: #FBF6EC;
+  --surface-color: #FFFFFF;
+  --text-primary: #2F3B2A;
+  --text-muted: #6B7A63;
+  --primary-accent: #3D5C34;
+  --accent-hover: #33502B;
+  --soft-accent-bg: #E4EEDB;
+  --secondary-accent: #B5822A;
+  --border-color: #EFE7D3;
+  --danger-color: #B45252;
+  
+  /* Sidebar Styles (Dashboards only) */
+  --sidebar-bg: #2F3B2A;
+  --sidebar-text: #D9E2CE;
+  --sidebar-text-hover: #FFFFFF;
+  --sidebar-active-bg: #3D5C34;
+
+  /* Storybook Palette (ONLY for Illustrated Story Reader) */
+  --story-teal: #5AB0A6;
+  --story-gold: #FCE38A;
+  --story-coral: #F4A5A0;
+  --story-sage: #8FCB9B;
+  --story-navy: #3A2E6B;
+  --story-sand: #E8C27A;
+
+  /* Typography */
+  --font-serif: 'Source Serif 4', Georgia, serif;
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+
+  /* Layout and Spacing */
+  --radius-sm: 8px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --shadow-sm: 0 2px 8px rgba(47, 59, 42, 0.04);
+  --shadow-md: 0 8px 24px rgba(47, 59, 42, 0.06);
+  --shadow-lg: 0 16px 40px rgba(47, 59, 42, 0.1);
+  --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-fast: all 0.15s ease;
+}
+
+/* Reset and Base Styles */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--bg-color);
+  color: var(--text-primary);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-sans);
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+/* Serif headings selection */
+.serif-heading {
+  font-family: var(--font-serif) !important;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button, input, textarea, select {
+  font-family: inherit;
+  font-size: inherit;
+}
+
+button {
+  cursor: pointer;
+  border: none;
+  background: none;
+}
+
+/* Core Layouts */
+.app-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.dashboard-layout {
+  display: flex;
+  min-height: 100vh;
+  width: 100%;
+}
+
+.dashboard-content {
+  flex: 1;
+  padding: 2.5rem;
+  overflow-y: auto;
+  max-width: 1400px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* Typography Helpers */
+.text-muted {
+  color: var(--text-muted);
+}
+.text-gold {
+  color: var(--secondary-accent);
+}
+.text-primary {
+  color: var(--text-primary);
+}
+.text-danger {
+  color: var(--danger-color);
+}
+
+/* Utility Components */
+.card {
+  background-color: var(--surface-color);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 1.5rem;
+  box-shadow: var(--shadow-sm);
+  transition: var(--transition-smooth);
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+/* Buttons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  font-size: 0.95rem;
+  transition: var(--transition-smooth);
+  gap: 0.5rem;
+}
+
+.btn-primary {
+  background-color: var(--primary-accent);
+  color: #FFFFFF;
+}
+
+.btn-primary:hover {
+  background-color: var(--accent-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(61, 92, 52, 0.2);
+}
+
+.btn-secondary {
+  background-color: var(--soft-accent-bg);
+  color: var(--primary-accent);
+}
+
+.btn-secondary:hover {
+  background-color: #d6e5c9;
+  transform: translateY(-1px);
+}
+
+.btn-outline {
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  background-color: var(--surface-color);
+}
+
+.btn-outline:hover {
+  background-color: #F8F5EE;
+  border-color: var(--text-muted);
+}
+
+.btn-ghost {
+  color: var(--text-muted);
+}
+
+.btn-ghost:hover {
+  color: var(--text-primary);
+  background-color: var(--soft-accent-bg);
+}
+
+/* Badge and Pills */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.pill-accent {
+  background-color: var(--soft-accent-bg);
+  color: var(--primary-accent);
+}
+
+.pill-gold {
+  background-color: #FAF2DF;
+  color: var(--secondary-accent);
+}
+
+/* Forms */
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-label {
+  display: block;
+  font-weight: 600;
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+  color: var(--text-primary);
+}
+
+.form-control {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  background-color: var(--surface-color);
+  color: var(--text-primary);
+  transition: var(--transition-fast);
+}
+
+.form-control:focus {
+  outline: none;
+  border-color: var(--primary-accent);
+  box-shadow: 0 0 0 3px rgba(61, 92, 52, 0.15);
+}
+
+/* Grid Utilities */
+.grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
+}
+
+.grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+}
+
+.grid-4 {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.5rem;
+}
+
+@media (max-width: 1024px) {
+  .grid-4 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .grid-2, .grid-3, .grid-4 {
+    grid-template-columns: 1fr;
+  }
+  .dashboard-layout {
+    flex-direction: column;
+  }
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulseGlow {
+  0% { box-shadow: 0 0 0 0 rgba(61, 92, 52, 0.4); }
+  70% { box-shadow: 0 0 0 10px rgba(61, 92, 52, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(61, 92, 52, 0); }
+}
+
+@keyframes float {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-8px); }
+  100% { transform: translateY(0px); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-float {
+  animation: float 4s ease-in-out infinite;
+}
+
+.glow-effect {
+  animation: pulseGlow 2s infinite;
+}
+
+/* Donut Chart styles */
+.donut-segment {
+  transform: rotate(-90deg);
+  transform-origin: 50% 50%;
+  transition: stroke-dashoffset 1s ease-out;
+}
