@@ -16,7 +16,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('title_en', models.CharField(default='A New Adventure', max_length=255)),
-                ('title_es', models.CharField(default='Una Nueva Aventura', max_length=255)),
+                ('title_hi', models.CharField(default='एक नया रोमांच', max_length=255)),
                 ('child_name', models.CharField(max_length=100)),
                 ('child_age', models.IntegerField(blank=True, null=True)),
                 ('child_gender', models.CharField(default='boy', max_length=50)),
@@ -54,7 +54,7 @@ class Migration(migrations.Migration):
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('page_number', models.IntegerField()),
                 ('text_en', models.TextField()),
-                ('text_es', models.TextField(blank=True, null=True)),
+                ('text_hi', models.TextField(blank=True, null=True)),
                 ('illustration_prompt', models.TextField(blank=True, null=True)),
                 ('dictionary', models.JSONField(blank=True, default=dict)),
                 ('story', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='pages', to='api.story')),

@@ -23,7 +23,7 @@ class User(AbstractUser):
 
 class Story(models.Model):
     title_en = models.CharField(max_length=255, default="A New Adventure")
-    title_es = models.CharField(max_length=255, default="Una Nueva Aventura")
+    title_hi = models.CharField(max_length=255, default="एक नया रोमांच")
     child_name = models.CharField(max_length=100)
     child_age = models.IntegerField(null=True, blank=True)
     child_gender = models.CharField(max_length=50, default='boy')
@@ -67,7 +67,7 @@ class StoryPage(models.Model):
     story = models.ForeignKey(Story, on_delete=models.CASCADE, related_name='pages')
     page_number = models.IntegerField()
     text_en = models.TextField()
-    text_es = models.TextField(blank=True, null=True)
+    text_hi = models.TextField(blank=True, null=True)
     illustration_prompt = models.TextField(blank=True, null=True)
     dictionary = models.JSONField(default=dict, blank=True)
 

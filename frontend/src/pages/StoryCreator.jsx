@@ -155,7 +155,7 @@ export default function StoryCreator() {
       `🧭 Constructing the setting: ${builderMode === 'child' ? setting : 'the magical world'}...`,
       `🎨 Instructing Gemini for structured page responses...`,
       `🦁 Drawing matching illustrations in ${artStyle} style...`,
-      `🌍 Adding bilingual English & Spanish translations...`,
+      `🌍 Adding bilingual English & Hindi translations...`,
       `🔑 Generating interactive vocabulary blocks...`,
       `📘 Binding your custom Storybook...`
     ];
@@ -258,51 +258,51 @@ export default function StoryCreator() {
     const templates = [
       {
         text_en: `Once upon a time, ${heroName} the brave ${animal} woke up in the ${place} wearing a shimmering ${color} cape! Today was the day of the Grand Adventure.`,
-        text_es: `Érase una vez, ${heroName} el valiente ${animal} se despertó en el ${place} con una capa brillante de color ${color}. ¡Hoy era el día de la Gran Aventura!`,
+        text_hi: `एक बार की बात है, बहादुर ${animal} ${heroName} ${place} में एक चमचमाती ${color} चादर पहनकर जागा! आज महान साहसिक यात्रा का दिन था।`,
         illustration_prompt: `A cute ${animal} character with a ${color} cape standing in ${place}, children's book illustration style`,
-        dictionary: { adventure: 'An exciting journey into the unknown', cape: 'A flowing cloth worn on the shoulders' }
+        dictionary: { adventure: 'An exciting journey into the unknown (साहसिक यात्रा)', cape: 'A flowing cloth worn on the shoulders (लबादा)' }
       },
       {
         text_en: `${heroName} discovered ${buddy} hiding behind a giant crystal. "Want to come along?" asked ${heroName}. The ${buddy} jumped with joy!`,
-        text_es: `${heroName} descubrió a ${buddy} escondido detrás de un cristal gigante. "¿Quieres venir?" preguntó ${heroName}. ¡El ${buddy} saltó de alegría!`,
+        text_hi: `${heroName} ने ${buddy} को एक विशाल क्रिस्टल के पीछे छिपा हुआ पाया। "क्या तुम साथ चलोगे?" ${heroName} ने पूछा। ${buddy} खुशी से उछल पड़ा!`,
         illustration_prompt: `The ${animal} meeting ${buddy} near a giant crystal in ${place}`,
-        dictionary: { companion: 'A friend who travels with you', crystal: 'A beautiful clear stone' }
+        dictionary: { companion: 'A friend who travels with you (साथी)', crystal: 'A beautiful clear stone (क्रिस्टल)' }
       },
       {
         text_en: `Together, they faced the Twisting Tunnel of Echoes. ${heroName} used the power to ${power} and carried everyone safely across!`,
-        text_es: `Juntos, enfrentaron el Túnel Retorcido de los Ecos. ¡${heroName} usó el poder de ${power} y llevó a todos a salvo al otro lado!`,
+        text_hi: `साथ मिलकर, उन्होंने गूंजती सुरंग का सामना किया। ${heroName} ने ${power} की शक्ति का उपयोग किया और सबको सुरक्षित पार ले गया!`,
         illustration_prompt: `The heroes navigating through a magical tunnel with echoing lights`,
-        dictionary: { tunnel: 'A long underground passage', courage: 'Being brave when scared' }
+        dictionary: { tunnel: 'A long underground passage (सुरंग)', courage: 'Being brave when scared (साहस)' }
       },
       {
         text_en: `At the heart of the ${place}, they found a golden treasure chest glowing with rainbow light. Inside was the Jewel of ${mood === 'happy' ? 'Happiness' : mood === 'silly' ? 'Laughter' : 'Wonder'}.`,
-        text_es: `En el corazón del ${place}, encontraron un cofre del tesoro dorado brillando con luz de arcoíris. Dentro estaba la Joya de ${mood === 'happy' ? 'la Felicidad' : mood === 'silly' ? 'la Risa' : 'la Maravilla'}.`,
+        text_hi: `${place} के बीचोबीच, उन्हें एक सुनहरा खज़ाना मिला जो इंद्रधनुषी रोशनी से चमक रहा था। अंदर ${mood === 'happy' ? 'खुशी' : mood === 'silly' ? 'हंसी' : 'आश्चर्य'} का रत्न था।`,
         illustration_prompt: `A magical treasure chest glowing with rainbow light in ${place}`,
-        dictionary: { treasure: 'Something very valuable and special', jewel: 'A precious sparkling stone' }
+        dictionary: { treasure: 'Something very valuable and special (खज़ाना)', jewel: 'A precious sparkling stone (रत्न)' }
       },
       {
         text_en: `${heroName} brought the jewel home and shared its magic with the whole family. From that day on, every bedtime story became a new adventure! The End. 🌟`,
-        text_es: `${heroName} llevó la joya a casa y compartió su magia con toda la familia. ¡Desde ese día, cada cuento antes de dormir se convirtió en una nueva aventura! Fin. 🌟`,
+        text_hi: `${heroName} ने रत्न घर लाकर अपने पूरे परिवार के साथ उसका जादू बाँटा। उस दिन से, हर सोने की कहानी एक नई यात्रा बन गई! समाप्त। 🌟`,
         illustration_prompt: `The ${animal} hero back home sharing a glowing jewel with a happy family`,
-        dictionary: { family: 'The people you love and live with', share: 'To give part of something to others' }
+        dictionary: { family: 'The people you love and live with (परिवार)', share: 'To give part of something to others (बाँटना)' }
       },
       {
         text_en: `But wait — the ${buddy} noticed a tiny map hidden inside the treasure chest. It pointed to an even BIGGER adventure beyond the stars!`,
-        text_es: `¡Pero espera! El ${buddy} notó un pequeño mapa escondido dentro del cofre del tesoro. ¡Apuntaba a una aventura AÚN MÁS GRANDE más allá de las estrellas!`,
+        text_hi: `लेकिन रुको — ${buddy} ने खज़ाने के अंदर एक छोटा नक्शा छिपा हुआ देखा। वह तारों के पार एक और भी बड़ी यात्रा की ओर इशारा कर रहा था!`,
         illustration_prompt: `A tiny magical map unfurling from the treasure chest with glowing star paths`,
-        dictionary: { map: 'A drawing that shows where places are', mystery: 'Something secret waiting to be discovered' }
+        dictionary: { map: 'A drawing that shows where places are (नक्शा)', mystery: 'Something secret waiting to be discovered (रहस्य)' }
       },
       {
         text_en: `${heroName} and ${buddy} looked at each other and smiled. "Are you ready?" asked ${heroName}. "Always!" replied the ${buddy}. And off they went, soaring into the sunset.`,
-        text_es: `${heroName} y ${buddy} se miraron y sonrieron. "¿Estás listo?" preguntó ${heroName}. "¡Siempre!" respondió el ${buddy}. Y se fueron, volando hacia el atardecer.`,
+        text_hi: `${heroName} और ${buddy} ने एक-दूसरे को देखा और मुस्कुराए। "क्या तुम तैयार हो?" ${heroName} ने पूछा। "हमेशा!" ${buddy} ने जवाब दिया। और वे सूर्यास्त की ओर उड़ चले।`,
         illustration_prompt: `Two friends soaring into a colorful sunset sky together`,
-        dictionary: { friendship: 'A close bond between two beings', sunset: 'When the sun goes down beautifully' }
+        dictionary: { friendship: 'A close bond between two beings (दोस्ती)', sunset: 'When the sun goes down beautifully (सूर्यास्त)' }
       },
       {
         text_en: `And so, the legend of ${heroName} the ${animal} grew across the land. Every child who heard the tale felt a spark of bravery in their heart. 🌟✨`,
-        text_es: `Y así, la leyenda de ${heroName} el ${animal} creció por toda la tierra. Cada niño que escuchó la historia sintió una chispa de valentía en su corazón. 🌟✨`,
+        text_hi: `और इस तरह, ${heroName} ${animal} की कहानी पूरी दुनिया में फैल गई। हर बच्चे ने जिसने यह कहानी सुनी, अपने दिल में बहादुरी की चिंगारी महसूस की। 🌟✨`,
         illustration_prompt: `A legendary hero ${animal} silhouette against a starry sky, children's storybook ending`,
-        dictionary: { legend: 'A famous story passed down through time', bravery: 'Having the courage to do something hard' }
+        dictionary: { legend: 'A famous story passed down through time (किंवदंती)', bravery: 'Having the courage to do something hard (बहादुरी)' }
       }
     ];
 
@@ -319,9 +319,9 @@ export default function StoryCreator() {
     setEditingPage(null);
   };
 
-  const handlePageEditEs = (idx, newText) => {
+  const handlePageEditHi = (idx, newText) => {
     const updated = [...pages];
-    updated[idx].text_es = newText;
+    updated[idx].text_hi = newText;
     setPages(updated);
     setEditingPage(null);
   };
@@ -657,10 +657,9 @@ export default function StoryCreator() {
                 <div className="form-group">
                   <label className="form-label">Story Language</label>
                   <select className="form-control" value={language} onChange={e => setLanguage(e.target.value)}>
-                    <option value="bilingual">Bilingual (English + Spanish Side-by-Side)</option>
+                    <option value="bilingual">Bilingual (English + Hindi Side-by-Side)</option>
                     <option value="en">English Only</option>
-                    <option value="es">Spanish Only</option>
-                    <option value="hi">Hindi + English</option>
+                    <option value="hi">Hindi Only</option>
                   </select>
                 </div>
 
@@ -903,12 +902,12 @@ export default function StoryCreator() {
                           defaultValue={page.text_en}
                           onBlur={(e) => handlePageEdit(idx, e.target.value)}
                         />
-                        <label style={{ fontSize: '0.75rem', fontWeight: 800, marginTop: '0.5rem' }}>Spanish/Hindi Translation</label>
+                        <label style={{ fontSize: '0.75rem', fontWeight: 800, marginTop: '0.5rem' }}>Hindi Translation (हिंदी)</label>
                         <textarea
                           className="form-control page-edit-textarea"
                           rows="3"
-                          defaultValue={page.text_es}
-                          onBlur={(e) => handlePageEditEs(idx, e.target.value)}
+                          defaultValue={page.text_hi}
+                          onBlur={(e) => handlePageEditHi(idx, e.target.value)}
                         />
                         <span className="text-muted" style={{ fontSize: '0.75rem' }}>Click out of input box to save changes</span>
                       </div>
@@ -917,9 +916,9 @@ export default function StoryCreator() {
                         <p className="page-text serif-heading" onClick={() => setEditingPage(idx)} title="Click to edit English text">
                           {page.text_en}
                         </p>
-                        {page.text_es && (
+                        {page.text_hi && (
                           <p className="page-text serif-heading text-muted" onClick={() => setEditingPage(idx)} title="Click to edit translation text" style={{ borderTop: '1px solid var(--border-color)', marginTop: '0.5rem', paddingTop: '0.5rem' }}>
-                            {page.text_es}
+                            {page.text_hi}
                           </p>
                         )}
                         {page.dictionary && Object.keys(page.dictionary).length > 0 && (

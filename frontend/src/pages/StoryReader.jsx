@@ -18,7 +18,7 @@ import { jsPDF } from 'jspdf';
 export default function StoryReader() {
   const navigate = useNavigate();
   const { id } = useParams();
-  const [lang, setLang] = useState('en'); // 'en' or 'es'
+  const [lang, setLang] = useState('en'); // 'en' or 'hi'
   const [currentPage, setCurrentPage] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const [activeWordIdx, setActiveWordIdx] = useState(-1);
@@ -28,13 +28,13 @@ export default function StoryReader() {
   // Sample Storybook Data
   const story = {
     title: 'Bruno\'s Sweet Lesson',
-    titleEs: 'La Dulce Lección de Bruno',
+    titleHi: 'ब्रूनो का मीठा सबक',
     author: 'StoryNest AI',
     grade: 'Grade 2',
     pages: [
       {
         en: 'Bruno the bear woke up one sunny morning to find his honey jar overflowing. "There\'s too much for just me!" he laughed, golden drops rolling down his fuzzy chin.',
-        es: 'El oso Bruno se despertó una mañana soleada y encontró su tarro de miel desbordando. "¡Es demasiado para mí solo!", se rió, mientras gotas doradas rodaban por su peluda barbilla.',
+        hi: 'भालू ब्रूनो एक धूप वाली सुबह उठा और देखा कि उसका शहद का मर्तबान छलक रहा है। "यह तो सिर्फ मेरे लिए बहुत ज्यादा है!" वह हँसा, सुनहरी बूंदें उसकी मुलायम ठुड्डी पर लुढ़क रही थीं।',
         illustration: (
           <svg viewBox="0 0 400 280" className="reader-svg">
             <defs>
@@ -81,16 +81,16 @@ export default function StoryReader() {
           </svg>
         ),
         dictionary: {
-          bear: 'A large, heavy mammal with thick fur and a very short tail (Oso).',
-          honey: 'A sweet, sticky yellowish-brown fluid made by bees (Miel).',
-          overflowing: 'Flowing over the edge of its container because it is too full (Desbordando).',
-          golden: 'Having the color or shine of gold (Dorado).',
-          fuzzy: 'Having a frizzy, fluffy, or frayed texture or appearance (Peludo/Fuzzy).'
+          bear: 'A large, heavy mammal with thick fur and a very short tail (भालू).',
+          honey: 'A sweet, sticky yellowish-brown fluid made by bees (शहद).',
+          overflowing: 'Flowing over the edge of its container because it is too full (छलकना).',
+          golden: 'Having the color or shine of gold (सुनहरा).',
+          fuzzy: 'Having a frizzy, fluffy, or frayed texture or appearance (मुलायम).'
         }
       },
       {
         en: 'He walked through the whispering pines until he found Rosie the rabbit. "Would you like some honey?" Bruno asked, holding out a tiny cup. Rosie\'s ears perked up with joy.',
-        es: 'Caminó a través de los pinos susurrantes hasta que encontró a la coneja Rosie. "¿Te gustaría un poco de miel?", preguntó Bruno, ofreciéndole una taza diminuta. Las orejas de Rosie se levantaron de alegría.',
+        hi: 'वह सरसराते चीड़ों के बीच से गुजरा जब तक उसने खरगोश रोज़ी को ढूंढ लिया। "क्या तुम थोड़ा शहद लोगी?" ब्रूनो ने एक छोटा कप आगे बढ़ाते हुए पूछा। रोज़ी के कान खुशी से खड़े हो गए!',
         illustration: (
           <svg viewBox="0 0 400 280" className="reader-svg">
             <defs>
@@ -140,16 +140,16 @@ export default function StoryReader() {
           </svg>
         ),
         dictionary: {
-          pines: 'Evergreen coniferous trees with needle-shaped leaves (Pinos).',
-          whispering: 'Making a soft rustling or murmuring sound (Susurrantes).',
-          rabbit: 'A small gregarious burrowing plant-eating mammal with long ears (Coneja/Conejo).',
-          tiny: 'Very small or minute (Diminuta).',
-          perked: 'To become more lively or raise up (Levantaron/Animaron).'
+          pines: 'Evergreen coniferous trees with needle-shaped leaves (चीड़).',
+          whispering: 'Making a soft rustling or murmuring sound (सरसराना).',
+          rabbit: 'A small gregarious burrowing plant-eating mammal with long ears (खरगोश).',
+          tiny: 'Very small or minute (छोटा).',
+          perked: 'To become more lively or raise up (खड़े होना).'
         }
       },
       {
         en: 'By sunset, every creature in the forest had tasted Bruno\'s honey. And Bruno discovered that sharing made every drop taste even sweeter.',
-        es: 'Al atardecer, cada criatura en el bosque había probado la miel de Bruno. Y Bruno descubrió que compartir hacía que cada gota supiera aún más dulce.',
+        hi: 'सूर्यास्त तक, जंगल के हर प्राणी ने ब्रूनो का शहद चखा था। और ब्रूनो ने पाया कि बाँटने से हर बूंद का स्वाद और भी मीठा हो जाता है।',
         illustration: (
           <svg viewBox="0 0 400 280" className="reader-svg">
             <defs>
@@ -191,19 +191,19 @@ export default function StoryReader() {
           </svg>
         ),
         dictionary: {
-          sunset: 'The time in the evening when the sun disappears or sets (Atardecer).',
-          creature: 'An animal, as distinct from a human being (Criatura).',
-          tasted: 'Perceived or experienced the flavor of (Probado).',
-          sharing: 'Giving a portion of something to others (Compartir).',
-          sweeter: 'More sweet; having a pleasing taste like sugar (Más dulce).'
+          sunset: 'The time in the evening when the sun disappears or sets (सूर्यास्त).',
+          creature: 'An animal, as distinct from a human being (प्राणी).',
+          tasted: 'Perceived or experienced the flavor of (चखना).',
+          sharing: 'Giving a portion of something to others (बाँटना).',
+          sweeter: 'More sweet; having a pleasing taste like sugar (और मीठा).'
         }
       }
     ]
   };
 
   const wordsEn = story.pages[currentPage].en.split(" ");
-  const wordsEs = story.pages[currentPage].es.split(" ");
-  const words = lang === 'en' ? wordsEn : wordsEs;
+  const wordsHi = story.pages[currentPage].hi.split(" ");
+  const words = lang === 'en' ? wordsEn : wordsHi;
 
   // Text-To-Speech word highlighter simulation
   useEffect(() => {
@@ -352,7 +352,7 @@ export default function StoryReader() {
 
         <div className="reader-title-badge">
           <FaBookOpen className="badge-icon" />
-          <span className="serif-heading">{lang === 'en' ? story.title : story.titleEs}</span>
+          <span className="serif-heading">{lang === 'en' ? story.title : story.titleHi}</span>
           <span className="badge-grade">{story.grade}</span>
         </div>
 
@@ -360,13 +360,13 @@ export default function StoryReader() {
           <button 
             className="reader-icon-btn toggle-lang-btn"
             onClick={() => {
-              setLang(lang === 'en' ? 'es' : 'en');
+              setLang(lang === 'en' ? 'hi' : 'en');
               setIsPlaying(false);
             }}
             title="Translate Page"
           >
             <FaLanguage />
-            <span>{lang === 'en' ? 'Español' : 'English'}</span>
+            <span>{lang === 'en' ? 'हिंदी' : 'English'}</span>
           </button>
           
           <button 

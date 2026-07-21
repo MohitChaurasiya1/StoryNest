@@ -7,12 +7,12 @@ export default function StoryBookPreview() {
   const [activeWordIdx, setActiveWordIdx] = useState(-1);
 
   const textEn = "Leo the little lion found a hidden path in the ancient forest, leading to a tree of gold.";
-  const textEs = "Leo el pequeño león encontró un camino oculto en el bosque antiguo, que llevaba a un árbol de oro.";
+  const textHi = "छोटे शेर लियो ने प्राचीन जंगल में एक छिपा हुआ रास्ता खोजा, जो सोने के पेड़ तक जाता था।";
 
   const wordsEn = textEn.split(" ");
-  const wordsEs = textEs.split(" ");
+  const wordsHi = textHi.split(" ");
 
-  const words = lang === 'en' ? wordsEn : wordsEs;
+  const words = lang === 'en' ? wordsEn : wordsHi;
 
   useEffect(() => {
     let interval = null;
@@ -125,13 +125,13 @@ export default function StoryBookPreview() {
             <button 
               className="control-btn lang-btn" 
               onClick={() => {
-                setLang(lang === 'en' ? 'es' : 'en');
+                setLang(lang === 'en' ? 'hi' : 'en');
                 setIsPlaying(false);
               }}
               title="Toggle Language"
             >
               <FaLanguage />
-              <span>{lang === 'en' ? 'Español' : 'English'}</span>
+              <span>{lang === 'en' ? 'हिंदी' : 'English'}</span>
             </button>
           </div>
         </div>
@@ -139,7 +139,7 @@ export default function StoryBookPreview() {
         {/* Subtitle / Text panel */}
         <div className="preview-text-panel">
           <div className="text-panel-header">
-            <span className="reader-badge">Language: {lang === 'en' ? 'English (EN)' : 'Spanish (ES)'}</span>
+            <span className="reader-badge">Language: {lang === 'en' ? 'English (EN)' : 'Hindi (HI)'}</span>
             <div className="mini-audio-waves">
               <span className={`wave-bar ${isPlaying ? 'wave-active' : ''}`}></span>
               <span className={`wave-bar ${isPlaying ? 'wave-active' : ''}`}></span>
