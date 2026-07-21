@@ -215,18 +215,19 @@ export default function AdminDashboard() {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          margin-bottom: 2rem;
+          margin-bottom: 2.5rem;
           padding-bottom: 1.5rem;
-          border-bottom: 1px solid var(--border-color);
+          border-bottom: 2px solid var(--border-color);
         }
 
         .dashboard-welcome {
-          font-size: 1.75rem;
+          font-size: 1.8rem;
           color: var(--text-primary);
         }
 
         .font-sm {
-          font-size: 0.85rem;
+          font-size: 0.9rem;
+          font-weight: 600;
         }
 
         .top-nav-right {
@@ -243,66 +244,75 @@ export default function AdminDashboard() {
 
         .search-icon {
           position: absolute;
-          left: 12px;
+          left: 16px;
           color: var(--text-muted);
-          font-size: 0.9rem;
+          font-size: 1rem;
         }
 
         .search-bar input {
-          padding: 0.5rem 1rem 0.5rem 2.25rem;
-          border: 1px solid var(--border-color);
-          border-radius: 9999px;
+          padding: 0.65rem 1rem 0.65rem 2.5rem;
+          border: 2px solid var(--border-color);
+          border-radius: var(--radius-full);
           background-color: var(--surface-color);
-          font-size: 0.85rem;
-          width: 220px;
-          transition: var(--transition-fast);
+          font-size: 0.9rem;
+          font-weight: 600;
+          width: 240px;
+          transition: var(--transition-bounce);
         }
 
         .search-bar input:focus {
           outline: none;
-          border-color: var(--primary-accent);
-          width: 260px;
+          border-color: var(--coral);
+          width: 280px;
+          box-shadow: 0 0 0 4px rgba(255, 107, 107, 0.12);
         }
 
         .bell-btn {
           position: relative;
-          padding: 0.5rem;
+          padding: 0.65rem;
           border-radius: 50%;
-          border: 1px solid var(--border-color);
+          border: 2px solid var(--border-color);
           background-color: var(--surface-color);
           color: var(--text-primary);
           cursor: pointer;
+          transition: var(--transition-fast);
+        }
+
+        .bell-btn:hover {
+          border-color: var(--coral);
+          color: var(--coral);
         }
 
         .bell-badge {
           position: absolute;
           top: 3px;
           right: 3px;
-          width: 8px;
-          height: 8px;
-          background-color: var(--secondary-accent);
+          width: 9px;
+          height: 9px;
+          background-color: var(--coral);
           border-radius: 50%;
-          border: 1.5px solid #FFFFFF;
+          border: 2px solid #FFFFFF;
         }
 
         .admin-profile-avatar {
-          width: 38px;
-          height: 38px;
+          width: 40px;
+          height: 40px;
           border-radius: 50%;
-          background-color: var(--primary-accent);
+          background: linear-gradient(135deg, var(--coral), var(--pink));
           color: #FFFFFF;
-          font-weight: 700;
-          font-size: 0.85rem;
+          font-weight: 800;
+          font-size: 0.9rem;
           display: flex;
           align-items: center;
           justify-content: center;
+          box-shadow: var(--shadow-glow-coral);
         }
 
         .action-banner-row {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          margin-bottom: 2rem;
+          margin-bottom: 2.5rem;
           gap: 1rem;
         }
 
@@ -313,34 +323,30 @@ export default function AdminDashboard() {
         }
 
         .toast-success {
-          background-color: var(--soft-accent-bg);
-          color: var(--primary-accent);
-          padding: 0.65rem 1.25rem;
+          background-color: var(--mint-light);
+          color: var(--mint);
+          padding: 0.75rem 1.5rem;
           border-radius: var(--radius-sm);
-          border: 1px solid rgba(61, 92, 52, 0.15);
-          font-size: 0.9rem;
-          font-weight: 600;
+          border: 2px solid rgba(107, 203, 119, 0.15);
+          font-size: 0.95rem;
+          font-weight: 700;
           display: flex;
           align-items: center;
-          gap: 0.5rem;
+          gap: 0.65rem;
           box-shadow: var(--shadow-sm);
-          animation: slideUp 0.3s ease-out;
-        }
-
-        @keyframes slideUp {
-          from { transform: translateY(10px); opacity: 0; }
-          to { transform: translateY(0); opacity: 1; }
+          animation: slideInRight 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
         /* Stat Grid Card Customizations */
         .stats-grid-row {
-          margin-bottom: 2.5rem;
+          margin-bottom: 3rem;
         }
 
         .stat-card {
           display: flex;
           flex-direction: column;
-          gap: 0.5rem;
+          gap: 0.75rem;
+          border-radius: var(--radius-md);
         }
 
         .stat-card-top {
@@ -351,18 +357,18 @@ export default function AdminDashboard() {
 
         .stat-card-label {
           font-size: 0.85rem;
-          font-weight: 600;
+          font-weight: 800;
           text-transform: uppercase;
-          letter-spacing: 0.03em;
+          letter-spacing: 0.05em;
         }
 
         .stat-card-delta {
           font-size: 0.8rem;
-          font-weight: 700;
-          color: var(--secondary-accent);
-          background-color: #FAF2DF;
-          padding: 0.1rem 0.4rem;
-          border-radius: 4px;
+          font-weight: 800;
+          color: var(--coral);
+          background-color: var(--coral-light);
+          padding: 0.2rem 0.6rem;
+          border-radius: var(--radius-full);
           display: inline-flex;
           align-items: center;
         }
@@ -374,13 +380,15 @@ export default function AdminDashboard() {
         }
 
         .stat-card-value {
-          font-size: 2.25rem;
+          font-size: 2.5rem;
           color: var(--text-primary);
+          font-weight: 800;
+          font-family: var(--font-display);
         }
 
         .stat-card-desc {
-          font-size: 0.75rem;
-          font-weight: 500;
+          font-size: 0.8rem;
+          font-weight: 700;
         }
 
         /* Dashboard main grid columns */
@@ -402,54 +410,56 @@ export default function AdminDashboard() {
 
         /* Agenda Card Customizations */
         .agenda-card {
-          padding: 1.5rem;
+          padding: 1.75rem;
           height: 100%;
           display: flex;
           flex-direction: column;
+          border-radius: var(--radius-md);
         }
 
         .agenda-header {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          margin-bottom: 1.5rem;
+          margin-bottom: 1.75rem;
         }
 
         .agenda-title {
-          font-size: 1.1rem;
+          font-size: 1.25rem;
           color: var(--text-primary);
+          font-weight: 800;
         }
 
         .agenda-list {
           display: flex;
           flex-direction: column;
-          gap: 1.25rem;
+          gap: 1.5rem;
           flex: 1;
         }
 
         .agenda-item-box {
           display: flex;
           gap: 1rem;
-          padding-left: 1rem;
-          border-left: 3.5px solid var(--border-color);
-          transition: var(--transition-fast);
+          padding-left: 1.25rem;
+          border-left: 4px solid var(--border-color);
+          transition: var(--transition-bounce);
         }
 
         .agenda-item-box:hover {
-          transform: translateX(2px);
+          transform: translateX(6px);
         }
 
         /* Left-border colors based on item type */
-        .border-system { border-left-color: var(--primary-accent); }
-        .border-board { border-left-color: var(--secondary-accent); }
-        .border-feedback { border-left-color: var(--story-teal); }
-        .border-maintenance { border-left-color: var(--danger-color); }
+        .border-system { border-left-color: var(--coral); }
+        .border-board { border-left-color: var(--orange); }
+        .border-feedback { border-left-color: var(--sky); }
+        .border-maintenance { border-left-color: var(--purple); }
 
         .agenda-item-time {
-          font-size: 0.75rem;
-          font-weight: 700;
+          font-size: 0.8rem;
+          font-weight: 800;
           color: var(--text-muted);
-          width: 70px;
+          width: 75px;
           flex-shrink: 0;
           text-align: right;
         }
@@ -460,15 +470,16 @@ export default function AdminDashboard() {
         }
 
         .agenda-item-title {
-          font-size: 0.9rem;
-          font-weight: 700;
+          font-size: 0.95rem;
+          font-weight: 800;
           color: var(--text-primary);
-          margin-bottom: 0.15rem;
+          margin-bottom: 0.25rem;
         }
 
         .agenda-item-desc {
-          font-size: 0.8rem;
-          line-height: 1.4;
+          font-size: 0.85rem;
+          line-height: 1.5;
+          font-weight: 500;
         }
 
         @media (max-width: 1024px) {

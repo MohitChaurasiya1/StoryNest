@@ -219,13 +219,14 @@ export default function TeacherDashboard() {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          margin-bottom: 2rem;
+          margin-bottom: 2.5rem;
           padding-bottom: 1.5rem;
-          border-bottom: 1px solid var(--border-color);
+          border-bottom: 2px solid var(--border-color);
         }
 
         .dashboard-welcome {
-          font-size: 1.75rem;
+          font-size: 1.8rem;
+          font-weight: 800;
         }
 
         .top-nav-right {
@@ -240,61 +241,70 @@ export default function TeacherDashboard() {
 
         .search-icon {
           position: absolute;
-          left: 12px;
+          left: 16px;
           top: 50%;
           transform: translateY(-50%);
           color: var(--text-muted);
-          font-size: 0.9rem;
+          font-size: 1rem;
         }
 
         .search-bar input {
-          padding: 0.5rem 1rem 0.5rem 2.25rem;
-          border: 1px solid var(--border-color);
-          border-radius: 9999px;
+          padding: 0.65rem 1rem 0.65rem 2.5rem;
+          border: 2px solid var(--border-color);
+          border-radius: var(--radius-full);
           background-color: var(--surface-color);
-          font-size: 0.85rem;
+          font-size: 0.9rem;
+          font-weight: 600;
           width: 200px;
-          transition: var(--transition-fast);
+          transition: var(--transition-bounce);
         }
 
         .search-bar input:focus {
           outline: none;
-          border-color: var(--primary-accent);
-          width: 240px;
+          border-color: var(--coral);
+          width: 245px;
+          box-shadow: 0 0 0 4px rgba(255, 107, 107, 0.12);
         }
 
         .bell-btn {
           position: relative;
-          padding: 0.5rem;
+          padding: 0.65rem;
           border-radius: 50%;
-          border: 1px solid var(--border-color);
+          border: 2px solid var(--border-color);
           background-color: var(--surface-color);
           color: var(--text-primary);
           cursor: pointer;
+          transition: var(--transition-fast);
+        }
+
+        .bell-btn:hover {
+          border-color: var(--coral);
+          color: var(--coral);
         }
 
         .bell-badge {
           position: absolute;
           top: 3px;
           right: 3px;
-          width: 8px;
-          height: 8px;
-          background-color: var(--secondary-accent);
+          width: 9px;
+          height: 9px;
+          background-color: var(--coral);
           border-radius: 50%;
-          border: 1.5px solid #FFFFFF;
+          border: 2px solid #FFFFFF;
         }
 
         .teacher-profile-avatar {
-          width: 38px;
-          height: 38px;
+          width: 40px;
+          height: 40px;
           border-radius: 50%;
-          background-color: var(--primary-accent);
+          background: linear-gradient(135deg, var(--sky), var(--purple));
           color: #FFFFFF;
-          font-weight: 700;
-          font-size: 0.85rem;
+          font-weight: 800;
+          font-size: 0.9rem;
           display: flex;
           align-items: center;
           justify-content: center;
+          box-shadow: var(--shadow-glow-sky);
         }
 
         /* Welcome Banner */
@@ -302,20 +312,25 @@ export default function TeacherDashboard() {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          background-color: var(--soft-accent-bg);
-          border: 1px solid rgba(61, 92, 52, 0.1);
+          background-color: var(--sky-light);
+          border: 2px solid rgba(107, 203, 245, 0.15);
           border-radius: var(--radius-md);
-          padding: 1.75rem 2rem;
-          margin-bottom: 2rem;
+          padding: 1.75rem 2.25rem;
+          margin-bottom: 2.5rem;
+          box-shadow: var(--shadow-sm);
         }
 
         .welcome-banner-left h3 {
-          font-size: 1.15rem;
-          margin-bottom: 0.25rem;
+          font-size: 1.35rem;
+          font-weight: 800;
+          margin-bottom: 0.35rem;
+          color: var(--text-primary);
         }
 
         .welcome-banner-left p {
-          font-size: 0.9rem;
+          font-size: 0.95rem;
+          font-weight: 600;
+          color: var(--text-secondary);
         }
 
         .progress-ring-container svg {
@@ -327,62 +342,68 @@ export default function TeacherDashboard() {
           display: grid;
           grid-template-columns: 1.5fr 1fr;
           gap: 2rem;
-          margin-bottom: 2.5rem;
+          margin-bottom: 3rem;
         }
 
         /* Students List */
         .students-list-card {
-          padding: 1.5rem;
+          padding: 1.75rem;
+          border-radius: var(--radius-md);
         }
 
         .students-header {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          margin-bottom: 1.25rem;
+          margin-bottom: 1.5rem;
         }
 
         .students-header h4 {
-          font-size: 1.1rem;
+          font-size: 1.25rem;
+          font-weight: 800;
         }
 
         .students-table {
           display: flex;
           flex-direction: column;
-          gap: 0.5rem;
+          gap: 0.65rem;
         }
 
         .student-row {
           display: flex;
           align-items: center;
-          gap: 1rem;
-          padding: 0.75rem;
+          gap: 1.25rem;
+          padding: 0.85rem 1rem;
           border-radius: var(--radius-sm);
-          transition: var(--transition-fast);
+          transition: var(--transition-bounce);
+          border: 1.5px solid transparent;
         }
 
         .student-row:hover {
           background-color: var(--bg-color);
+          border-color: var(--border-color);
+          transform: scale(1.01);
         }
 
         .student-info {
           display: flex;
           align-items: center;
-          gap: 0.75rem;
-          min-width: 180px;
+          gap: 0.85rem;
+          min-width: 190px;
         }
 
         .student-avatar {
-          width: 36px;
-          height: 36px;
+          width: 38px;
+          height: 38px;
           border-radius: 50%;
           display: flex;
           align-items: center;
           justify-content: center;
-          font-size: 0.75rem;
-          font-weight: 700;
+          font-size: 0.8rem;
+          font-weight: 800;
           color: var(--text-primary);
           flex-shrink: 0;
+          box-shadow: var(--shadow-sm);
         }
 
         .student-name-group {
@@ -391,47 +412,49 @@ export default function TeacherDashboard() {
         }
 
         .student-name {
-          font-weight: 600;
-          font-size: 0.9rem;
+          font-weight: 800;
+          font-size: 0.95rem;
+          color: var(--text-primary);
         }
 
         .student-stories {
-          font-size: 0.75rem;
+          font-size: 0.8rem;
+          font-weight: 600;
         }
 
         .student-progress-section {
           flex: 1;
           display: flex;
           align-items: center;
-          gap: 0.75rem;
+          gap: 0.85rem;
         }
 
         .progress-bar-track {
           flex: 1;
-          height: 6px;
-          background-color: var(--bg-color);
-          border-radius: 9999px;
+          height: 8px;
+          background-color: var(--border-color);
+          border-radius: var(--radius-full);
           overflow: hidden;
         }
 
         .progress-bar-fill {
           height: 100%;
-          border-radius: 9999px;
+          border-radius: var(--radius-full);
           transition: width 1s ease-out;
         }
 
         .student-pct {
-          font-size: 0.85rem;
-          font-weight: 700;
-          min-width: 40px;
+          font-size: 0.9rem;
+          font-weight: 800;
+          min-width: 45px;
           text-align: right;
         }
 
         .student-status-pill {
-          font-size: 0.7rem;
-          font-weight: 700;
-          padding: 0.2rem 0.5rem;
-          border-radius: 9999px;
+          font-size: 0.75rem;
+          font-weight: 800;
+          padding: 0.25rem 0.65rem;
+          border-radius: var(--radius-full);
           white-space: nowrap;
         }
 
@@ -441,74 +464,78 @@ export default function TeacherDashboard() {
 
         /* Lessons Section */
         .lessons-section {
-          margin-bottom: 2rem;
+          margin-bottom: 2.5rem;
         }
 
         .lessons-header {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          margin-bottom: 1.5rem;
+          margin-bottom: 1.75rem;
         }
 
         .lessons-header h4 {
-          font-size: 1.1rem;
+          font-size: 1.25rem;
+          font-weight: 800;
         }
 
         .lessons-tabs {
           display: flex;
-          gap: 0.25rem;
+          gap: 0.35rem;
           background-color: var(--bg-color);
-          padding: 0.25rem;
-          border-radius: var(--radius-sm);
-          border: 1px solid var(--border-color);
+          padding: 0.35rem;
+          border-radius: var(--radius-full);
+          border: 2px solid var(--border-color);
         }
 
         .lesson-tab {
-          padding: 0.4rem 0.85rem;
-          font-size: 0.8rem;
-          font-weight: 600;
+          padding: 0.45rem 1.15rem;
+          font-size: 0.85rem;
+          font-weight: 800;
           color: var(--text-muted);
-          border-radius: 6px;
+          border-radius: var(--radius-full);
           transition: var(--transition-fast);
         }
 
         .lesson-tab:hover {
-          color: var(--text-primary);
+          color: var(--coral);
         }
 
         .lesson-tab.active {
           background-color: var(--surface-color);
-          color: var(--primary-accent);
+          color: var(--coral);
           box-shadow: var(--shadow-sm);
         }
 
         .lessons-list {
           display: flex;
           flex-direction: column;
-          gap: 0.75rem;
+          gap: 0.85rem;
         }
 
         .lesson-card {
           display: flex;
           align-items: center;
-          gap: 1rem;
-          padding: 1rem 1.25rem;
+          gap: 1.25rem;
+          padding: 1.15rem 1.5rem;
+          border-radius: var(--radius-md);
         }
 
         .lesson-card:hover {
-          transform: translateX(2px);
+          transform: translateX(6px);
         }
 
         .lesson-icon-col {
-          width: 40px;
-          height: 40px;
-          background-color: var(--soft-accent-bg);
+          width: 44px;
+          height: 44px;
+          background-color: var(--coral-light);
+          color: var(--coral);
           border-radius: var(--radius-sm);
           display: flex;
           align-items: center;
           justify-content: center;
           flex-shrink: 0;
+          font-size: 1.1rem;
         }
 
         .lesson-info-col {
@@ -516,59 +543,61 @@ export default function TeacherDashboard() {
         }
 
         .lesson-title {
-          font-size: 0.95rem;
-          font-weight: 700;
-          margin-bottom: 0.1rem;
+          font-size: 1rem;
+          font-weight: 800;
+          margin-bottom: 0.15rem;
         }
 
         .lesson-grade {
           font-size: 0.8rem;
+          font-weight: 600;
         }
 
         .lesson-progress-col {
           display: flex;
           align-items: center;
-          gap: 0.5rem;
-          min-width: 140px;
+          gap: 0.75rem;
+          min-width: 160px;
         }
 
         .lesson-progress-track {
           flex: 1;
-          height: 5px;
-          background-color: var(--bg-color);
-          border-radius: 9999px;
+          height: 7px;
+          background-color: var(--border-color);
+          border-radius: var(--radius-full);
           overflow: hidden;
         }
 
         .lesson-progress-fill {
           height: 100%;
-          background-color: var(--primary-accent);
-          border-radius: 9999px;
+          background: linear-gradient(90deg, var(--coral), var(--orange));
+          border-radius: var(--radius-full);
           transition: width 0.8s ease-out;
         }
 
         .lesson-progress-text {
-          font-size: 0.75rem;
-          font-weight: 600;
-          min-width: 30px;
+          font-size: 0.8rem;
+          font-weight: 800;
+          min-width: 35px;
         }
 
         .lesson-status-badge {
-          font-size: 0.7rem;
-          font-weight: 700;
-          padding: 0.2rem 0.5rem;
-          border-radius: 9999px;
+          font-size: 0.75rem;
+          font-weight: 800;
+          padding: 0.25rem 0.65rem;
+          border-radius: var(--radius-full);
           white-space: nowrap;
         }
 
         .lesson-action-btn {
           color: var(--text-muted);
-          padding: 0.25rem;
+          padding: 0.35rem;
           transition: var(--transition-fast);
+          font-size: 0.9rem;
         }
 
         .lesson-action-btn:hover {
-          color: var(--primary-accent);
+          color: var(--coral);
         }
 
         @media (max-width: 1024px) {
