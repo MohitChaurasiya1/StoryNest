@@ -388,7 +388,6 @@ export default function LandingPage() {
           display: flex;
           flex-direction: column;
           position: relative;
-          overflow-x: clip;
         }
 
         /* Background Decorations */
