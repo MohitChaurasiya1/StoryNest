@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import './DonutChart.css';
 
 export default function DonutChart() {
   const [hoveredIdx, setHoveredIdx] = useState(null);
@@ -111,98 +112,6 @@ export default function DonutChart() {
           ))}
         </div>
       </div>
-
-      <style>{`
-        .donut-card {
-          background-color: var(--surface-color);
-          border: 1px solid var(--border-color);
-          border-radius: var(--radius-md);
-          padding: 1.5rem;
-          box-shadow: var(--shadow-sm);
-          height: 100%;
-          display: flex;
-          flex-direction: column;
-        }
-
-        .donut-title {
-          font-size: 1.1rem;
-          color: var(--text-primary);
-          font-weight: 700;
-          margin-bottom: 1.5rem;
-        }
-
-        .donut-layout {
-          display: flex;
-          align-items: center;
-          justify-content: space-around;
-          flex: 1;
-          gap: 1rem;
-        }
-
-        .donut-svg-container {
-          position: relative;
-          display: flex;
-          justify-content: center;
-          align-items: center;
-        }
-
-        .donut-center-text {
-          font-family: var(--font-sans);
-        }
-
-        .donut-legend {
-          display: flex;
-          flex-direction: column;
-          gap: 0.75rem;
-          min-width: 130px;
-        }
-
-        .legend-item {
-          display: flex;
-          align-items: center;
-          gap: 0.5rem;
-          padding: 0.35rem 0.5rem;
-          border-radius: var(--radius-sm);
-          transition: var(--transition-fast);
-          cursor: pointer;
-        }
-
-        .legend-item:hover, .legend-item.highlighted {
-          background-color: var(--bg-color);
-        }
-
-        .legend-indicator {
-          width: 10px;
-          height: 10px;
-          border-radius: 50%;
-          flex-shrink: 0;
-        }
-
-        .legend-info {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          width: 100%;
-          font-size: 0.85rem;
-        }
-
-        .legend-label {
-          color: var(--text-muted);
-          font-weight: 500;
-        }
-
-        .legend-val {
-          color: var(--text-primary);
-          font-weight: 700;
-        }
-
-        @media (max-width: 480px) {
-          .donut-layout {
-            flex-direction: column;
-            gap: 1.5rem;
-          }
-        }
-      `}</style>
     </div>
   );
 }
