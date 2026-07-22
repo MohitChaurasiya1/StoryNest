@@ -18,8 +18,6 @@ def generate_story_content(params):
 
     try:
         genai.configure(api_key=api_key)
-        # Use gemini-1.5-flash as it is fast, cheap, and very capable
-        model = genai.GenerativeModel("gemini-1.5-flash")
         
         # Build prompt depending on the mode
         builder_mode = params.get("builderMode", "child")
@@ -137,13 +135,15 @@ def generate_story_content(params):
         Do not wrap the JSON output in markdown tags. Return raw valid JSON.
         """
 
+        # Use gemini-flash-latest for robust compatibility and fast response
+        model = genai.GenerativeModel("gemini-flash-latest", system_instruction=system_instruction)
+
         response = model.generate_content(
             contents=[prompt],
             generation_config={
                 "response_mime_type": "application/json",
                 "temperature": 0.7
-            },
-            system_instruction=system_instruction
+            }
         )
         
         # Parse the JSON response

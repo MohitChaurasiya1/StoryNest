@@ -978,7 +978,7 @@ export default function StoryCreator() {
           flex-direction: column;
           background-color: var(--bg-warm);
           position: relative;
-          overflow-x: hidden;
+          overflow-x: clip;
         }
 
         /* Ambient background glow */
