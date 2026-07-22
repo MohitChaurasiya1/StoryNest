@@ -25,7 +25,6 @@ class StoryPageSerializer(serializers.ModelSerializer):
             "text_en",
             "text_hi",
             "illustration_prompt",
-            "illustration_url",
             "dictionary",
         ]
         read_only_fields = ["id"]
@@ -47,11 +46,6 @@ class StorySerializer(serializers.ModelSerializer):
             "child_age",
             "child_gender",
             "builder_mode",
-
-            # Child information
-            "family_details",
-            "favorite_things",
-            "special_interests",
 
             # Kids Mode
             "hero_animal",
@@ -82,9 +76,7 @@ class StorySerializer(serializers.ModelSerializer):
             "bedtime_safe",
 
             # Generation metadata
-            "generated_by",
             "created_at",
-            "updated_at",
 
             # Related pages
             "pages",
@@ -92,8 +84,6 @@ class StorySerializer(serializers.ModelSerializer):
 
         read_only_fields = [
             "id",
-            "generated_by",
             "created_at",
-            "updated_at",
             "pages",
         ]

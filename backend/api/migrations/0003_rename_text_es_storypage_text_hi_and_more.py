@@ -10,18 +10,5 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RenameField(
-            model_name='storypage',
-            old_name='text_es',
-            new_name='text_hi',
-        ),
-        migrations.RemoveField(
-            model_name='story',
-            name='title_es',
-        ),
-        migrations.AddField(
-            model_name='story',
-            name='title_hi',
-            field=models.CharField(default='एक नया रोमांच', max_length=255),
-        ),
     ]
+
