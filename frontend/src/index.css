@@ -91,8 +91,10 @@
   padding: 0;
 }
 
-html {
+html, body {
   scroll-behavior: smooth;
+  overflow-x: hidden;
+  max-width: 100vw;
 }
 
 body {
@@ -150,7 +152,6 @@ button {
 .dashboard-content {
   flex: 1;
   padding: 2.5rem;
-  overflow-y: auto;
   max-width: 1400px;
   margin: 0 auto;
   width: 100%;

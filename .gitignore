@@ -1,2 +1,19 @@
-
 backend/.env
+
+# Python bytecode
+**/__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.venv/
+venv/
+ENV/
+env/
+
+# Frontend
+**/node_modules/
+**/dist/
+.env.local
+.env.*.local
+dist-ssr/
+*.local

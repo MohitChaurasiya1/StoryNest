@@ -115,6 +115,7 @@ Required JSON structure:
             print("Gemini Error: Empty response received from all models.")
             return None
 
+
         story_data = json.loads(response.text)
 
         if not isinstance(story_data, dict):
