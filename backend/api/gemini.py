@@ -45,12 +45,15 @@ def generate_story_content(params):
 
         num_pages = max(1, min(num_pages, 16))
 
+        custom_prompt = params.get("customPrompt") or params.get("prompt") or ""
+        custom_prompt_section = f"\nUser's Spoken / Custom Story Idea:\n\"{custom_prompt}\"\n" if custom_prompt else ""
+
         prompt = f"""
 You are a professional children's story writer.
 
 Create a safe, positive and age-appropriate bilingual story
 in English and Hindi.
-
+{custom_prompt_section}
 Story details:
 - Child name: {params.get("childName", "Leo")}
 - Child age: {params.get("childAge", 7)}
@@ -101,12 +104,10 @@ Required JSON structure:
 """
 
         models_to_try = [
-            "models/gemini-2.5-flash",
-            "models/gemini-2.0-flash",
-            "models/gemini-flash-latest",
-            "models/gemini-2.0-flash-lite",
             "gemini-2.0-flash",
             "gemini-2.0-flash-lite",
+            "models/gemini-2.0-flash",
+            "models/gemini-2.0-flash-lite",
         ]
 
         response_text = None

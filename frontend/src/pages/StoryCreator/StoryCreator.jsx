@@ -16,14 +16,17 @@ import {
   FaUserFriends,
   FaStar,
   FaBolt,
-  FaMoon
+  FaMoon,
+  FaMicrophone
 } from 'react-icons/fa';
+import VoicePromptInput from '../../components/VoicePrompt/VoicePromptInput';
 import './StoryCreator.css';
 
 export default function StoryCreator() {
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
-  const [builderMode, setBuilderMode] = useState('child'); // 'child' or 'custom'
+  const [builderMode, setBuilderMode] = useState('child'); // 'child', 'custom', or 'voice'
+  const [customPrompt, setCustomPrompt] = useState('');
 
   // --- Step 1: Basic Child Info (6 questions) ---
   const [childName, setChildName] = useState('');
@@ -190,6 +193,7 @@ export default function StoryCreator() {
         favoriteThings: favoriteThings || 'adventures',
         specialInterests: specialInterests || '',
         builderMode,
+        customPrompt,
         // Kids mode fields
         heroAnimal,
         heroJob,
@@ -219,7 +223,7 @@ export default function StoryCreator() {
       };
 
       const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
-      axios.post(`${API_BASE_URL}/api/stories/generate/`, payload)
+      axios.post(`${API_BASE_URL}/api/stories/generate/`, payload, { timeout: 10000 })
         .then(response => {
           clearInterval(timer);
           setGenProgress(100);
@@ -232,7 +236,9 @@ export default function StoryCreator() {
           console.error(err);
           clearInterval(timer);
           setGenProgress(100);
-          const errorMsg = err.response?.data?.details || err.response?.data?.error || 'API Server Unreachable — Loading offline demo story...';
+          const errorMsg = err.code === 'ECONNABORTED' 
+            ? 'Gemini API took too long to respond — Loading offline story...' 
+            : (err.response?.data?.details || err.response?.data?.error || 'API Server Unreachable — Loading offline story...');
           setGenMessages(prev => [...prev, `❌ ${errorMsg}`]);
           
           // Offline fallback
@@ -241,7 +247,7 @@ export default function StoryCreator() {
             const fallbackPages = generateOfflineFallback(pageCount);
             setPages(fallbackPages);
             setGenDone(true);
-          }, 1500);
+          }, 1000);
         });
 
       return () => clearInterval(timer);
@@ -257,12 +263,19 @@ export default function StoryCreator() {
     const color = heroColor || 'gold';
     const power = magicPower || 'fly';
     const mood = storyMood || 'happy';
+    const voiceTopic = customPrompt ? customPrompt.trim() : '';
 
     const templates = [
       {
-        text_en: `Once upon a time, ${heroName} the brave ${animal} woke up in the ${place} wearing a shimmering ${color} cape! Today was the day of the Grand Adventure.`,
-        text_hi: `एक बार की बात है, बहादुर ${animal} ${heroName} ${place} में एक चमचमाती ${color} चादर पहनकर जागा! आज महान साहसिक यात्रा का दिन था।`,
-        illustration_prompt: `A cute ${animal} character with a ${color} cape standing in ${place}, children's book illustration style`,
+        text_en: voiceTopic 
+          ? `Once upon a time, ${heroName} embarked on an extraordinary adventure: ${voiceTopic}!`
+          : `Once upon a time, ${heroName} the brave ${animal} woke up in the ${place} wearing a shimmering ${color} cape! Today was the day of the Grand Adventure.`,
+        text_hi: voiceTopic
+          ? `एक बार की बात है, ${heroName} एक नए साहसिक कार्य पर निकला: ${voiceTopic}!`
+          : `एक बार की बात है, बहादुर ${animal} ${heroName} ${place} में एक चमचमाती ${color} चादर पहनकर जागा! आज महान साहसिक यात्रा का दिन था।`,
+        illustration_prompt: voiceTopic
+          ? `Storybook scene illustrating: ${voiceTopic}, featuring hero ${heroName}`
+          : `A cute ${animal} character with a ${color} cape standing in ${place}, children's book illustration style`,
         dictionary: { adventure: 'An exciting journey into the unknown (साहसिक यात्रा)', cape: 'A flowing cloth worn on the shoulders (लबादा)' }
       },
       {
@@ -348,6 +361,12 @@ export default function StoryCreator() {
           <span className="serif-heading">StoryNest Creator</span>
         </div>
         <div className="mode-toggle-pill">
+          <button 
+            className={`mode-btn ${builderMode === 'voice' ? 'active' : ''}`}
+            onClick={() => setBuilderMode('voice')}
+          >
+            <FaMicrophone /> Voice Prompt
+          </button>
           <button 
             className={`mode-btn ${builderMode === 'child' ? 'active' : ''}`}
             onClick={() => setBuilderMode('child')}
@@ -490,16 +509,44 @@ export default function StoryCreator() {
           </div>
         )}
 
+        {/* STEP 2 (Voice Prompt Mode): Speech to Text */}
+        {step === 2 && builderMode === 'voice' && (
+          <div className="step-panel">
+            <div className="step-heading-group">
+              <span className="kid-badge">🎤 VOICE PROMPT WORKSPACE</span>
+              <h2>Speak your story prompt!</h2>
+              <p>Tap the microphone icon, speak your story idea naturally, and let AI craft your adventure.</p>
+            </div>
+
+            <div className="child-builder-workspace">
+              <VoicePromptInput 
+                value={customPrompt}
+                onChange={setCustomPrompt}
+                placeholder="Tap the microphone icon and speak your story idea (e.g. 'A magical lion who loves ice cream and flies across the clouds')..."
+              />
+            </div>
+          </div>
+        )}
+
         {/* STEP 2 (Kids Mode): 8 Fun Questions */}
         {step === 2 && builderMode === 'child' && (
           <div className="step-panel">
             <div className="step-heading-group">
               <span className="kid-badge">🧒 KIDS WORKSPACE</span>
               <h2>Let's build your story outline!</h2>
-              <p>Answer these 8 fun questions to shape your adventure.</p>
+              <p>Answer these 8 fun questions or speak a voice prompt to shape your adventure.</p>
             </div>
 
             <div className="child-builder-workspace">
+              {/* Optional Voice Prompt Bar */}
+              <div className="question-block">
+                <VoicePromptInput 
+                  value={customPrompt}
+                  onChange={setCustomPrompt}
+                  placeholder="Optional: Speak or type a custom plot idea to combine with the options below..."
+                />
+              </div>
+
               {/* Q1: Hero character */}
               <div className="question-block">
                 <label className="question-title">1. 🦁 Choose your main character:</label>
@@ -653,6 +700,14 @@ export default function StoryCreator() {
             </div>
 
             <div className="child-builder-workspace">
+              {/* Optional Voice Prompt Bar */}
+              <div className="question-block">
+                <VoicePromptInput 
+                  value={customPrompt}
+                  onChange={setCustomPrompt}
+                  placeholder="Optional: Speak or type custom educational instructions or plot details..."
+                />
+              </div>
               
               {/* GROUP 1: Learning Config */}
               <div className="style-section">
