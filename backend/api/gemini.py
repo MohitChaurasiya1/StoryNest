@@ -2,10 +2,20 @@ import json
 import os
 
 from dotenv import load_dotenv
-from google import genai
-from google.genai import types
 
 load_dotenv()
+
+# Try loading new google-genai SDK first, fallback to google-generativeai SDK
+try:
+    from google import genai
+    from google.genai import types
+    SDK_MODE = "genai"
+except ImportError:
+    try:
+        import google.generativeai as genai
+        SDK_MODE = "generativeai"
+    except ImportError:
+        SDK_MODE = None
 
 
 def generate_story_content(params):
@@ -23,9 +33,11 @@ def generate_story_content(params):
         print("Gemini Error: GEMINI_API_KEY is missing.")
         return None
 
-    try:
-        client = genai.Client(api_key=api_key)
+    if not SDK_MODE:
+        print("Gemini Error: Neither google-genai nor google-generativeai package is installed.")
+        return None
 
+    try:
         try:
             num_pages = int(params.get("numPages", 5))
         except (TypeError, ValueError):
@@ -89,34 +101,53 @@ Required JSON structure:
 """
 
         models_to_try = [
-            "gemini-3-flash-preview",
+            "models/gemini-2.5-flash",
+            "models/gemini-2.0-flash",
+            "models/gemini-flash-latest",
+            "models/gemini-2.0-flash-lite",
             "gemini-2.0-flash",
-            "gemini-2.5-flash",
+            "gemini-2.0-flash-lite",
         ]
 
-        response = None
+        response_text = None
 
-        for model_name in models_to_try:
-            try:
-                response = client.models.generate_content(
-                    model=model_name,
-                    contents=prompt,
-                    config=types.GenerateContentConfig(
-                        response_mime_type="application/json",
-                        temperature=0.8,
-                    ),
-                )
-                if response and response.text:
-                    break
-            except Exception as model_err:
-                print(f"Gemini Model {model_name} error: {model_err}. Trying fallback model...")
+        if SDK_MODE == "genai":
+            client = genai.Client(api_key=api_key)
+            for model_name in models_to_try:
+                try:
+                    res = client.models.generate_content(
+                        model=model_name,
+                        contents=prompt,
+                        config=types.GenerateContentConfig(
+                            response_mime_type="application/json",
+                            temperature=0.8,
+                        ),
+                    )
+                    if res and res.text:
+                        response_text = res.text
+                        break
+                except Exception as model_err:
+                    print(f"Gemini Model {model_name} error: {model_err}. Trying fallback model...")
+        else:
+            genai.configure(api_key=api_key)
+            for model_name in models_to_try:
+                try:
+                    model = genai.GenerativeModel(
+                        model_name=model_name,
+                        generation_config={"response_mime_type": "application/json", "temperature": 0.8}
+                    )
+                    res = model.generate_content(prompt)
+                    if res and res.text:
+                        response_text = res.text
+                        break
+                except Exception as model_err:
+                    print(f"Gemini Model {model_name} error: {model_err}. Trying fallback model...")
 
-        if not response or not response.text:
+        if not response_text:
             print("Gemini Error: Empty response received from all models.")
             return None
 
-
-        story_data = json.loads(response.text)
+        story_data = json.loads(response_text)
 
         if not isinstance(story_data, dict):
             print("Gemini Error: Response is not a dictionary.")

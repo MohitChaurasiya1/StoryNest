@@ -53,15 +53,13 @@ def generate_story_api(request):
             status=status.HTTP_503_SERVICE_UNAVAILABLE,
         )
 
-    # Gemini returned nothing
     if not story_data:
         return Response(
             {
-                "error": "Gemini story generation failed.",
+                "error": "Gemini API Quota Exceeded or Error",
                 "details": (
-                    "Gemini did not return story content. "
-                    "Check the Gemini API key, model name, "
-                    "internet connection, and backend logs."
+                    "Gemini API rate limit or free tier quota was exceeded. "
+                    "Please wait a minute, update GEMINI_API_KEY in backend/.env, or use offline fallback."
                 ),
             },
             status=status.HTTP_503_SERVICE_UNAVAILABLE,

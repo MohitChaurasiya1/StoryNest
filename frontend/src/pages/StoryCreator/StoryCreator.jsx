@@ -218,7 +218,8 @@ export default function StoryCreator() {
         bedtimeSafe
       };
 
-      axios.post('http://localhost:8000/api/stories/generate/', payload)
+      const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+      axios.post(`${API_BASE_URL}/api/stories/generate/`, payload)
         .then(response => {
           clearInterval(timer);
           setGenProgress(100);
@@ -231,7 +232,8 @@ export default function StoryCreator() {
           console.error(err);
           clearInterval(timer);
           setGenProgress(100);
-          setGenMessages(prev => [...prev, '❌ API Offline — Loading offline demo story...']);
+          const errorMsg = err.response?.data?.details || err.response?.data?.error || 'API Server Unreachable — Loading offline demo story...';
+          setGenMessages(prev => [...prev, `❌ ${errorMsg}`]);
           
           // Offline fallback
           setTimeout(() => {
