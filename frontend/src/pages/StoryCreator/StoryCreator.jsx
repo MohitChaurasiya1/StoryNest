@@ -275,7 +275,7 @@ export default function StoryCreator() {
       };
 
       const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
-      axios.post(`${API_BASE_URL}/api/stories/generate/`, payload, { timeout: 10000 })
+      axios.post(`${API_BASE_URL}/api/stories/generate/`, payload, { timeout: 45000 })
         .then(response => {
           clearInterval(timer);
           setGenProgress(100);
