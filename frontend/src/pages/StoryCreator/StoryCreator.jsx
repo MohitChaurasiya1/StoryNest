@@ -17,9 +17,12 @@ import {
   FaStar,
   FaBolt,
   FaMoon,
-  FaMicrophone
+  FaMicrophone,
+  FaFilePdf,
+  FaAward
 } from 'react-icons/fa';
 import VoicePromptInput from '../../components/VoicePrompt/VoicePromptInput';
+import { generateStoryPDF, generateCertificatePDF } from '../../utils/pdfGenerator';
 import './StoryCreator.css';
 
 export default function StoryCreator() {
@@ -69,10 +72,59 @@ export default function StoryCreator() {
   const [genMessages, setGenMessages] = useState([]);
   const [genDone, setGenDone] = useState(false);
   const [generatedStoryId, setGeneratedStoryId] = useState(null);
+  const [generatedStory, setGeneratedStory] = useState(null);
+
+  // PDF Export loading state
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
+  const [isGeneratingCert, setIsGeneratingCert] = useState(false);
 
   // Generated Pages preview
   const [pages, setPages] = useState([]);
   const [editingPage, setEditingPage] = useState(null);
+
+  // PDF generation helper
+  const getExportStoryData = () => {
+    if (generatedStory) {
+      return {
+        ...generatedStory,
+        child_name: generatedStory.child_name || childName || 'Young Reader',
+        title_en: generatedStory.title_en || (childName ? `${childName}'s Adventure` : 'A New Adventure'),
+        moral: generatedStory.moral || moral || 'Kindness & Courage',
+        pages: pages
+      };
+    }
+    return {
+      id: generatedStoryId || 1,
+      child_name: childName || 'Young Reader',
+      title_en: childName ? `${childName}'s Adventure` : 'A New Adventure',
+      title_hi: childName ? `${childName} का रोमांच` : 'एक नया रोमांच',
+      moral: moral || 'Kindness & Courage',
+      created_at: new Date().toISOString(),
+      pages: pages
+    };
+  };
+
+  const handleDownloadStoryPDF = async () => {
+    setIsGeneratingPDF(true);
+    try {
+      await generateStoryPDF(getExportStoryData());
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsGeneratingPDF(false);
+    }
+  };
+
+  const handleDownloadCertificatePDF = async () => {
+    setIsGeneratingCert(true);
+    try {
+      await generateCertificatePDF(getExportStoryData());
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsGeneratingCert(false);
+    }
+  };
 
   // ========== DATA OPTIONS ==========
 
@@ -230,6 +282,7 @@ export default function StoryCreator() {
           setGenMessages(prev => [...prev, '✨ Story generated successfully!']);
           setPages(response.data.pages || []);
           setGeneratedStoryId(response.data.id);
+          setGeneratedStory(response.data);
           setGenDone(true);
         })
         .catch(err => {
@@ -246,6 +299,15 @@ export default function StoryCreator() {
             const pageCount = builderMode === 'custom' ? (parseInt(numPages) || 5) : 5;
             const fallbackPages = generateOfflineFallback(pageCount);
             setPages(fallbackPages);
+            setGeneratedStory({
+              id: 1,
+              child_name: childName || 'Leo',
+              title_en: `${childName || 'Leo'}'s ${heroAnimal ? heroAnimal + ' ' : ''}Adventure`,
+              title_hi: `${childName || 'लियो'} की कहानी`,
+              moral: moral || 'Kindness & Growth',
+              created_at: new Date().toISOString(),
+              pages: fallbackPages
+            });
             setGenDone(true);
           }, 1000);
         });
@@ -1021,9 +1083,36 @@ export default function StoryCreator() {
             See Preview <FaArrowRight />
           </button>
         ) : (
-          <button className="btn btn-primary" onClick={() => navigate(`/story/${generatedStoryId || 1}`)}>
-            <FaBookOpen /> Open Reader
-          </button>
+          <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', alignItems: 'center' }}>
+            <button 
+              type="button"
+              className="btn btn-outline" 
+              onClick={handleDownloadStoryPDF}
+              disabled={isGeneratingPDF}
+              title="Download Story PDF"
+            >
+              <FaFilePdf /> {isGeneratingPDF ? 'Generating PDF...' : 'Download Story PDF'}
+            </button>
+
+            <button 
+              type="button"
+              className="btn btn-secondary" 
+              onClick={handleDownloadCertificatePDF}
+              disabled={isGeneratingCert}
+              title="Download Certificate PDF"
+            >
+              <FaAward /> {isGeneratingCert ? 'Generating Cert...' : 'Download Certificate'}
+            </button>
+
+            <button 
+              type="button"
+              className="btn btn-primary" 
+              onClick={() => navigate(`/story/${generatedStoryId || 1}`)}
+              title="Read Story"
+            >
+              <FaBookOpen /> Read Story
+            </button>
+          </div>
         )}
       </div>
     </div>

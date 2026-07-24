@@ -4,7 +4,7 @@ import LandingPage from './pages/LandingPage';
 import AdminDashboard from './pages/AdminDashboard';
 import TeacherDashboard from './pages/TeacherDashboard';
 import ParentDashboard from './pages/ParentDashboard';
-import StoryCreator from './pages/StoryCreator';
+import StoryCreator from './pages/StoryCreator/StoryCreator';
 import StoryReader from './pages/StoryReader';
 
 function App() {

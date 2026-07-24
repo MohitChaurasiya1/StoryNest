@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
+import axios from 'axios';
 import { 
   FaVolumeUp, 
   FaLanguage, 
@@ -11,9 +12,10 @@ import {
   FaAward,
   FaTrophy,
   FaGraduationCap,
-  FaDownload
+  FaDownload,
+  FaFilePdf
 } from 'react-icons/fa';
-import { jsPDF } from 'jspdf';
+import { generateStoryPDF, generateCertificatePDF } from '../../utils/pdfGenerator';
 import './StoryReader.css';
 
 export default function StoryReader() {
@@ -26,12 +28,34 @@ export default function StoryReader() {
   const [selectedWord, setSelectedWord] = useState(null);
   const [showCertificate, setShowCertificate] = useState(false);
 
+  // Real DB Story state & PDF download states
+  const [dbStory, setDbStory] = useState(null);
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
+  const [isGeneratingCert, setIsGeneratingCert] = useState(false);
+
+  useEffect(() => {
+    if (id) {
+      const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+      axios.get(`${API_BASE_URL}/api/stories/${id}/`)
+        .then(res => {
+          if (res.data && res.data.pages && res.data.pages.length > 0) {
+            setDbStory(res.data);
+          }
+        })
+        .catch(err => {
+          console.warn("Could not fetch story from backend API, using offline sample data:", err);
+        });
+    }
+  }, [id]);
+
   // Sample Storybook Data
-  const story = {
+  const sampleStory = {
     title: 'Bruno\'s Sweet Lesson',
     titleHi: 'ब्रूनो का मीठा सबक',
     author: 'StoryNest AI',
     grade: 'Grade 2',
+    childName: 'Leo',
+    moral: 'Sharing and collaboration',
     pages: [
       {
         en: 'Bruno the bear woke up one sunny morning to find his honey jar overflowing. "There\'s too much for just me!" he laughed, golden drops rolling down his fuzzy chin.',
@@ -202,6 +226,29 @@ export default function StoryReader() {
     ]
   };
 
+  const story = dbStory ? {
+    title: dbStory.title_en || 'A New Adventure',
+    titleHi: dbStory.title_hi || 'एक नया रोमांच',
+    author: 'StoryNest AI',
+    grade: dbStory.grade || 'Grade 2',
+    childName: dbStory.child_name || 'Leo',
+    moral: dbStory.moral || 'Kindness & Growth',
+    raw: dbStory,
+    pages: (dbStory.pages || []).map(p => ({
+      en: p.text_en || '',
+      hi: p.text_hi || '',
+      illustration: (
+        <div style={{ textAlign: 'center', padding: '2.5rem 1rem', background: '#FAF7F2', borderRadius: '16px', border: '2px dashed #5AB0A6' }}>
+          <span style={{ fontSize: '3.5rem' }}>🎨</span>
+          <p style={{ marginTop: '0.75rem', fontWeight: 'bold', color: '#418C84', fontSize: '0.9rem' }}>
+            {p.illustration_prompt || 'Story Illustration Details'}
+          </p>
+        </div>
+      ),
+      dictionary: p.dictionary || {}
+    }))
+  } : sampleStory;
+
   const wordsEn = story.pages[currentPage].en.split(" ");
   const wordsHi = story.pages[currentPage].hi.split(" ");
   const words = lang === 'en' ? wordsEn : wordsHi;
@@ -264,83 +311,55 @@ export default function StoryReader() {
     }
   };
 
-  // Generate Completion Certificate using jsPDF
-  const generateCertificate = () => {
-    const doc = new jsPDF({
-      orientation: 'landscape',
-      unit: 'in',
-      format: [11, 8.5]
-    });
+  // Export PDF helper using real DB story or fallback
+  const getExportStoryData = () => {
+    if (dbStory) {
+      return {
+        ...dbStory,
+        child_name: dbStory.child_name || 'Young Reader',
+        title_en: dbStory.title_en || story.title,
+        title_hi: dbStory.title_hi || story.titleHi,
+        moral: dbStory.moral || 'Kindness & Growth',
+        created_at: dbStory.created_at || new Date().toISOString(),
+        pages: dbStory.pages || story.pages
+      };
+    }
+    return {
+      child_name: story.childName || 'Leo',
+      title_en: story.title,
+      title_hi: story.titleHi,
+      moral: story.moral || 'Kindness & Sharing',
+      created_at: new Date().toISOString(),
+      pages: story.pages.map((p, idx) => ({
+        page_number: idx + 1,
+        text_en: p.en,
+        text_hi: p.hi,
+        illustration_prompt: 'Whimsical watercolor scene illustration',
+        dictionary: p.dictionary
+      }))
+    };
+  };
 
-    // Outer Border
-    doc.setDrawColor(65, 140, 132); // Teal Accent
-    doc.setLineWidth(0.15);
-    doc.rect(0.25, 0.25, 10.5, 8.0);
+  const handleDownloadStoryPdf = async () => {
+    setIsGeneratingPDF(true);
+    try {
+      await generateStoryPDF(getExportStoryData());
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setIsGeneratingPDF(false);
+    }
+  };
 
-    // Inner Gold Accent Border
-    doc.setDrawColor(181, 130, 42); // Muted Gold
-    doc.setLineWidth(0.04);
-    doc.rect(0.4, 0.4, 10.2, 7.7);
-
-    // Header Background Accent Shape
-    doc.setFillColor(65, 140, 132);
-    doc.triangle(0.4, 0.4, 1.5, 0.4, 0.4, 1.5, 'F');
-    doc.triangle(10.6, 0.4, 9.5, 0.4, 10.6, 1.5, 'F');
-    doc.triangle(0.4, 8.1, 1.5, 8.1, 0.4, 7.0, 'F');
-    doc.triangle(10.6, 8.1, 9.5, 8.1, 10.6, 7.0, 'F');
-
-    // Title
-    doc.setTextColor(47, 59, 42); // Primary Dark text
-    doc.setFont('Times', 'italic');
-    doc.setFontSize(26);
-    doc.text('StoryNest Academy of Learning', 5.5, 1.8, { align: 'center' });
-
-    doc.setFont('Times', 'bold');
-    doc.setFontSize(44);
-    doc.setTextColor(65, 140, 132);
-    doc.text('CERTIFICATE OF READING', 5.5, 2.8, { align: 'center' });
-
-    doc.setFont('Helvetica', 'normal');
-    doc.setFontSize(16);
-    doc.setTextColor(107, 122, 99);
-    doc.text('This proud achievement is awarded to', 5.5, 3.6, { align: 'center' });
-
-    // Kid Name (Leo)
-    doc.setFont('Helvetica', 'bold');
-    doc.setFontSize(28);
-    doc.setTextColor(181, 130, 42); // Gold
-    doc.text('LEO THE READER', 5.5, 4.4, { align: 'center' });
-
-    // Description text
-    doc.setFont('Helvetica', 'normal');
-    doc.setFontSize(14);
-    doc.setTextColor(47, 59, 42);
-    doc.text(`For successfully reading and comprehending the Storybook:`, 5.5, 5.0, { align: 'center' });
-    
-    doc.setFont('Helvetica', 'bolditalic');
-    doc.setFontSize(18);
-    doc.setTextColor(65, 140, 132);
-    doc.text(`"${story.title}"`, 5.5, 5.5, { align: 'center' });
-
-    doc.setFont('Helvetica', 'normal');
-    doc.setFontSize(12);
-    doc.setTextColor(107, 122, 99);
-    const dateStr = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
-    doc.text(`Awarded on: ${dateStr}`, 5.5, 6.1, { align: 'center' });
-
-    // Signatures
-    doc.setDrawColor(200, 200, 200);
-    doc.line(2.0, 7.1, 4.5, 7.1);
-    doc.line(6.5, 7.1, 9.0, 7.1);
-
-    doc.setFont('Helvetica', 'bold');
-    doc.setFontSize(11);
-    doc.setTextColor(47, 59, 42);
-    doc.text('StoryNest AI Guide', 3.25, 7.3, { align: 'center' });
-    doc.text('Parent Signature', 7.75, 7.3, { align: 'center' });
-
-    // Save Certificate
-    doc.save(`StoryNest_Certificate_Leo.pdf`);
+  const handleDownloadCert = async () => {
+    setIsGeneratingCert(true);
+    try {
+      await generateCertificatePDF(getExportStoryData());
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setIsGeneratingCert(false);
+    }
   };
 
   return (
@@ -358,6 +377,16 @@ export default function StoryReader() {
         </div>
 
         <div className="reader-controls">
+          <button 
+            className="reader-icon-btn"
+            onClick={handleDownloadStoryPdf}
+            disabled={isGeneratingPDF}
+            title="Download Story PDF"
+          >
+            <FaFilePdf />
+            <span>{isGeneratingPDF ? 'Exporting...' : 'Story PDF'}</span>
+          </button>
+
           <button 
             className="reader-icon-btn toggle-lang-btn"
             onClick={() => {
@@ -462,7 +491,7 @@ export default function StoryReader() {
               <FaGraduationCap className="cert-cap-icon" />
             </div>
 
-            <h2 className="serif-heading cert-heading-title">Congratulations, Leo!</h2>
+            <h2 className="serif-heading cert-heading-title">Congratulations, {story.childName || 'Reader'}!</h2>
             <p className="cert-sub">You have finished reading <strong>{story.title}</strong> and earned your reading medal!</p>
 
             <div className="badge-preview-container">
@@ -472,12 +501,21 @@ export default function StoryReader() {
               </div>
             </div>
 
-            <div className="cert-actions-row">
+            <div className="cert-actions-row" style={{ flexWrap: 'wrap', justifyContent: 'center' }}>
+              <button 
+                className="btn btn-outline"
+                onClick={handleDownloadStoryPdf}
+                disabled={isGeneratingPDF}
+              >
+                <FaFilePdf /> {isGeneratingPDF ? 'Generating...' : 'Download Story PDF'}
+              </button>
+
               <button 
                 className="btn btn-primary cert-download-btn"
-                onClick={generateCertificate}
+                onClick={handleDownloadCert}
+                disabled={isGeneratingCert}
               >
-                <FaDownload /> Download PDF Certificate
+                <FaDownload /> {isGeneratingCert ? 'Generating...' : 'Download Certificate'}
               </button>
 
               <button 

@@ -104,10 +104,11 @@ Required JSON structure:
 """
 
         models_to_try = [
+            "gemini-flash-latest",
+            "gemini-2.5-flash-lite",
             "gemini-2.0-flash",
             "gemini-2.0-flash-lite",
-            "models/gemini-2.0-flash",
-            "models/gemini-2.0-flash-lite",
+            "gemini-flash-lite-latest",
         ]
 
         response_text = None
