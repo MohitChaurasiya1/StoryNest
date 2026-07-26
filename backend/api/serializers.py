@@ -132,7 +132,7 @@ class ReadingLogSerializer(serializers.ModelSerializer):
             "notes",
             "created_at",
         ]
-        read_only_fields = ["id", "created_at"]
+        read_only_fields = ["id", "created_at", "child"]
 
 
 class AchievementSerializer(serializers.ModelSerializer):
