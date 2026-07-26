@@ -15,11 +15,32 @@ class User(AbstractUser):
         choices=Role.choices,
         default=Role.PARENT
     )
-
     phone = models.CharField(max_length=15, blank=True, null=True)
 
     def __str__(self):
         return f"{self.username} ({self.role})"
+
+
+class ParentProfile(models.Model):
+    THEME_CHOICES = [
+        ('light', 'Light Mode'),
+        ('dark', 'Dark Mode'),
+        ('system', 'System Default'),
+    ]
+
+    user = models.OneToOneField(
+        User,
+        on_delete=models.CASCADE,
+        related_name='parent_profile'
+    )
+    preferred_language = models.CharField(max_length=50, default='Bilingual (EN/HI)')
+    theme_preference = models.CharField(max_length=20, choices=THEME_CHOICES, default='light')
+    email_notifications = models.BooleanField(default=True)
+    weekly_reports = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"ParentProfile for {self.user.username}"
 
 
 class ChildProfile(models.Model):
@@ -36,9 +57,15 @@ class ChildProfile(models.Model):
     )
     name = models.CharField(max_length=100)
     age = models.IntegerField(default=7)
+    dob = models.DateField(blank=True, null=True)
     gender = models.CharField(max_length=20, choices=GENDER_CHOICES, default='boy')
     grade_level = models.CharField(max_length=50, default='Grade 2')
     preferred_language = models.CharField(max_length=50, default='Bilingual (EN/HI)')
+    interests = models.CharField(max_length=255, blank=True, default='Animals, Space, Magic')
+    favourite_colour = models.CharField(max_length=50, blank=True, default='Blue')
+    favourite_animal = models.CharField(max_length=50, blank=True, default='Lion')
+    reading_level = models.CharField(max_length=50, default='Beginner')
+    learning_goals = models.TextField(blank=True, default='Improve Hindi vocabulary and reading consistency')
     avatar = models.CharField(max_length=50, default='🦁')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -72,7 +99,6 @@ class Story(models.Model):
     child_gender = models.CharField(max_length=50, default='boy')
     builder_mode = models.CharField(max_length=20, default='child')
 
-    # Kids Mode fields
     hero_animal = models.CharField(max_length=100, blank=True, null=True)
     hero_job = models.CharField(max_length=100, blank=True, null=True)
     hero_color = models.CharField(max_length=100, blank=True, null=True)
@@ -82,7 +108,6 @@ class Story(models.Model):
     magic_power = models.CharField(max_length=100, blank=True, null=True)
     story_ending = models.CharField(max_length=100, blank=True, null=True)
 
-    # Parent/Teacher Mode fields
     moral = models.CharField(max_length=100, blank=True, null=True)
     vocab_theme = models.CharField(max_length=100, blank=True, null=True)
     language = models.CharField(max_length=50, default='bilingual')
@@ -100,10 +125,15 @@ class Story(models.Model):
     cultural_elements = models.CharField(max_length=100, default='mixed')
     bedtime_safe = models.CharField(max_length=20, default='yes')
 
+    cover_image_url = models.URLField(blank=True, null=True)
+    is_favourite = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
+    class Meta:
+        ordering = ['-created_at']
+
     def __str__(self):
-        return f"Story for {self.child_name} - Mode: {self.builder_mode} ({self.created_at.strftime('%Y-%m-%d')})"
+        return f"Story for {self.child_name} ({self.title_en})"
 
 
 class StoryPage(models.Model):
@@ -152,7 +182,74 @@ class ReadingLog(models.Model):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"{self.child.name} read '{self.story_title}' on {self.read_date} ({self.reading_time_minutes}m)"
+        return f"{self.child.name} read '{self.story_title}'"
+
+
+class ReadingProgress(models.Model):
+    child = models.ForeignKey(ChildProfile, on_delete=models.CASCADE, related_name='progress_records')
+    story = models.ForeignKey(Story, on_delete=models.CASCADE, related_name='progress_records')
+    last_opened_page = models.IntegerField(default=1)
+    completion_percentage = models.IntegerField(default=0)
+    completed = models.BooleanField(default=False)
+    total_reading_time_seconds = models.IntegerField(default=0)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ('child', 'story')
+
+    def __str__(self):
+        return f"{self.child.name} - {self.story.title_en} ({self.completion_percentage}%)"
+
+
+class ReadingSession(models.Model):
+    child = models.ForeignKey(ChildProfile, on_delete=models.CASCADE, related_name='reading_sessions')
+    story = models.ForeignKey(Story, on_delete=models.CASCADE, related_name='reading_sessions')
+    start_time = models.DateTimeField(default=timezone.now)
+    end_time = models.DateTimeField(blank=True, null=True)
+    duration_minutes = models.IntegerField(default=0)
+
+    class Meta:
+        ordering = ['-start_time']
+
+    def __str__(self):
+        return f"Session {self.child.name} - {self.story.title_en} ({self.duration_minutes}m)"
+
+
+class Quiz(models.Model):
+    story = models.OneToOneField(Story, on_delete=models.CASCADE, related_name='quiz')
+    title = models.CharField(max_length=255, default="Comprehension Check")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Quiz for {self.story.title_en}"
+
+
+class QuizQuestion(models.Model):
+    quiz = models.ForeignKey(Quiz, on_delete=models.CASCADE, related_name='questions')
+    question_text = models.TextField()
+    option_a = models.CharField(max_length=255)
+    option_b = models.CharField(max_length=255)
+    option_c = models.CharField(max_length=255)
+    option_d = models.CharField(max_length=255)
+    correct_option = models.CharField(max_length=1, choices=[('A','A'),('B','B'),('C','C'),('D','D')])
+
+    def __str__(self):
+        return f"Q: {self.question_text[:30]}..."
+
+
+class QuizAttempt(models.Model):
+    quiz = models.ForeignKey(Quiz, on_delete=models.CASCADE, related_name='attempts')
+    child = models.ForeignKey(ChildProfile, on_delete=models.CASCADE, related_name='quiz_attempts')
+    score = models.IntegerField(default=0)
+    total_questions = models.IntegerField(default=0)
+    percentage = models.FloatField(default=0.0)
+    attempted_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-attempted_at']
+
+    def __str__(self):
+        return f"{self.child.name} Quiz Score: {self.score}/{self.total_questions}"
 
 
 class Achievement(models.Model):
@@ -185,3 +282,40 @@ class ChildAchievement(models.Model):
 
     def __str__(self):
         return f"{self.child.name} earned {self.achievement.name}"
+
+
+class ParentNote(models.Model):
+    parent = models.ForeignKey(User, on_delete=models.CASCADE, related_name='parent_notes')
+    child = models.ForeignKey(ChildProfile, on_delete=models.CASCADE, related_name='notes')
+    reading_log = models.ForeignKey(ReadingLog, on_delete=models.CASCADE, null=True, blank=True, related_name='parent_notes')
+    note = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"Note for {self.child.name} by {self.parent.username}"
+
+
+class Certificate(models.Model):
+    child = models.ForeignKey(ChildProfile, on_delete=models.CASCADE, related_name='certificates')
+    title = models.CharField(max_length=255, default="Super Reader Certificate")
+    description = models.TextField()
+    issued_date = models.DateField(default=timezone.now)
+
+    def __str__(self):
+        return f"Certificate: {self.title} for {self.child.name}"
+
+
+class FavouriteStory(models.Model):
+    parent = models.ForeignKey(User, on_delete=models.CASCADE, related_name='favourite_stories')
+    child = models.ForeignKey(ChildProfile, on_delete=models.CASCADE, related_name='favourite_stories')
+    story = models.ForeignKey(Story, on_delete=models.CASCADE, related_name='favourited_by')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('child', 'story')
+
+    def __str__(self):
+        return f"{self.child.name} favorited {self.story.title_en}"

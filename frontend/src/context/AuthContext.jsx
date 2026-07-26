@@ -18,66 +18,87 @@ export function AuthProvider({ children: childrenComponents }) {
     setLoading(true);
     setError(null);
     try {
-      let storedToken = localStorage.getItem('storynest_access_token');
-      
-      if (!storedToken) {
-        // Auto-demo authentication for seamless local evaluation
-        try {
-          const tokens = await authApi.login('parent_demo', 'pass1234');
-          localStorage.setItem('storynest_access_token', tokens.access);
-          localStorage.setItem('storynest_refresh_token', tokens.refresh);
-          setToken(tokens.access);
-        } catch (loginErr) {
-          // If demo user does not exist, register it
+      const ensureAuthenticated = async () => {
+        let storedToken = localStorage.getItem('storynest_access_token');
+        if (!storedToken) {
           try {
-            await authApi.register({
-              username: 'parent_demo',
-              password: 'pass1234',
-              email: 'parent@storynest.com',
-              role: 'PARENT',
-              phone: '1234567890'
-            });
             const tokens = await authApi.login('parent_demo', 'pass1234');
             localStorage.setItem('storynest_access_token', tokens.access);
             localStorage.setItem('storynest_refresh_token', tokens.refresh);
+            localStorage.setItem('access_token', tokens.access);
+            localStorage.setItem('refresh_token', tokens.refresh);
             setToken(tokens.access);
-          } catch (regErr) {
-            console.error('Demo registration error:', regErr);
+          } catch (loginErr) {
+            try {
+              await authApi.register({
+                username: 'parent_demo',
+                password: 'pass1234',
+                email: 'parent@storynest.com',
+                first_name: 'Parent',
+                last_name: 'Demo',
+                role: 'PARENT',
+                phone: '1234567890'
+              });
+              const tokens = await authApi.login('parent_demo', 'pass1234');
+              localStorage.setItem('storynest_access_token', tokens.access);
+              localStorage.setItem('storynest_refresh_token', tokens.refresh);
+              localStorage.setItem('access_token', tokens.access);
+              localStorage.setItem('refresh_token', tokens.refresh);
+              setToken(tokens.access);
+            } catch (regErr) {
+              console.error('Demo registration error:', regErr);
+            }
           }
         }
+      };
+
+      await ensureAuthenticated();
+
+      let meData;
+      try {
+        meData = await authApi.getMe();
+      } catch (getMeErr) {
+        // If 401 or invalid token, clear tokens and re-login
+        localStorage.removeItem('storynest_access_token');
+        localStorage.removeItem('storynest_refresh_token');
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('refresh_token');
+        await ensureAuthenticated();
+        meData = await authApi.getMe();
       }
 
-      const meData = await authApi.getMe();
       setUser(meData.user);
       
       let fetchedChildren = meData.children || [];
 
-      // If parent has no children, create default demo child "Leo"
       if (fetchedChildren.length === 0) {
-        const newChild = await parentApi.createChild({
-          name: "Leo",
-          age: 7,
-          gender: "boy",
-          grade_level: "Grade 2",
-          preferred_language: "Bilingual (EN/HI)",
-          avatar: "🦁"
-        });
-        
-        // Add sample initial reading log for Leo
         try {
-          await parentApi.createReadingLog(newChild.id, {
-            story_title: "Leo and the Golden Tree",
-            reading_time_minutes: 32,
-            pages_read: 5,
-            completed: true,
-            rating: 5,
-            notes: "Great bedtime story!"
+          const newChild = await parentApi.createChild({
+            name: "Leo",
+            age: 7,
+            gender: "boy",
+            grade_level: "Grade 2",
+            preferred_language: "Bilingual (EN/HI)",
+            avatar: "🦁"
           });
-        } catch (logErr) {
-          console.warn("Could not create initial log", logErr);
-        }
 
-        fetchedChildren = [newChild];
+          try {
+            await parentApi.createReadingLog(newChild.id, {
+              story_title: "Leo and the Golden Tree",
+              reading_time_minutes: 32,
+              pages_read: 5,
+              completed: true,
+              rating: 5,
+              notes: "Great bedtime story!"
+            });
+          } catch (logErr) {
+            console.warn("Could not create initial log", logErr);
+          }
+
+          fetchedChildren = [newChild];
+        } catch (childCreateErr) {
+          console.warn("Could not create initial child profile", childCreateErr);
+        }
       }
 
       setChildrenList(fetchedChildren);

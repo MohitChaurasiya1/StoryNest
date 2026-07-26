@@ -1,124 +1,921 @@
-import axios from 'axios';
+import axios from "axios";
 
-const API_BASE_URL = 'http://127.0.0.1:8000/api';
+/*
+|--------------------------------------------------------------------------
+| API Configuration
+|--------------------------------------------------------------------------
+|
+| Add this to frontend/.env:
+|
+| VITE_API_BASE_URL=http://localhost:8000/api
+|
+| Restart the Vite server after changing environment variables.
+|
+*/
+
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL?.replace(/\/+$/, "") ||
+  "http://127.0.0.1:8000/api";
+
+const ACCESS_TOKEN_KEY = "access_token";
+const REFRESH_TOKEN_KEY = "refresh_token";
 
 const api = axios.create({
   baseURL: API_BASE_URL,
+  timeout: 30000,
   headers: {
-    'Content-Type': 'application/json',
+    "Content-Type": "application/json",
+    Accept: "application/json",
   },
 });
 
-// Attach JWT token to requests if available
+/*
+|--------------------------------------------------------------------------
+| Token Helpers
+|--------------------------------------------------------------------------
+*/
+
+export const tokenService = {
+  getAccessToken() {
+    return (
+      localStorage.getItem(ACCESS_TOKEN_KEY) ||
+      localStorage.getItem("storynest_access_token")
+    );
+  },
+
+  getRefreshToken() {
+    return (
+      localStorage.getItem(REFRESH_TOKEN_KEY) ||
+      localStorage.getItem("storynest_refresh_token")
+    );
+  },
+
+  setTokens({ access, refresh }) {
+    if (access) {
+      localStorage.setItem(ACCESS_TOKEN_KEY, access);
+      localStorage.setItem("storynest_access_token", access);
+    }
+
+    if (refresh) {
+      localStorage.setItem(REFRESH_TOKEN_KEY, refresh);
+      localStorage.setItem("storynest_refresh_token", refresh);
+    }
+  },
+
+  setAccessToken(accessToken) {
+    if (accessToken) {
+      localStorage.setItem(ACCESS_TOKEN_KEY, accessToken);
+      localStorage.setItem("storynest_access_token", accessToken);
+    }
+  },
+
+  clearTokens() {
+    localStorage.removeItem(ACCESS_TOKEN_KEY);
+    localStorage.removeItem(REFRESH_TOKEN_KEY);
+    localStorage.removeItem("storynest_access_token");
+    localStorage.removeItem("storynest_refresh_token");
+  },
+
+  hasAccessToken() {
+    return Boolean(this.getAccessToken());
+  },
+};
+
+/*
+|--------------------------------------------------------------------------
+| Request Interceptor
+|--------------------------------------------------------------------------
+*/
+
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('storynest_access_token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+    const accessToken = tokenService.getAccessToken();
+
+    if (accessToken) {
+      config.headers.Authorization = `Bearer ${accessToken}`;
     }
+
+    /*
+     * Do not manually set multipart/form-data content type.
+     * Axios will automatically add the correct boundary.
+     */
+    if (config.data instanceof FormData) {
+      delete config.headers["Content-Type"];
+    }
+
     return config;
   },
   (error) => Promise.reject(error)
 );
 
-// Response interceptor for handling 401 token refresh
+/*
+|--------------------------------------------------------------------------
+| Refresh Token Handling
+|--------------------------------------------------------------------------
+*/
+
+let isRefreshingToken = false;
+let refreshSubscribers = [];
+
+const subscribeToTokenRefresh = (callback) => {
+  refreshSubscribers.push(callback);
+};
+
+const notifyRefreshSubscribers = (newAccessToken) => {
+  refreshSubscribers.forEach((callback) => callback(newAccessToken));
+  refreshSubscribers = [];
+};
+
+const rejectRefreshSubscribers = (error) => {
+  refreshSubscribers.forEach((callback) => callback(null, error));
+  refreshSubscribers = [];
+};
+
+const refreshAccessToken = async () => {
+  const refreshToken = tokenService.getRefreshToken();
+
+  if (!refreshToken) {
+    throw new Error("No refresh token is available.");
+  }
+
+  /*
+   * Change this endpoint if your Simple JWT refresh URL is different.
+   * Expected default endpoint:
+   * POST /api/token/refresh/
+   */
+  const response = await axios.post(
+    `${API_BASE_URL}/auth/token/refresh/`,
+    {
+      refresh: refreshToken,
+    },
+    {
+      timeout: 30000,
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+    }
+  );
+
+  const newAccessToken = response.data?.access;
+
+  if (!newAccessToken) {
+    throw new Error("The refresh endpoint did not return an access token.");
+  }
+
+  tokenService.setAccessToken(newAccessToken);
+
+  if (response.data?.refresh) {
+    localStorage.setItem(REFRESH_TOKEN_KEY, response.data.refresh);
+  }
+
+  return newAccessToken;
+};
+
+/*
+|--------------------------------------------------------------------------
+| Response Interceptor
+|--------------------------------------------------------------------------
+*/
+
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
-    if (error.response?.status === 401 && !originalRequest._retry) {
-      originalRequest._retry = true;
-      const refreshToken = localStorage.getItem('storynest_refresh_token');
-      if (refreshToken) {
-        try {
-          const res = await axios.post(`${API_BASE_URL}/auth/token/refresh/`, {
-            refresh: refreshToken,
-          });
-          const newAccess = res.data.access;
-          localStorage.setItem('storynest_access_token', newAccess);
-          originalRequest.headers.Authorization = `Bearer ${newAccess}`;
-          return api(originalRequest);
-        } catch (refreshErr) {
-          localStorage.removeItem('storynest_access_token');
-          localStorage.removeItem('storynest_refresh_token');
-        }
-      }
+    const status = error.response?.status;
+
+    const isUnauthorized = status === 401;
+    const isRefreshRequest =
+      originalRequest?.url?.includes("/token/refresh/");
+
+    if (
+      !isUnauthorized ||
+      !originalRequest ||
+      originalRequest._retry ||
+      isRefreshRequest
+    ) {
+      return Promise.reject(error);
     }
-    return Promise.reject(error);
+
+    const refreshToken = tokenService.getRefreshToken();
+
+    if (!refreshToken) {
+      tokenService.clearTokens();
+      return Promise.reject(error);
+    }
+
+    if (isRefreshingToken) {
+      return new Promise((resolve, reject) => {
+        subscribeToTokenRefresh((newAccessToken, refreshError) => {
+          if (refreshError || !newAccessToken) {
+            reject(refreshError || error);
+            return;
+          }
+
+          originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+          resolve(api(originalRequest));
+        });
+      });
+    }
+
+    originalRequest._retry = true;
+    isRefreshingToken = true;
+
+    try {
+      const newAccessToken = await refreshAccessToken();
+
+      notifyRefreshSubscribers(newAccessToken);
+
+      originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+
+      return api(originalRequest);
+    } catch (refreshError) {
+      rejectRefreshSubscribers(refreshError);
+      tokenService.clearTokens();
+
+      /*
+       * Prevent redirect loops while already on an authentication page.
+       */
+      const currentPath = window.location.pathname;
+      const isAuthPage =
+        currentPath.includes("/login") ||
+        currentPath.includes("/register") ||
+        currentPath.includes("/forgot-password");
+
+      if (!isAuthPage) {
+        window.location.href = "/login";
+      }
+
+      return Promise.reject(refreshError);
+    } finally {
+      isRefreshingToken = false;
+    }
   }
 );
 
-// Auth Services
+/*
+|--------------------------------------------------------------------------
+| Response and Error Helpers
+|--------------------------------------------------------------------------
+*/
+
+const unwrapResponse = (response) => response.data;
+
+export const getApiErrorMessage = (
+  error,
+  fallbackMessage = "Something went wrong. Please try again."
+) => {
+  if (!error) {
+    return fallbackMessage;
+  }
+
+  if (error.code === "ECONNABORTED") {
+    return "The request took too long. Please try again.";
+  }
+
+  if (!error.response) {
+    return "Unable to connect to the server. Please check your internet connection.";
+  }
+
+  const responseData = error.response.data;
+
+  if (typeof responseData === "string") {
+    return responseData;
+  }
+
+  if (responseData?.detail) {
+    return responseData.detail;
+  }
+
+  if (responseData?.message) {
+    return responseData.message;
+  }
+
+  if (responseData?.error) {
+    return responseData.error;
+  }
+
+  if (responseData && typeof responseData === "object") {
+    const firstErrorValue = Object.values(responseData)[0];
+
+    if (Array.isArray(firstErrorValue)) {
+      return firstErrorValue[0];
+    }
+
+    if (typeof firstErrorValue === "string") {
+      return firstErrorValue;
+    }
+  }
+
+  return fallbackMessage;
+};
+
+export const buildQueryParams = (params = {}) =>
+  Object.fromEntries(
+    Object.entries(params).filter(
+      ([, value]) =>
+        value !== undefined &&
+        value !== null &&
+        value !== ""
+    )
+  );
+
+const toFormData = (payload = {}) => {
+  const formData = new FormData();
+
+  Object.entries(payload).forEach(([key, value]) => {
+    if (value === undefined || value === null) {
+      return;
+    }
+
+    if (Array.isArray(value)) {
+      value.forEach((item) => {
+        formData.append(key, item);
+      });
+      return;
+    }
+
+    if (
+      typeof value === "object" &&
+      !(value instanceof File) &&
+      !(value instanceof Blob)
+    ) {
+      formData.append(key, JSON.stringify(value));
+      return;
+    }
+
+    formData.append(key, value);
+  });
+
+  return formData;
+};
+
+/*
+|--------------------------------------------------------------------------
+| General Authentication API
+|--------------------------------------------------------------------------
+|
+| Update these URLs if your existing authentication endpoints use
+| different paths.
+|
+*/
+
 export const authApi = {
-  login: async (username, password) => {
-    const res = await api.post('/auth/token/', { username, password });
-    return res.data;
+  async login(usernameOrPayload, password) {
+    const payload =
+      typeof usernameOrPayload === "object"
+        ? usernameOrPayload
+        : { username: usernameOrPayload, password };
+
+    const response = await api.post("/auth/token/", payload);
+
+    if (response.data?.access) {
+      tokenService.setTokens({
+        access: response.data.access,
+        refresh: response.data.refresh,
+      });
+    }
+
+    return unwrapResponse(response);
   },
-  register: async (userData) => {
-    const res = await api.post('/auth/register/', userData);
-    return res.data;
+
+  async register(payload) {
+    const response = await api.post("/auth/register/", payload);
+    return unwrapResponse(response);
   },
-  getMe: async () => {
-    const res = await api.get('/auth/me/');
-    return res.data;
+
+  async getMe() {
+    const response = await api.get("/auth/me/");
+    return unwrapResponse(response);
+  },
+
+  async refreshToken() {
+    const accessToken = await refreshAccessToken();
+
+    return {
+      access: accessToken,
+    };
+  },
+
+  logout() {
+    tokenService.clearTokens();
   },
 };
 
-// Parent Module Services
+/*
+|--------------------------------------------------------------------------
+| Parent Authentication and Account Settings
+|--------------------------------------------------------------------------
+*/
+
+export const parentAuthApi = {
+  async changePassword(payload) {
+    const response = await api.post(
+      "/parent/auth/change-password/",
+      payload
+    );
+
+    return unwrapResponse(response);
+  },
+
+  async updateProfile(payload, options = {}) {
+    const { useFormData = false } = options;
+
+    const requestPayload = useFormData
+      ? toFormData(payload)
+      : payload;
+
+    const response = await api.patch(
+      "/parent/auth/update-profile/",
+      requestPayload
+    );
+
+    return unwrapResponse(response);
+  },
+
+  async deleteAccount(payload = {}) {
+    const response = await api.delete(
+      "/parent/auth/delete-account/",
+      {
+        data: payload,
+      }
+    );
+
+    tokenService.clearTokens();
+
+    return unwrapResponse(response);
+  },
+};
+
+/*
+|--------------------------------------------------------------------------
+| Parent Profile API
+|--------------------------------------------------------------------------
+*/
+
+export const parentProfileApi = {
+  async getProfile() {
+    const response = await api.get("/parent/profile/");
+    return unwrapResponse(response);
+  },
+
+  async updateProfile(payload) {
+    const response = await api.patch(
+      "/parent/profile/",
+      payload
+    );
+
+    return unwrapResponse(response);
+  },
+
+  async replaceProfile(payload) {
+    const response = await api.put(
+      "/parent/profile/",
+      payload
+    );
+
+    return unwrapResponse(response);
+  },
+
+  async updatePreferences(preferences) {
+    const response = await api.patch(
+      "/parent/profile/",
+      preferences
+    );
+
+    return unwrapResponse(response);
+  },
+};
+
+/*
+|--------------------------------------------------------------------------
+| Parent Dashboard API
+|--------------------------------------------------------------------------
+*/
+
+export const parentDashboardApi = {
+  async getDashboard() {
+    const response = await api.get("/parent/dashboard/");
+    return unwrapResponse(response);
+  },
+
+  async getChildDashboard(childId) {
+    const response = await api.get(
+      `/parent/children/${childId}/dashboard/`
+    );
+
+    return unwrapResponse(response);
+  },
+
+  async getChildInsights(childId, params = {}) {
+    const response = await api.get(
+      `/parent/children/${childId}/insights/`,
+      {
+        params: buildQueryParams(params),
+      }
+    );
+
+    return unwrapResponse(response);
+  },
+};
+
+/*
+|--------------------------------------------------------------------------
+| Children CRUD API
+|--------------------------------------------------------------------------
+*/
+
+export const parentChildrenApi = {
+  async getChildren(params = {}) {
+    const response = await api.get("/parent/children/", {
+      params: buildQueryParams(params),
+    });
+
+    return unwrapResponse(response);
+  },
+
+  async getChild(childId) {
+    const response = await api.get(
+      `/parent/children/${childId}/`
+    );
+
+    return unwrapResponse(response);
+  },
+
+  async createChild(payload) {
+    const requestPayload =
+      payload instanceof FormData ? payload : toFormData(payload);
+
+    const response = await api.post(
+      "/parent/children/",
+      requestPayload
+    );
+
+    return unwrapResponse(response);
+  },
+
+  async updateChild(childId, payload) {
+    const requestPayload =
+      payload instanceof FormData ? payload : toFormData(payload);
+
+    const response = await api.patch(
+      `/parent/children/${childId}/`,
+      requestPayload
+    );
+
+    return unwrapResponse(response);
+  },
+
+  async replaceChild(childId, payload) {
+    const requestPayload =
+      payload instanceof FormData ? payload : toFormData(payload);
+
+    const response = await api.put(
+      `/parent/children/${childId}/`,
+      requestPayload
+    );
+
+    return unwrapResponse(response);
+  },
+
+  async deleteChild(childId) {
+    const response = await api.delete(
+      `/parent/children/${childId}/`
+    );
+
+    return unwrapResponse(response);
+  },
+};
+
+/*
+|--------------------------------------------------------------------------
+| Parent Story Library API
+|--------------------------------------------------------------------------
+*/
+
+export const parentLibraryApi = {
+  async getLibrary(params = {}) {
+    const response = await api.get("/parent/library/", {
+      params: buildQueryParams(params),
+    });
+
+    return unwrapResponse(response);
+  },
+
+  async getChildStories(childId, params = {}) {
+    const response = await api.get(
+      `/parent/children/${childId}/stories/`,
+      {
+        params: buildQueryParams(params),
+      }
+    );
+
+    return unwrapResponse(response);
+  },
+
+  async getStory(storyId) {
+    const response = await api.get(`/stories/${storyId}/`);
+    return unwrapResponse(response);
+  },
+
+  async toggleFavourite(storyId, payload = {}) {
+    const response = await api.post(
+      `/parent/stories/${storyId}/favourite/`,
+      payload
+    );
+
+    return unwrapResponse(response);
+  },
+
+  async addFavourite(storyId) {
+    const response = await api.post(
+      `/parent/stories/${storyId}/favourite/`,
+      {
+        is_favourite: true,
+      }
+    );
+
+    return unwrapResponse(response);
+  },
+
+  async removeFavourite(storyId) {
+    const response = await api.delete(
+      `/parent/stories/${storyId}/favourite/`
+    );
+
+    return unwrapResponse(response);
+  },
+};
+
+/*
+|--------------------------------------------------------------------------
+| Reading Progress API
+|--------------------------------------------------------------------------
+*/
+
+export const parentProgressApi = {
+  async getStoryProgress(childId, storyId) {
+    const response = await api.get(
+      `/parent/children/${childId}/progress/${storyId}/`
+    );
+
+    return unwrapResponse(response);
+  },
+
+  async updateStoryProgress(childId, storyId, payload) {
+    const response = await api.patch(
+      `/parent/children/${childId}/progress/${storyId}/`,
+      payload
+    );
+
+    return unwrapResponse(response);
+  },
+
+  async replaceStoryProgress(childId, storyId, payload) {
+    const response = await api.put(
+      `/parent/children/${childId}/progress/${storyId}/`,
+      payload
+    );
+
+    return unwrapResponse(response);
+  },
+
+  async createReadingSession(childId, storyId, payload) {
+    const response = await api.post(
+      `/parent/children/${childId}/progress/${storyId}/`,
+      payload
+    );
+
+    return unwrapResponse(response);
+  },
+};
+
+/*
+|--------------------------------------------------------------------------
+| Quiz API
+|--------------------------------------------------------------------------
+*/
+
+export const parentQuizApi = {
+  async getStoryQuiz(storyId) {
+    const response = await api.get(
+      `/parent/stories/${storyId}/quiz/`
+    );
+
+    return unwrapResponse(response);
+  },
+
+  async submitStoryQuiz(storyId, payload) {
+    const response = await api.post(
+      `/parent/stories/${storyId}/quiz/submit/`,
+      payload
+    );
+
+    return unwrapResponse(response);
+  },
+
+  async getChildQuizHistory(childId, params = {}) {
+    const response = await api.get(
+      `/parent/children/${childId}/quizzes/history/`,
+      {
+        params: buildQueryParams(params),
+      }
+    );
+
+    return unwrapResponse(response);
+  },
+};
+
+/*
+|--------------------------------------------------------------------------
+| Achievements API
+|--------------------------------------------------------------------------
+*/
+
+export const parentAchievementsApi = {
+  async getChildAchievements(childId, params = {}) {
+    const response = await api.get(
+      `/parent/children/${childId}/achievements/`,
+      {
+        params: buildQueryParams(params),
+      }
+    );
+
+    return unwrapResponse(response);
+  },
+};
+
+/*
+|--------------------------------------------------------------------------
+| Certificates API
+|--------------------------------------------------------------------------
+*/
+
+export const parentCertificatesApi = {
+  async getCertificates(params = {}) {
+    const response = await api.get(
+      "/parent/certificates/",
+      {
+        params: buildQueryParams(params),
+      }
+    );
+
+    return unwrapResponse(response);
+  },
+
+  async getCertificate(certificateId) {
+    const response = await api.get(
+      `/parent/certificates/${certificateId}/`
+    );
+
+    return unwrapResponse(response);
+  },
+
+  async issueCertificate(payload) {
+    const response = await api.post(
+      "/parent/certificates/issue/",
+      payload
+    );
+
+    return unwrapResponse(response);
+  },
+};
+
+/*
+|--------------------------------------------------------------------------
+| Family Logs and Parent Notes API
+|--------------------------------------------------------------------------
+*/
+
+export const parentFamilyLogsApi = {
+  async getFamilyLogs(params = {}) {
+    const response = await api.get(
+      "/parent/family-logs/",
+      {
+        params: buildQueryParams(params),
+      }
+    );
+
+    return unwrapResponse(response);
+  },
+
+  async createFamilyLog(payload) {
+    const response = await api.post(
+      "/parent/family-logs/",
+      payload
+    );
+
+    return unwrapResponse(response);
+  },
+
+  async updateFamilyLog(logId, payload) {
+    const response = await api.patch(
+      `/parent/family-logs/${logId}/`,
+      payload
+    );
+
+    return unwrapResponse(response);
+  },
+
+  async deleteFamilyLog(logId) {
+    const response = await api.delete(
+      `/parent/family-logs/${logId}/`
+    );
+
+    return unwrapResponse(response);
+  },
+
+  async getChildReadingLogs(childId, params = {}) {
+    const response = await api.get(
+      `/parent/children/${childId}/reading-logs/`,
+      {
+        params: buildQueryParams(params),
+      }
+    );
+
+    return unwrapResponse(response);
+  },
+
+  async createChildReadingLog(childId, payload) {
+    const response = await api.post(
+      `/parent/children/${childId}/reading-logs/`,
+      payload
+    );
+
+    return unwrapResponse(response);
+  },
+};
+
+/*
+|--------------------------------------------------------------------------
+| Combined Parent API
+|--------------------------------------------------------------------------
+|
+| You can use either:
+|
+| parentApi.children.getChildren()
+|
+| or the individually exported services:
+|
+| parentChildrenApi.getChildren()
+|
+*/
+
 export const parentApi = {
-  // Children Profiles
-  getChildren: async () => {
-    const res = await api.get('/parent/children/');
-    return res.data;
-  },
-  createChild: async (childData) => {
-    const res = await api.post('/parent/children/', childData);
-    return res.data;
-  },
-  updateChild: async (id, childData) => {
-    const res = await api.put(`/parent/children/${id}/`, childData);
-    return res.data;
-  },
-  deleteChild: async (id) => {
-    const res = await api.delete(`/parent/children/${id}/`);
-    return res.data;
-  },
+  auth: parentAuthApi,
+  profile: parentProfileApi,
+  dashboard: parentDashboardApi,
+  children: parentChildrenApi,
+  library: parentLibraryApi,
+  progress: parentProgressApi,
+  quizzes: parentQuizApi,
+  achievements: parentAchievementsApi,
+  certificates: parentCertificatesApi,
+  familyLogs: parentFamilyLogsApi,
 
-  // Child Dashboard & Insights
-  getDashboard: async (childId) => {
-    const res = await api.get(`/parent/children/${childId}/dashboard/`);
-    return res.data;
-  },
-  getInsights: async (childId) => {
-    const res = await api.get(`/parent/children/${childId}/insights/`);
-    return res.data;
-  },
+  // Direct helpers used by ParentDashboard page
+  getDashboard: (childId) =>
+    childId
+      ? parentDashboardApi.getChildDashboard(childId)
+      : parentDashboardApi.getDashboard(),
+  getAchievements: (childId, params) =>
+    parentAchievementsApi.getChildAchievements(childId, params),
+  getReadingLogs: (childId, params) =>
+    parentFamilyLogsApi.getChildReadingLogs(childId, params),
+  getChildStories: (childId, params) =>
+    parentLibraryApi.getChildStories(childId, params),
+  getInsights: (childId, params) =>
+    parentDashboardApi.getChildInsights(childId, params),
 
-  // Reading Logs
-  getReadingLogs: async (childId) => {
-    const res = await api.get(`/parent/children/${childId}/reading-logs/`);
-    return res.data;
-  },
-  createReadingLog: async (childId, logData) => {
-    const res = await api.post(`/parent/children/${childId}/reading-logs/`, logData);
-    return res.data;
-  },
-  deleteReadingLog: async (childId, logId) => {
-    const res = await api.delete(`/parent/children/${childId}/reading-logs/${logId}/`);
-    return res.data;
-  },
+  // Compatibility helpers for AuthContext
+  createChild: (data) => parentChildrenApi.createChild(data),
+  updateChild: (id, data) => parentChildrenApi.updateChild(id, data),
+  deleteChild: (id) => parentChildrenApi.deleteChild(id),
+  createReadingLog: (childId, data) =>
+    parentFamilyLogsApi.createChildReadingLog(childId, data),
+};
 
-  // Stories
-  getChildStories: async (childId) => {
-    const res = await api.get(`/parent/children/${childId}/stories/`);
-    return res.data;
-  },
+/*
+|--------------------------------------------------------------------------
+| Generic HTTP Helpers
+|--------------------------------------------------------------------------
+*/
 
-  // Achievements
-  getAchievements: async (childId) => {
-    const res = await api.get(`/parent/children/${childId}/achievements/`);
-    return res.data;
-  },
+export const http = {
+  get: async (url, config = {}) =>
+    unwrapResponse(await api.get(url, config)),
+
+  post: async (url, data = {}, config = {}) =>
+    unwrapResponse(await api.post(url, data, config)),
+
+  put: async (url, data = {}, config = {}) =>
+    unwrapResponse(await api.put(url, data, config)),
+
+  patch: async (url, data = {}, config = {}) =>
+    unwrapResponse(await api.patch(url, data, config)),
+
+  delete: async (url, config = {}) =>
+    unwrapResponse(await api.delete(url, config)),
 };
 
 export default api;

@@ -132,7 +132,19 @@ SIMPLE_JWT = {
 }
 
 # CORS configuration
-CORS_ALLOW_ALL_ORIGINS = True # Enable wide CORS for local development. Re-configure for production.
+CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_HEADERS = [
+    "accept",
+    "accept-encoding",
+    "authorization",
+    "content-type",
+    "dnt",
+    "origin",
+    "user-agent",
+    "x-csrftoken",
+    "x-requested-with",
+]
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
