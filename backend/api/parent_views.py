@@ -792,11 +792,29 @@ class CertificateListView(APIView):
 
     def get(self, request):
         children = ChildProfile.objects.filter(parent=request.user)
-        child_filter = request.query_params.get('child_id')
-        if child_filter:
+        child_filter = request.query_params.get('child_id') or request.query_params.get('child')
+        if child_filter and child_filter != 'all':
             children = children.filter(id=child_filter)
 
-        certs = Certificate.objects.filter(child__in=children)
+        all_children = ChildProfile.objects.filter(parent=request.user)
+        if all_children.exists():
+            # Auto-sync certificates for any created stories
+            stories = Story.objects.filter(
+                Q(parent=request.user) | Q(child__in=all_children)
+            ).distinct()
+
+            for story in stories:
+                c_obj = story.child if story.child else all_children.first()
+                if c_obj:
+                    cert_title = f"Story Master: {story.title_en}"
+                    if not Certificate.objects.filter(child=c_obj, title=cert_title).exists():
+                        Certificate.objects.create(
+                            child=c_obj,
+                            title=cert_title,
+                            description=f"Awarded to {c_obj.name} for creating and mastering the story '{story.title_en}'.",
+                        )
+
+        certs = Certificate.objects.filter(child__in=children).order_by('-issued_date', '-id')
         return Response(CertificateSerializer(certs, many=True).data)
 
 

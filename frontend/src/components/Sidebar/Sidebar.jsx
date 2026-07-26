@@ -44,10 +44,7 @@ export default function Sidebar({ role }) {
       case 'parent':
         return [
           { type: 'link', label: 'Dashboard', path: '/parent', icon: FaChartLine },
-          { type: 'link', label: `${childName}'s Profile`, path: '/parent#profile', icon: FaUser },
-          { type: 'link', label: 'Reading Logs', path: '/parent#logs', icon: FaBook },
-          { type: 'link', label: 'Story Library', path: '/parent#library', icon: FaBook },
-          { type: 'link', label: 'Insights', path: '/parent#insights', icon: FaMagic },
+          { type: 'link', label: 'All Children', path: '/parent/children', icon: FaUserGraduate },
         ];
       default:
         return [];

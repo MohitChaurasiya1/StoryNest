@@ -59,6 +59,9 @@ class ParentProfileSerializer(serializers.ModelSerializer):
 
 class ChildProfileSerializer(serializers.ModelSerializer):
     parent = serializers.ReadOnlyField(source='parent.username')
+    stories_read = serializers.SerializerMethodField()
+    quiz_average = serializers.SerializerMethodField()
+    completion_percentage = serializers.SerializerMethodField()
 
     class Meta:
         model = ChildProfile
@@ -68,8 +71,30 @@ class ChildProfileSerializer(serializers.ModelSerializer):
             "interests", "favourite_colour", "favourite_animal",
             "reading_level", "learning_goals",
             "avatar", "created_at", "updated_at",
+            "stories_read", "quiz_average", "completion_percentage",
         ]
         read_only_fields = ["id", "parent", "created_at", "updated_at"]
+
+    def get_stories_read(self, obj):
+        from .models import ReadingLog
+        return ReadingLog.objects.filter(child=obj, completed=True).count() or ReadingLog.objects.filter(child=obj).count()
+
+    def get_quiz_average(self, obj):
+        from .models import QuizAttempt
+        from django.db.models import Avg
+        avg = QuizAttempt.objects.filter(child=obj).aggregate(avg=Avg('percentage'))['avg']
+        return round(avg, 1) if avg is not None else 0
+
+    def get_completion_percentage(self, obj):
+        from .models import Story, ReadingLog
+        from django.db.models import Q
+        total_stories = Story.objects.filter(Q(child=obj) | Q(child_name__iexact=obj.name)).count()
+        if not total_stories:
+            total_stories = Story.objects.count()
+        if not total_stories:
+            return 0
+        read_count = ReadingLog.objects.filter(child=obj).count()
+        return min(100, round((read_count / total_stories) * 100))
 
 
 class StoryPageSerializer(serializers.ModelSerializer):

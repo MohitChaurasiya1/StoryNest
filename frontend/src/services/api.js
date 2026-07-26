@@ -17,8 +17,8 @@ const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL?.replace(/\/+$/, "") ||
   "http://127.0.0.1:8000/api";
 
-const ACCESS_TOKEN_KEY = "access_token";
-const REFRESH_TOKEN_KEY = "refresh_token";
+const AUTH_TOKEN_KEY = "authToken";
+const REFRESH_TOKEN_KEY = "refreshToken";
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -37,43 +37,31 @@ const api = axios.create({
 
 export const tokenService = {
   getAccessToken() {
-    return (
-      localStorage.getItem(ACCESS_TOKEN_KEY) ||
-      localStorage.getItem("storynest_access_token")
-    );
+    return localStorage.getItem(AUTH_TOKEN_KEY);
   },
 
   getRefreshToken() {
-    return (
-      localStorage.getItem(REFRESH_TOKEN_KEY) ||
-      localStorage.getItem("storynest_refresh_token")
-    );
+    return localStorage.getItem(REFRESH_TOKEN_KEY);
   },
 
   setTokens({ access, refresh }) {
     if (access) {
-      localStorage.setItem(ACCESS_TOKEN_KEY, access);
-      localStorage.setItem("storynest_access_token", access);
+      localStorage.setItem(AUTH_TOKEN_KEY, access);
     }
-
     if (refresh) {
       localStorage.setItem(REFRESH_TOKEN_KEY, refresh);
-      localStorage.setItem("storynest_refresh_token", refresh);
     }
   },
 
   setAccessToken(accessToken) {
     if (accessToken) {
-      localStorage.setItem(ACCESS_TOKEN_KEY, accessToken);
-      localStorage.setItem("storynest_access_token", accessToken);
+      localStorage.setItem(AUTH_TOKEN_KEY, accessToken);
     }
   },
 
   clearTokens() {
-    localStorage.removeItem(ACCESS_TOKEN_KEY);
+    localStorage.removeItem(AUTH_TOKEN_KEY);
     localStorage.removeItem(REFRESH_TOKEN_KEY);
-    localStorage.removeItem("storynest_access_token");
-    localStorage.removeItem("storynest_refresh_token");
   },
 
   hasAccessToken() {
@@ -274,7 +262,10 @@ export const getApiErrorMessage = (
   }
 
   if (!error.response) {
-    return "Unable to connect to the server. Please check your internet connection.";
+    if (error.isAxiosError || error.request) {
+      return "Unable to connect to the server. Please check your internet connection.";
+    }
+    return error.message || fallbackMessage;
   }
 
   const responseData = error.response.data;
@@ -654,6 +645,35 @@ export const parentLibraryApi = {
 */
 
 export const parentProgressApi = {
+  async getProgress(params = {}) {
+    try {
+      const response = await api.get("/parent/dashboard/", {
+        params: buildQueryParams(params),
+      });
+      return unwrapResponse(response);
+    } catch {
+      return {};
+    }
+  },
+
+  async getReadingHistory(params = {}) {
+    try {
+      if (params.child && params.child !== "all") {
+        const response = await api.get(
+          `/parent/children/${params.child}/reading-logs/`,
+          { params: buildQueryParams(params) }
+        );
+        return unwrapResponse(response);
+      }
+      const response = await api.get("/parent/family-logs/", {
+        params: buildQueryParams(params),
+      });
+      return unwrapResponse(response);
+    } catch {
+      return [];
+    }
+  },
+
   async getStoryProgress(childId, storyId) {
     const response = await api.get(
       `/parent/children/${childId}/progress/${storyId}/`
@@ -724,6 +744,72 @@ export const parentQuizApi = {
 
     return unwrapResponse(response);
   },
+
+  async getQuizReports(params = {}) {
+    try {
+      if (params.child && params.child !== "all") {
+        return await this.getChildQuizHistory(params.child, params);
+      }
+
+      const children = await parentChildrenApi.getChildren();
+      const childList = Array.isArray(children)
+        ? children
+        : children?.results || children?.children || children?.data || [];
+
+      if (!childList.length) return [];
+
+      const allQuizzes = await Promise.all(
+        childList.map(async (child) => {
+          try {
+            const data = await this.getChildQuizHistory(child.id, params);
+            const list = Array.isArray(data)
+              ? data
+              : data?.results || data?.history || [];
+            return list.map((q) => ({
+              ...q,
+              child_name: q.child_name || child.name,
+              child_id: child.id,
+            }));
+          } catch {
+            return [];
+          }
+        })
+      );
+
+      return allQuizzes.flat();
+    } catch {
+      return [];
+    }
+  },
+
+  async getQuizSummary(params = {}) {
+    try {
+      const reports = await this.getQuizReports(params);
+      const list = Array.isArray(reports) ? reports : [];
+
+      const totalAttempts = list.length;
+      const averageScore = totalAttempts
+        ? Math.round(
+            list.reduce(
+              (acc, q) => acc + Number(q.percentage || q.score || 0),
+              0
+            ) / totalAttempts
+          )
+        : 0;
+
+      const perfectScores = list.filter(
+        (q) => Number(q.percentage || q.score || 0) >= 100
+      ).length;
+
+      return {
+        total_quizzes: totalAttempts,
+        average_score: averageScore,
+        perfect_scores: perfectScores,
+      };
+    } catch {
+      return {};
+    }
+  },
 };
 
 /*
@@ -742,6 +828,64 @@ export const parentAchievementsApi = {
     );
 
     return unwrapResponse(response);
+  },
+
+  async getAchievements(params = {}) {
+    try {
+      if (params.child && params.child !== "all") {
+        return await this.getChildAchievements(params.child, params);
+      }
+
+      // If all children selected or no child specified, fetch for all children
+      const children = await parentChildrenApi.getChildren();
+      const childList = Array.isArray(children)
+        ? children
+        : children?.results || children?.children || children?.data || [];
+
+      if (!childList.length) return [];
+
+      const allAchievements = await Promise.all(
+        childList.map(async (child) => {
+          try {
+            const certs = await this.getChildAchievements(child.id, params);
+            const list = Array.isArray(certs)
+              ? certs
+              : certs?.results || certs?.achievements || certs?.data || [];
+
+            return list.map((a) => ({
+              ...a,
+              child_name: a.child_name || child.name,
+              child_id: child.id,
+            }));
+          } catch {
+            return [];
+          }
+        })
+      );
+
+      return allAchievements.flat();
+    } catch {
+      return [];
+    }
+  },
+
+  async getAchievementSummary(params = {}) {
+    try {
+      const achievements = await this.getAchievements(params);
+      const list = Array.isArray(achievements) ? achievements : [];
+
+      const unlocked = list.filter((a) => a.unlocked || a.is_unlocked || a.earned);
+      const locked = list.filter((a) => !a.unlocked && !a.is_unlocked && !a.earned);
+
+      return {
+        unlocked_count: unlocked.length,
+        locked_count: locked.length,
+        total_points: unlocked.reduce((acc, curr) => acc + Number(curr.points || 0), 0),
+        almost_completed_count: list.filter((a) => !a.unlocked && (a.progress || 0) >= 70).length,
+      };
+    } catch {
+      return {};
+    }
   },
 };
 
@@ -778,6 +922,44 @@ export const parentCertificatesApi = {
     );
 
     return unwrapResponse(response);
+  },
+
+  async getCertificateSummary(params = {}) {
+    try {
+      const response = await api.get(
+        "/parent/certificates/",
+        {
+          params: buildQueryParams(params),
+        }
+      );
+
+      const certs = unwrapResponse(response);
+      const certList = Array.isArray(certs)
+        ? certs
+        : certs?.results || certs?.certificates || certs?.data || [];
+
+      const uniqueChildren = new Set(
+        certList.map((c) => c.child_id || c.child?.id || c.child)
+      );
+
+      return {
+        total_certificates: certList.length,
+        verified: certList.filter((c) => c.verified || c.is_verified).length,
+        children_awarded: uniqueChildren.size,
+        achievements: certList.filter(
+          (c) =>
+            c.type === "achievement" ||
+            c.certificate_type === "achievement"
+        ).length,
+      };
+    } catch {
+      return {
+        total_certificates: 0,
+        verified: 0,
+        children_awarded: 0,
+        achievements: 0,
+      };
+    }
   },
 };
 

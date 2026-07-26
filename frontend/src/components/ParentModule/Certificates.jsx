@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { jsPDF } from "jspdf";
 import {
   FaAward,
@@ -27,12 +28,15 @@ import {
 
 function Certificates() {
   const certificatePreviewRef = useRef(null);
+  const [searchParams] = useSearchParams();
 
   const [children, setChildren] = useState([]);
   const [certificates, setCertificates] = useState([]);
   const [summary, setSummary] = useState({});
 
-  const [selectedChildId, setSelectedChildId] = useState("all");
+  const [selectedChildId, setSelectedChildId] = useState(
+    searchParams.get("child") || "all"
+  );
   const [typeFilter, setTypeFilter] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -53,74 +57,46 @@ function Certificates() {
   const certificatesPerPage = 9;
 
   useEffect(() => {
-    loadInitialData();
-  }, []);
+    loadData();
+  }, [selectedChildId, searchParams]);
 
-  useEffect(() => {
-    if (!loading) {
-      loadCertificates();
-    }
-  }, [selectedChildId]);
-
-  const loadInitialData = async () => {
+  const loadData = async () => {
     try {
       setLoading(true);
       setError("");
 
-      const childrenResponse =
-        await parentChildrenApi.getChildren();
-
-      const childData = Array.isArray(childrenResponse)
-        ? childrenResponse
-        : childrenResponse?.results ||
-          childrenResponse?.children ||
-          childrenResponse?.data ||
-          [];
-
-      setChildren(childData);
-    } catch (requestError) {
-      setError(
-        getApiErrorMessage(
-          requestError,
-          "Unable to load children."
-        )
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const loadCertificates = async () => {
-    try {
-      setCertificateLoading(true);
-      setError("");
+      const urlChild = searchParams.get("child");
+      const activeChildId = urlChild || selectedChildId;
 
       const params = {};
-
-      if (selectedChildId !== "all") {
-        params.child = selectedChildId;
+      if (activeChildId && activeChildId !== "all") {
+        params.child = activeChildId;
       }
 
       const results = await Promise.allSettled([
+        parentChildrenApi.getChildren(),
         parentCertificatesApi.getCertificates(params),
         parentCertificatesApi.getCertificateSummary(params),
       ]);
 
-      const [certificatesResult, summaryResult] = results;
+      const [childrenResult, certificatesResult, summaryResult] = results;
+
+      if (childrenResult.status === "fulfilled") {
+        const childrenData = childrenResult.value;
+        setChildren(
+          Array.isArray(childrenData)
+            ? childrenData
+            : childrenData?.results || childrenData?.children || childrenData?.data || []
+        );
+      }
 
       if (certificatesResult.status === "fulfilled") {
         const certificateData = certificatesResult.value;
-
         setCertificates(
           Array.isArray(certificateData)
             ? certificateData
-            : certificateData?.results ||
-              certificateData?.certificates ||
-              certificateData?.data ||
-              []
+            : certificateData?.results || certificateData?.certificates || certificateData?.data || []
         );
-      } else {
-        throw certificatesResult.reason;
       }
 
       if (summaryResult.status === "fulfilled") {
@@ -134,6 +110,7 @@ function Certificates() {
         )
       );
     } finally {
+      setLoading(false);
       setCertificateLoading(false);
     }
   };
@@ -271,17 +248,18 @@ function Certificates() {
   }, [currentPage, totalPages]);
 
   const totalCertificates =
-    summary.total_certificates ??
+    summary.total_certificates ||
     normalizedCertificates.length;
 
   const verifiedCertificates =
-    summary.verified_certificates ??
+    summary.verified_certificates ||
+    summary.verified ||
     normalizedCertificates.filter(
       (certificate) => certificate.verified
     ).length;
 
   const childrenAwarded =
-    summary.children_awarded ??
+    summary.children_awarded ||
     new Set(
       normalizedCertificates.map(
         (certificate) => certificate.child_name
@@ -289,9 +267,10 @@ function Certificates() {
     ).size;
 
   const achievementCertificates =
-    summary.achievement_certificates ??
+    summary.achievement_certificates ||
+    summary.achievements ||
     normalizedCertificates.filter((certificate) =>
-      certificate.type
+      (certificate.type || "")
         .toLowerCase()
         .includes("achievement")
     ).length;

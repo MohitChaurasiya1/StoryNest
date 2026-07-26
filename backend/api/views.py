@@ -1,35 +1,49 @@
-from django.db import transaction
+from django.db import transaction, models
 from rest_framework import status, viewsets
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from .gemini import generate_story_content
-from .models import Story, StoryPage
+from .models import Story, StoryPage, ChildProfile, Certificate
 from .serializers import StorySerializer
 
 
 class StoryViewSet(viewsets.ModelViewSet):
-    queryset = Story.objects.all().prefetch_related("pages")
     serializer_class = StorySerializer
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.is_authenticated:
+            return Story.objects.filter(
+                models.Q(parent=user) | models.Q(child__parent=user)
+            ).prefetch_related("pages").distinct()
+        return Story.objects.none()
 
 
 @api_view(["POST"])
-@permission_classes([AllowAny])
+@permission_classes([IsAuthenticated])
 def generate_story_api(request):
     """
     POST /api/stories/generate/
 
     Receives story parameters from the React frontend,
     generates the story using Gemini AI,
-    saves the story in the database,
-    and returns the saved story.
+    saves the story in the database with parent and child relationships,
+    and returns the saved story from PostgreSQL.
 
     No hardcoded fallback story is used.
     """
 
     params = request.data
+    parent_user = request.user if request.user.is_authenticated else None
+
+    # Resolve child profile if provided
+    child_id = params.get("child_id") or params.get("childId") or params.get("child")
+    child_obj = None
+    if child_id and parent_user:
+        child_obj = ChildProfile.objects.filter(id=child_id, parent=parent_user).first()
 
     # ---------------------------------------------------------
     # 1. Generate story using Gemini AI
@@ -45,7 +59,7 @@ def generate_story_api(request):
             {
                 "error": "Gemini story generation failed.",
                 "details": (
-                    "Unable to generate the story right now. "
+                    f"Unable to generate the story right now: {str(error)}. "
                     "Check your Gemini API key, model name, "
                     "internet connection, and backend terminal."
                 ),
@@ -59,7 +73,7 @@ def generate_story_api(request):
                 "error": "Gemini API Quota Exceeded or Error",
                 "details": (
                     "Gemini API rate limit or free tier quota was exceeded. "
-                    "Please wait a minute, update GEMINI_API_KEY in backend/.env, or use offline fallback."
+                    "Please wait a minute, update GEMINI_API_KEY in backend/.env."
                 ),
             },
             status=status.HTTP_503_SERVICE_UNAVAILABLE,
@@ -97,7 +111,9 @@ def generate_story_api(request):
     # 3. Prepare story titles
     # ---------------------------------------------------------
 
-    child_name = params.get("childName", "Child")
+    child_name = (
+        child_obj.name if child_obj else params.get("childName", "Child")
+    )
 
     title_en = str(
         story_data.get(
@@ -127,11 +143,10 @@ def generate_story_api(request):
         child_age = (
             int(params.get("childAge"))
             if params.get("childAge") not in (None, "")
-            else None
+            else (child_obj.age if child_obj else None)
         )
-
     except (TypeError, ValueError):
-        child_age = None
+        child_age = child_obj.age if child_obj else None
 
     # ---------------------------------------------------------
     # 5. Convert requested number of pages safely
@@ -144,7 +159,6 @@ def generate_story_api(request):
                 len(pages),
             )
         )
-
     except (TypeError, ValueError):
         requested_num_pages = len(pages)
 
@@ -173,19 +187,19 @@ def generate_story_api(request):
 
     try:
         with transaction.atomic():
-
             story = Story.objects.create(
+                parent=parent_user,
+                child=child_obj,
                 child_name=child_name,
                 child_age=child_age,
                 child_gender=params.get(
                     "childGender",
-                    "child",
+                    child_obj.gender if child_obj else "child",
                 ),
                 builder_mode=params.get(
                     "builderMode",
                     "child",
                 ),
-
                 hero_animal=params.get("heroAnimal"),
                 hero_job=params.get("heroJob"),
                 hero_color=params.get("heroColor"),
@@ -299,6 +313,15 @@ def generate_story_api(request):
                         )
                     ).strip(),
                     dictionary=dictionary,
+                )
+
+            # Auto-issue Certificate for the child
+            c_target = child_obj or ChildProfile.objects.filter(parent=parent_user).first()
+            if c_target:
+                Certificate.objects.create(
+                    child=c_target,
+                    title=f"Story Master: {title_en}",
+                    description=f"Awarded to {c_target.name} for creating and mastering the story '{title_en}'.",
                 )
 
     except Exception as error:

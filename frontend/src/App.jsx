@@ -1,5 +1,7 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { useEffect } from 'react';
 import { AuthProvider } from './context/AuthContext';
+import ProtectedRoute from './components/ProtectedRoute';
 import LandingPage from './pages/LandingPage';
 import AdminDashboard from './pages/AdminDashboard';
 import TeacherDashboard from './pages/TeacherDashboard';
@@ -17,25 +19,130 @@ import StoryCreator from './pages/StoryCreator/StoryCreator';
 import StoryReader from './pages/StoryReader';
 
 function App() {
+  // Auto‑reload the entire app every 5 minutes to keep data fresh
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      window.location.reload();
+    }, 300000); // 5 min
+    return () => clearInterval(intervalId);
+  }, []);
   return (
     <AuthProvider>
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<LandingPage />} />
-          <Route path="/admin" element={<AdminDashboard />} />
-          <Route path="/teacher" element={<TeacherDashboard />} />
-          <Route path="/parent" element={<ParentDashboard />} />
-          <Route path="/parent/children" element={<ChildrenList />} />
-          <Route path="/parent/children/:id" element={<ChildDetails />} />
-          <Route path="/parent/library" element={<ParentStoryLibrary />} />
-          <Route path="/parent/progress" element={<ChildProgress />} />
-          <Route path="/parent/quizzes" element={<QuizReports />} />
-          <Route path="/parent/achievements" element={<Achievements />} />
-          <Route path="/parent/certificates" element={<Certificates />} />
-          <Route path="/parent/profile" element={<ParentProfile />} />
-          <Route path="/parent/settings" element={<ParentSettings />} />
-          <Route path="/create" element={<StoryCreator />} />
-          <Route path="/story/:id" element={<StoryReader />} />
+          <Route
+            path="/admin"
+            element={
+              <ProtectedRoute>
+                <AdminDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/teacher"
+            element={
+              <ProtectedRoute>
+                <TeacherDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/parent"
+            element={
+              <ProtectedRoute>
+                <ParentDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/parent/children"
+            element={
+              <ProtectedRoute>
+                <ChildrenList />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/parent/children/:id"
+            element={
+              <ProtectedRoute>
+                <ChildDetails />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/parent/library"
+            element={
+              <ProtectedRoute>
+                <ParentStoryLibrary />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/parent/progress"
+            element={
+              <ProtectedRoute>
+                <ChildProgress />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/parent/quizzes"
+            element={
+              <ProtectedRoute>
+                <QuizReports />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/parent/achievements"
+            element={
+              <ProtectedRoute>
+                <Achievements />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/parent/certificates"
+            element={
+              <ProtectedRoute>
+                <Certificates />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/parent/profile"
+            element={
+              <ProtectedRoute>
+                <ParentProfile />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/parent/settings"
+            element={
+              <ProtectedRoute>
+                <ParentSettings />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/create"
+            element={
+              <ProtectedRoute>
+                <StoryCreator />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/story/:id"
+            element={
+              <ProtectedRoute>
+                <StoryReader />
+              </ProtectedRoute>
+            }
+          />
         </Routes>
       </BrowserRouter>
     </AuthProvider>

@@ -23,10 +23,13 @@ import {
 } from 'react-icons/fa';
 import VoicePromptInput from '../../components/VoicePrompt/VoicePromptInput';
 import { generateStoryPDF, generateCertificatePDF } from '../../utils/pdfGenerator';
+import api, { getApiErrorMessage } from '../../services/api';
+import { useAuth } from '../../context/AuthContext';
 import './StoryCreator.css';
 
 export default function StoryCreator() {
   const navigate = useNavigate();
+  const { activeChild, activeChildId } = useAuth();
   const [step, setStep] = useState(1);
   const [builderMode, setBuilderMode] = useState('child'); // 'child', 'custom', or 'voice'
   const [customPrompt, setCustomPrompt] = useState('');
@@ -238,9 +241,10 @@ export default function StoryCreator() {
 
       // Build API payload
       const payload = {
-        childName: childName || 'Leo',
-        childAge: childAge || '7',
-        childGender,
+        child_id: activeChildId || activeChild?.id || null,
+        childName: childName || activeChild?.name || 'Leo',
+        childAge: childAge || activeChild?.age || '7',
+        childGender: childGender || activeChild?.gender || 'boy',
         familyDetails: familyDetails || 'Mom, Dad',
         favoriteThings: favoriteThings || 'adventures',
         specialInterests: specialInterests || '',
@@ -274,42 +278,22 @@ export default function StoryCreator() {
         bedtimeSafe
       };
 
-      const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
-      axios.post(`${API_BASE_URL}/api/stories/generate/`, payload, { timeout: 45000 })
+      api.post('/stories/generate/', payload, { timeout: 60000 })
         .then(response => {
           clearInterval(timer);
           setGenProgress(100);
-          setGenMessages(prev => [...prev, '✨ Story generated successfully!']);
+          setGenMessages(prev => [...prev, '✨ Story generated and saved to PostgreSQL successfully!']);
           setPages(response.data.pages || []);
           setGeneratedStoryId(response.data.id);
           setGeneratedStory(response.data);
           setGenDone(true);
         })
         .catch(err => {
-          console.error(err);
+          console.error('Story generation error:', err);
           clearInterval(timer);
           setGenProgress(100);
-          const errorMsg = err.code === 'ECONNABORTED' 
-            ? 'Gemini API took too long to respond — Loading offline story...' 
-            : (err.response?.data?.details || err.response?.data?.error || 'API Server Unreachable — Loading offline story...');
-          setGenMessages(prev => [...prev, `❌ ${errorMsg}`]);
-          
-          // Offline fallback
-          setTimeout(() => {
-            const pageCount = builderMode === 'custom' ? (parseInt(numPages) || 5) : 5;
-            const fallbackPages = generateOfflineFallback(pageCount);
-            setPages(fallbackPages);
-            setGeneratedStory({
-              id: 1,
-              child_name: childName || 'Leo',
-              title_en: `${childName || 'Leo'}'s ${heroAnimal ? heroAnimal + ' ' : ''}Adventure`,
-              title_hi: `${childName || 'लियो'} की कहानी`,
-              moral: moral || 'Kindness & Growth',
-              created_at: new Date().toISOString(),
-              pages: fallbackPages
-            });
-            setGenDone(true);
-          }, 1000);
+          const errorMsg = getApiErrorMessage(err, 'Gemini story generation failed. Please try again.');
+          setGenMessages(prev => [...prev, `❌ Error: ${errorMsg}`]);
         });
 
       return () => clearInterval(timer);

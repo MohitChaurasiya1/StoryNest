@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import {
     FaAward,
     FaCheckCircle,
@@ -12,10 +13,10 @@ import {
     FaTrophy,
 } from "react-icons/fa";
 
-import ParentSidebar from "../../components/ParentModule/ParentSidebar";
-import ParentNavbar from "../../components/ParentModule/ParentNavbar";
-import StatsCard from "../../components/ParentModule/StatsCard";
-import AchievementCard from "../../components/ParentModule/AchievementCard";
+import ParentSidebar from "./ParentSidebar";
+import ParentNavbar from "./ParentNavbar";
+import StatsCard from "./StatsCard";
+import AchievementCard from "./AchievementCard";
 
 import {
     getApiErrorMessage,
@@ -24,11 +25,14 @@ import {
 } from "../../services/api";
 
 function Achievements() {
+    const [searchParams] = useSearchParams();
     const [children, setChildren] = useState([]);
     const [achievements, setAchievements] = useState([]);
     const [summary, setSummary] = useState({});
 
-    const [selectedChildId, setSelectedChildId] = useState("all");
+    const [selectedChildId, setSelectedChildId] = useState(
+        searchParams.get("child") || "all"
+    );
     const [statusFilter, setStatusFilter] = useState("all");
     const [categoryFilter, setCategoryFilter] = useState("all");
     const [searchTerm, setSearchTerm] = useState("");
@@ -43,74 +47,46 @@ function Achievements() {
     const achievementsPerPage = 9;
 
     useEffect(() => {
-        loadInitialData();
-    }, []);
+        loadData();
+    }, [selectedChildId, searchParams]);
 
-    useEffect(() => {
-        if (!loading) {
-            loadAchievements();
-        }
-    }, [selectedChildId]);
-
-    const loadInitialData = async () => {
+    const loadData = async () => {
         try {
             setLoading(true);
             setError("");
 
-            const childrenResponse =
-                await parentChildrenApi.getChildren();
-
-            const childData = Array.isArray(childrenResponse)
-                ? childrenResponse
-                : childrenResponse?.results ||
-                childrenResponse?.children ||
-                childrenResponse?.data ||
-                [];
-
-            setChildren(childData);
-        } catch (requestError) {
-            setError(
-                getApiErrorMessage(
-                    requestError,
-                    "Unable to load children."
-                )
-            );
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const loadAchievements = async () => {
-        try {
-            setAchievementLoading(true);
-            setError("");
+            const urlChild = searchParams.get("child");
+            const activeChildId = urlChild || selectedChildId;
 
             const params = {};
-
-            if (selectedChildId !== "all") {
-                params.child = selectedChildId;
+            if (activeChildId && activeChildId !== "all") {
+                params.child = activeChildId;
             }
 
             const results = await Promise.allSettled([
+                parentChildrenApi.getChildren(),
                 parentAchievementsApi.getAchievements(params),
                 parentAchievementsApi.getAchievementSummary(params),
             ]);
 
-            const [achievementsResult, summaryResult] = results;
+            const [childrenResult, achievementsResult, summaryResult] = results;
+
+            if (childrenResult.status === "fulfilled") {
+                const childData = childrenResult.value;
+                setChildren(
+                    Array.isArray(childData)
+                        ? childData
+                        : childData?.results || childData?.children || childData?.data || []
+                );
+            }
 
             if (achievementsResult.status === "fulfilled") {
                 const achievementData = achievementsResult.value;
-
                 setAchievements(
                     Array.isArray(achievementData)
                         ? achievementData
-                        : achievementData?.results ||
-                        achievementData?.achievements ||
-                        achievementData?.data ||
-                        []
+                        : achievementData?.results || achievementData?.achievements || achievementData?.data || []
                 );
-            } else {
-                throw achievementsResult.reason;
             }
 
             if (summaryResult.status === "fulfilled") {
@@ -124,6 +100,7 @@ function Achievements() {
                 )
             );
         } finally {
+            setLoading(false);
             setAchievementLoading(false);
         }
     };

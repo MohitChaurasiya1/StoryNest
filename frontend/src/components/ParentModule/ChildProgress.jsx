@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import {
     FaBookOpen,
     FaChartBar,
@@ -12,8 +13,8 @@ import {
     FaUserGraduate,
 } from "react-icons/fa";
 
-import ParentSidebar from "../../components/ParentModule/ParentSidebar";
-import ParentNavbar from "../../components/ParentModule/ParentNavbar";
+import ParentSidebar from "./ParentSidebar";
+import ParentNavbar from "./ParentNavbar";
 import StatsCard from "../../components/ParentModule/StatsCard";
 import ProgressChart from "../../components/ParentModule/ProgressChart";
 
@@ -21,15 +22,19 @@ import {
     getApiErrorMessage,
     parentChildrenApi,
     parentProgressApi,
+    parentQuizApi,
 } from "../../services/api";
 
 function ChildProgress() {
+    const [searchParams] = useSearchParams();
     const [children, setChildren] = useState([]);
     const [progressData, setProgressData] = useState({});
     const [readingHistory, setReadingHistory] = useState([]);
     const [quizHistory, setQuizHistory] = useState([]);
 
-    const [selectedChildId, setSelectedChildId] = useState("all");
+    const [selectedChildId, setSelectedChildId] = useState(
+        searchParams.get("child") || "all"
+    );
     const [timeRange, setTimeRange] = useState("7");
     const [searchTerm, setSearchTerm] = useState("");
 
@@ -39,66 +44,51 @@ function ChildProgress() {
     const [error, setError] = useState("");
 
     useEffect(() => {
-        loadChildren();
-    }, []);
+        loadData();
+    }, [selectedChildId, timeRange, searchParams]);
 
     useEffect(() => {
-        if (!loading) {
-            loadProgress();
-        }
-    }, [selectedChildId, timeRange]);
+        const intervalId = setInterval(() => {
+            loadData();
+        }, 60000);
+        return () => clearInterval(intervalId);
+    }, [selectedChildId, timeRange, searchParams]);
 
-    const loadChildren = async () => {
+    const loadData = async () => {
         try {
             setLoading(true);
             setError("");
 
-            const response = await parentChildrenApi.getChildren();
+            const urlChild = searchParams.get("child");
+            const activeChildId = urlChild || selectedChildId;
 
-            const childData = Array.isArray(response)
-                ? response
-                : response?.results ||
-                response?.children ||
-                response?.data ||
-                [];
-
-            setChildren(childData);
-        } catch (requestError) {
-            setError(
-                getApiErrorMessage(
-                    requestError,
-                    "Unable to load children."
-                )
-            );
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const loadProgress = async () => {
-        try {
-            setProgressLoading(true);
-            setError("");
-
-            const params = {
-                days: timeRange,
-            };
-
-            if (selectedChildId !== "all") {
-                params.child = selectedChildId;
+            const params = { days: timeRange };
+            if (activeChildId && activeChildId !== "all") {
+                params.child = activeChildId;
             }
 
             const results = await Promise.allSettled([
+                parentChildrenApi.getChildren(),
                 parentProgressApi.getProgress(params),
                 parentProgressApi.getReadingHistory(params),
-                parentProgressApi.getQuizProgress(params),
+                parentQuizApi.getQuizReports(params),
             ]);
 
             const [
+                childrenResult,
                 progressResult,
                 readingResult,
                 quizResult,
             ] = results;
+
+            if (childrenResult.status === "fulfilled") {
+                const childData = childrenResult.value;
+                setChildren(
+                    Array.isArray(childData)
+                        ? childData
+                        : childData?.results || childData?.children || childData?.data || []
+                );
+            }
 
             if (progressResult.status === "fulfilled") {
                 setProgressData(progressResult.value || {});
@@ -106,39 +96,20 @@ function ChildProgress() {
 
             if (readingResult.status === "fulfilled") {
                 const readingData = readingResult.value;
-
                 setReadingHistory(
                     Array.isArray(readingData)
                         ? readingData
-                        : readingData?.results ||
-                        readingData?.history ||
-                        readingData?.reading_history ||
-                        []
+                        : readingData?.results || readingData?.logs || []
                 );
             }
 
             if (quizResult.status === "fulfilled") {
                 const quizData = quizResult.value;
-
                 setQuizHistory(
                     Array.isArray(quizData)
                         ? quizData
-                        : quizData?.results ||
-                        quizData?.history ||
-                        quizData?.quiz_history ||
-                        []
+                        : quizData?.results || quizData?.history || []
                 );
-            }
-
-            const failedResult = results.find(
-                (result) => result.status === "rejected"
-            );
-
-            if (
-                failedResult &&
-                progressResult.status === "rejected"
-            ) {
-                throw failedResult.reason;
             }
         } catch (requestError) {
             setError(
@@ -148,6 +119,7 @@ function ChildProgress() {
                 )
             );
         } finally {
+            setLoading(false);
             setProgressLoading(false);
         }
     };

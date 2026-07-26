@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { 
   FaVolumeUp, 
@@ -16,11 +16,13 @@ import {
   FaFilePdf
 } from 'react-icons/fa';
 import { generateStoryPDF, generateCertificatePDF } from '../../utils/pdfGenerator';
+import api, { getApiErrorMessage } from '../../services/api';
 import './StoryReader.css';
 
 export default function StoryReader() {
   const navigate = useNavigate();
   const { id } = useParams();
+  const location = useLocation();
   const [lang, setLang] = useState('en'); // 'en' or 'hi'
   const [currentPage, setCurrentPage] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -28,205 +30,86 @@ export default function StoryReader() {
   const [selectedWord, setSelectedWord] = useState(null);
   const [showCertificate, setShowCertificate] = useState(false);
 
-  // Real DB Story state & PDF download states
+  // Real DB Story state, loading, error & PDF download states
   const [dbStory, setDbStory] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
   const [isGeneratingCert, setIsGeneratingCert] = useState(false);
 
   useEffect(() => {
     if (id) {
-      const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
-      axios.get(`${API_BASE_URL}/api/stories/${id}/`)
+      setLoading(true);
+      setError(null);
+      api.get(`/stories/${id}/`)
         .then(res => {
-          if (res.data && res.data.pages && res.data.pages.length > 0) {
-            setDbStory(res.data);
-          }
+          setDbStory(res.data);
         })
         .catch(err => {
-          console.warn("Could not fetch story from backend API, using offline sample data:", err);
+          console.error('Error fetching story:', err);
+          setError(getApiErrorMessage(err, 'Story not found in PostgreSQL database.'));
+        })
+        .finally(() => {
+          setLoading(false);
         });
+    } else {
+      setLoading(false);
+      setError('No story ID provided.');
     }
   }, [id]);
 
-  // Sample Storybook Data
-  const sampleStory = {
-    title: 'Bruno\'s Sweet Lesson',
-    titleHi: 'ब्रूनो का मीठा सबक',
-    author: 'StoryNest AI',
-    grade: 'Grade 2',
-    childName: 'Leo',
-    moral: 'Sharing and collaboration',
-    pages: [
-      {
-        en: 'Bruno the bear woke up one sunny morning to find his honey jar overflowing. "There\'s too much for just me!" he laughed, golden drops rolling down his fuzzy chin.',
-        hi: 'भालू ब्रूनो एक धूप वाली सुबह उठा और देखा कि उसका शहद का मर्तबान छलक रहा है। "यह तो सिर्फ मेरे लिए बहुत ज्यादा है!" वह हँसा, सुनहरी बूंदें उसकी मुलायम ठुड्डी पर लुढ़क रही थीं।',
-        illustration: (
-          <svg viewBox="0 0 400 280" className="reader-svg">
-            <defs>
-              <linearGradient id="skyGrad1" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#418C84" />
-                <stop offset="100%" stopColor="#5AB0A6" />
-              </linearGradient>
-              <linearGradient id="honeyGrad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#FCE38A" />
-                <stop offset="100%" stopColor="#B5822A" />
-              </linearGradient>
-            </defs>
-            <rect width="400" height="280" fill="url(#skyGrad1)" rx="16" />
-            <circle cx="340" cy="60" r="30" fill="#FCE38A" opacity="0.85" />
-            <circle cx="340" cy="60" r="45" fill="#FCE38A" opacity="0.15" />
-            
-            {/* Hills */}
-            <path d="M 0 200 Q 120 170 240 210 T 400 185 L 400 280 L 0 280 Z" fill="#8FCB9B" opacity="0.9" />
-            <path d="M 0 230 Q 160 210 320 240 T 400 225 L 400 280 L 0 280 Z" fill="#71A87D" />
+  useEffect(() => {
+    if (dbStory && location.state?.downloadPdf) {
+      // clear navigation state to avoid repeat on refresh
+      navigate(location.pathname, { replace: true, state: {} });
+      const exportData = {
+        ...dbStory,
+        child_name: dbStory.child_name || 'Young Reader',
+        title_en: dbStory.title_en || dbStory.title || 'A Magical Adventure',
+        title_hi: dbStory.title_hi || '',
+        moral: dbStory.moral || dbStory.moral_lesson || 'Kindness & Growth',
+        created_at: dbStory.created_at || new Date().toISOString(),
+        pages: dbStory.pages || [],
+      };
+      generateStoryPDF(exportData);
+    }
+  }, [dbStory, location.state]);
 
-            {/* Bear */}
-            <g transform="translate(140, 140)">
-              <ellipse cx="40" cy="50" rx="30" ry="24" fill="#8B6914" />
-              <circle cx="40" cy="22" r="18" fill="#8B6914" />
-              {/* Ears */}
-              <circle cx="26" cy="10" r="6" fill="#8B6914" />
-              <circle cx="54" cy="10" r="6" fill="#8B6914" />
-              {/* Face details */}
-              <circle cx="33" cy="18" r="2.5" fill="#2F3B2A" />
-              <circle cx="47" cy="18" r="2.5" fill="#2F3B2A" />
-              <ellipse cx="40" cy="24" rx="4" ry="2.5" fill="#3D2E0B" />
-              {/* Honey drops on chin */}
-              <circle cx="38" cy="30" r="2" fill="#FCE38A" />
-              <circle cx="43" cy="32" r="2.5" fill="#FCE38A" />
-            </g>
+  if (loading) {
+    return (
+      <div className="flex h-screen w-screen items-center justify-center bg-slate-50">
+        <div className="text-center">
+          <div className="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-indigo-600 border-t-transparent"></div>
+          <p className="mt-4 font-semibold text-slate-600">Loading storybook from database...</p>
+        </div>
+      </div>
+    );
+  }
 
-            {/* Overflowing honey jar */}
-            <g transform="translate(250, 185)">
-              <rect x="0" y="8" width="30" height="35" rx="6" fill="#B5822A" stroke="#FAF2DF" strokeWidth="1.5" />
-              <ellipse cx="15" cy="8" rx="15" ry="4" fill="#FAF2DF" />
-              {/* Overflowing honey */}
-              <path d="M 5 8 Q 15 15 25 8 Q 28 20 22 28 Q 15 20 8 28 Z" fill="url(#honeyGrad)" />
-            </g>
-          </svg>
-        ),
-        dictionary: {
-          bear: 'A large, heavy mammal with thick fur and a very short tail (भालू).',
-          honey: 'A sweet, sticky yellowish-brown fluid made by bees (शहद).',
-          overflowing: 'Flowing over the edge of its container because it is too full (छलकना).',
-          golden: 'Having the color or shine of gold (सुनहरा).',
-          fuzzy: 'Having a frizzy, fluffy, or frayed texture or appearance (मुलायम).'
-        }
-      },
-      {
-        en: 'He walked through the whispering pines until he found Rosie the rabbit. "Would you like some honey?" Bruno asked, holding out a tiny cup. Rosie\'s ears perked up with joy.',
-        hi: 'वह सरसराते चीड़ों के बीच से गुजरा जब तक उसने खरगोश रोज़ी को ढूंढ लिया। "क्या तुम थोड़ा शहद लोगी?" ब्रूनो ने एक छोटा कप आगे बढ़ाते हुए पूछा। रोज़ी के कान खुशी से खड़े हो गए!',
-        illustration: (
-          <svg viewBox="0 0 400 280" className="reader-svg">
-            <defs>
-              <linearGradient id="skyGrad2" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#418C84" />
-                <stop offset="100%" stopColor="#5AB0A6" />
-              </linearGradient>
-            </defs>
-            <rect width="400" height="280" fill="url(#skyGrad2)" rx="16" />
-            
-            {/* Hills */}
-            <path d="M 0 190 Q 150 160 300 200 T 400 180 L 400 280 L 0 280 Z" fill="#8FCB9B" opacity="0.9" />
-            <path d="M 0 220 Q 180 200 360 230 L 400 220 L 400 280 L 0 280 Z" fill="#71A87D" />
+  if (error || !dbStory || !dbStory.pages || dbStory.pages.length === 0) {
+    return (
+      <div className="flex h-screen w-screen items-center justify-center bg-slate-50 p-6">
+        <div className="max-w-md text-center">
+          <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-red-100 text-3xl text-red-600">
+            <FaBookOpen />
+          </div>
+          <h2 className="mt-5 text-2xl font-bold text-slate-900">Story Not Found</h2>
+          <p className="mt-2 text-sm leading-6 text-slate-600">
+            {error || 'This story is not available in the PostgreSQL database.'}
+          </p>
+          <button
+            type="button"
+            onClick={() => navigate('/parent/library')}
+            className="mt-6 rounded-xl bg-indigo-600 px-6 py-3 font-semibold text-white transition hover:bg-indigo-700 shadow-md shadow-indigo-200"
+          >
+            Return to Story Library
+          </button>
+        </div>
+      </div>
+    );
+  }
 
-            {/* Pine Trees */}
-            <g transform="translate(40, 100)">
-              <rect x="12" y="50" width="6" height="40" fill="#584833" />
-              <polygon points="15,10 0,60 30,60" fill="#3D5C34" />
-            </g>
-            <g transform="translate(320, 90)">
-              <rect x="12" y="60" width="6" height="40" fill="#584833" />
-              <polygon points="15,15 0,70 30,70" fill="#3D5C34" opacity="0.8" />
-            </g>
-
-            {/* Bear */}
-            <g transform="translate(100, 145)">
-              <ellipse cx="30" cy="40" rx="24" ry="20" fill="#8B6914" />
-              <circle cx="30" cy="18" r="14" fill="#8B6914" />
-              <circle cx="25" cy="14" r="2" fill="#2F3B2A" />
-              <circle cx="35" cy="14" r="2" fill="#2F3B2A" />
-              {/* Offering cup */}
-              <rect x="50" y="32" width="14" height="12" rx="2" fill="#FCE38A" />
-            </g>
-
-            {/* Rabbit */}
-            <g transform="translate(230, 160)">
-              <ellipse cx="25" cy="35" rx="15" ry="12" fill="#E0D5C0" />
-              <circle cx="25" cy="18" r="10" fill="#E0D5C0" />
-              {/* Long Ears perked up */}
-              <ellipse cx="21" cy="4" rx="3.5" ry="10" fill="#E0D5C0" />
-              <ellipse cx="21" cy="4" rx="2" ry="7" fill="#F4A5A0" />
-              <ellipse cx="29" cy="4" rx="3.5" ry="10" fill="#E0D5C0" />
-              <ellipse cx="29" cy="4" rx="2" ry="7" fill="#F4A5A0" />
-              {/* Eye */}
-              <circle cx="28" cy="16" r="1.5" fill="#2F3B2A" />
-            </g>
-          </svg>
-        ),
-        dictionary: {
-          pines: 'Evergreen coniferous trees with needle-shaped leaves (चीड़).',
-          whispering: 'Making a soft rustling or murmuring sound (सरसराना).',
-          rabbit: 'A small gregarious burrowing plant-eating mammal with long ears (खरगोश).',
-          tiny: 'Very small or minute (छोटा).',
-          perked: 'To become more lively or raise up (खड़े होना).'
-        }
-      },
-      {
-        en: 'By sunset, every creature in the forest had tasted Bruno\'s honey. And Bruno discovered that sharing made every drop taste even sweeter.',
-        hi: 'सूर्यास्त तक, जंगल के हर प्राणी ने ब्रूनो का शहद चखा था। और ब्रूनो ने पाया कि बाँटने से हर बूंद का स्वाद और भी मीठा हो जाता है।',
-        illustration: (
-          <svg viewBox="0 0 400 280" className="reader-svg">
-            <defs>
-              <linearGradient id="sunsetGrad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#F4A5A0" />
-                <stop offset="60%" stopColor="#FCE38A" />
-                <stop offset="100%" stopColor="#5AB0A6" />
-              </linearGradient>
-            </defs>
-            <rect width="400" height="280" fill="url(#sunsetGrad)" rx="16" />
-            <circle cx="200" cy="70" r="35" fill="#FFF1BE" opacity="0.6" filter="url(#glowGold)" />
-            
-            {/* Hills */}
-            <path d="M 0 190 Q 120 160 240 200 T 400 175 L 400 280 L 0 280 Z" fill="#8FCB9B" opacity="0.9" />
-            <path d="M 0 220 Q 200 200 400 230 L 400 280 L 0 280 Z" fill="#71A87D" />
-
-            {/* Happy gather */}
-            <g transform="translate(80, 160)">
-              {/* Bear */}
-              <ellipse cx="40" cy="40" rx="20" ry="16" fill="#8B6914" />
-              <circle cx="40" cy="22" r="12" fill="#8B6914" />
-            </g>
-            <g transform="translate(160, 175)">
-              {/* Rabbit */}
-              <ellipse cx="20" cy="25" rx="11" ry="9" fill="#E0D5C0" />
-              <circle cx="20" cy="12" r="7" fill="#E0D5C0" />
-            </g>
-            <g transform="translate(240, 170)">
-              {/* Squirrel/other friend */}
-              <ellipse cx="20" cy="28" rx="10" ry="8" fill="#B5822A" />
-              <circle cx="20" cy="16" r="6.5" fill="#B5822A" />
-              <path d="M 28 28 Q 35 20 30 15" stroke="#B5822A" strokeWidth="3.5" fill="none" />
-            </g>
-
-            {/* Sparkles of happiness */}
-            <circle cx="100" cy="110" r="3" fill="#FFF" opacity="0.8" />
-            <circle cx="210" cy="100" r="4" fill="#FFF" opacity="0.7" />
-            <circle cx="300" cy="120" r="2.5" fill="#FFF" opacity="0.9" />
-          </svg>
-        ),
-        dictionary: {
-          sunset: 'The time in the evening when the sun disappears or sets (सूर्यास्त).',
-          creature: 'An animal, as distinct from a human being (प्राणी).',
-          tasted: 'Perceived or experienced the flavor of (चखना).',
-          sharing: 'Giving a portion of something to others (बाँटना).',
-          sweeter: 'More sweet; having a pleasing taste like sugar (और मीठा).'
-        }
-      }
-    ]
-  };
-
-  const story = dbStory ? {
+  const story = {
     title: dbStory.title_en || 'A New Adventure',
     titleHi: dbStory.title_hi || 'एक नया रोमांच',
     author: 'StoryNest AI',
@@ -247,7 +130,7 @@ export default function StoryReader() {
       ),
       dictionary: p.dictionary || {}
     }))
-  } : sampleStory;
+  };
 
   const wordsEn = story.pages[currentPage].en.split(" ");
   const wordsHi = story.pages[currentPage].hi.split(" ");

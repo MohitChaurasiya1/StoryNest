@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import {
     FaAward,
     FaChartBar,
@@ -11,10 +12,10 @@ import {
     FaUserGraduate,
 } from "react-icons/fa";
 
-import ParentSidebar from "../../components/ParentModule/ParentSidebar";
-import ParentNavbar from "../../components/ParentModule/ParentNavbar";
-import StatsCard from "../../components/ParentModule/StatsCard";
-import ProgressChart from "../../components/ParentModule/ProgressChart";
+import ParentSidebar from "./ParentSidebar";
+import ParentNavbar from "./ParentNavbar";
+import StatsCard from "./StatsCard";
+import ProgressChart from "./ProgressChart";
 
 import {
     getApiErrorMessage,
@@ -23,11 +24,14 @@ import {
 } from "../../services/api";
 
 function QuizReports() {
+    const [searchParams] = useSearchParams();
     const [children, setChildren] = useState([]);
     const [quizReports, setQuizReports] = useState([]);
     const [summary, setSummary] = useState({});
 
-    const [selectedChildId, setSelectedChildId] = useState("all");
+    const [selectedChildId, setSelectedChildId] = useState(
+        searchParams.get("child") || "all"
+    );
     const [scoreFilter, setScoreFilter] = useState("all");
     const [timeRange, setTimeRange] = useState("30");
     const [searchTerm, setSearchTerm] = useState("");
@@ -41,75 +45,46 @@ function QuizReports() {
     const reportsPerPage = 10;
 
     useEffect(() => {
-        loadInitialData();
-    }, []);
+        loadData();
+    }, [selectedChildId, timeRange, searchParams]);
 
-    useEffect(() => {
-        if (!loading) {
-            loadQuizReports();
-        }
-    }, [selectedChildId, timeRange]);
-
-    const loadInitialData = async () => {
+    const loadData = async () => {
         try {
             setLoading(true);
             setError("");
 
-            const childrenResponse =
-                await parentChildrenApi.getChildren();
+            const urlChild = searchParams.get("child");
+            const activeChildId = urlChild || selectedChildId;
 
-            const childData = Array.isArray(childrenResponse)
-                ? childrenResponse
-                : childrenResponse?.results ||
-                childrenResponse?.children ||
-                [];
-
-            setChildren(childData);
-        } catch (requestError) {
-            setError(
-                getApiErrorMessage(
-                    requestError,
-                    "Unable to load children."
-                )
-            );
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const loadQuizReports = async () => {
-        try {
-            setReportLoading(true);
-            setError("");
-
-            const params = {
-                days: timeRange,
-            };
-
-            if (selectedChildId !== "all") {
-                params.child = selectedChildId;
+            const params = { days: timeRange };
+            if (activeChildId && activeChildId !== "all") {
+                params.child = activeChildId;
             }
 
             const results = await Promise.allSettled([
+                parentChildrenApi.getChildren(),
                 parentQuizApi.getQuizReports(params),
                 parentQuizApi.getQuizSummary(params),
             ]);
 
-            const [reportsResult, summaryResult] = results;
+            const [childrenResult, reportsResult, summaryResult] = results;
+
+            if (childrenResult.status === "fulfilled") {
+                const childData = childrenResult.value;
+                setChildren(
+                    Array.isArray(childData)
+                        ? childData
+                        : childData?.results || childData?.children || []
+                );
+            }
 
             if (reportsResult.status === "fulfilled") {
                 const reportData = reportsResult.value;
-
                 setQuizReports(
                     Array.isArray(reportData)
                         ? reportData
-                        : reportData?.results ||
-                        reportData?.reports ||
-                        reportData?.quiz_attempts ||
-                        []
+                        : reportData?.results || reportData?.reports || reportData?.quiz_attempts || []
                 );
-            } else {
-                throw reportsResult.reason;
             }
 
             if (summaryResult.status === "fulfilled") {
@@ -123,6 +98,7 @@ function QuizReports() {
                 )
             );
         } finally {
+            setLoading(false);
             setReportLoading(false);
         }
     };
@@ -239,12 +215,13 @@ function QuizReports() {
     );
 
     const totalAttempts =
-        summary.total_attempts ??
+        summary.total_attempts ||
+        summary.total_quizzes ||
         normalizedReports.length;
 
     const averageScore =
-        summary.average_score ??
-        summary.average_quiz_score ??
+        summary.average_score ||
+        summary.average_quiz_score ||
         (normalizedReports.length
             ? Math.round(
                 normalizedReports.reduce(
@@ -255,23 +232,19 @@ function QuizReports() {
             : 0);
 
     const passedAttempts =
-        summary.passed_attempts ??
-        normalizedReports.filter((report) => report.passed)
-            .length;
+        summary.passed_attempts ||
+        summary.perfect_scores ||
+        normalizedReports.filter((report) => report.passed).length;
 
     const highestScore =
-        summary.highest_score ??
-        summary.best_score ??
+        summary.highest_score ||
+        summary.best_score ||
         (normalizedReports.length
-            ? Math.max(
-                ...normalizedReports.map(
-                    (report) => report.score
-                )
-            )
+            ? Math.max(0, ...normalizedReports.map((report) => report.score))
             : 0);
 
     const passRate =
-        summary.pass_rate ??
+        summary.pass_rate ||
         (totalAttempts > 0
             ? Math.round((passedAttempts / totalAttempts) * 100)
             : 0);

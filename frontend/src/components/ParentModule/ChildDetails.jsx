@@ -23,6 +23,7 @@ import ProgressChart from "./ProgressChart";
 import AchievementCard from "./AchievementCard";
 import ReadingLogTable from "./ReadingLogTable";
 import ConfirmDeleteModal from "./ConfirmDeleteModal";
+import StoryCard from "./StoryCard";
 
 import {
     getApiErrorMessage,
@@ -31,6 +32,7 @@ import {
     parentChildrenApi,
     parentDashboardApi,
     parentFamilyLogsApi,
+    parentLibraryApi,
     parentQuizApi,
 } from "../../services/api";
 
@@ -50,6 +52,8 @@ function ChildDetails() {
     const [achievements, setAchievements] = useState([]);
     const [readingLogs, setReadingLogs] = useState([]);
     const [certificates, setCertificates] = useState([]);
+    const [stories, setStories] = useState([]);
+    const [favouriteLoadingId, setFavouriteLoadingId] = useState(null);
 
     const [loading, setLoading] = useState(true);
     const [deleting, setDeleting] = useState(false);
@@ -85,6 +89,7 @@ function ChildDetails() {
                 parentCertificatesApi.getCertificates({
                     child: id,
                 }),
+                parentLibraryApi.getChildStories(id),
             ]);
 
             const [
@@ -95,6 +100,7 @@ function ChildDetails() {
                 achievementsResult,
                 logsResult,
                 certificatesResult,
+                storiesResult,
             ] = results;
 
             if (childResult.status === "fulfilled") {
@@ -151,6 +157,18 @@ function ChildDetails() {
                         ? certificateData
                         : certificateData?.results ||
                         certificateData?.certificates ||
+                        []
+                );
+            }
+
+            if (storiesResult.status === "fulfilled") {
+                const storyData = storiesResult.value;
+
+                setStories(
+                    Array.isArray(storyData)
+                        ? storyData
+                        : storyData?.results ||
+                        storyData?.stories ||
                         []
                 );
             }
@@ -320,6 +338,61 @@ function ChildDetails() {
         }));
     }, [readingLogs, childName]);
 
+    const normalizedStories = useMemo(() => {
+        return stories.map((story) => {
+            const completionPercentage = Number(
+                story.completion_percentage ??
+                story.progress_percentage ??
+                story.progress?.completion_percentage ??
+                0
+            );
+
+            const language =
+                story.language ||
+                story.story_language ||
+                (story.title_hi ? "Bilingual" : "English");
+
+            return {
+                ...story,
+                title_en:
+                    story.title_en ||
+                    story.title ||
+                    story.name ||
+                    "Untitled Story",
+                child_name:
+                    story.child_name ||
+                    story.child?.name ||
+                    story.child?.child_name ||
+                    childName,
+                cover_image:
+                    story.cover_image ||
+                    story.cover_url ||
+                    story.thumbnail ||
+                    story.pages?.[0]?.illustration_url ||
+                    "",
+                reading_time:
+                    story.reading_time ||
+                    story.estimated_reading_time ||
+                    `${story.reading_duration || 10} min`,
+                completion_percentage: Math.min(
+                    100,
+                    Math.max(0, completionPercentage)
+                ),
+                is_favourite:
+                    story.is_favourite ??
+                    story.favourite ??
+                    story.is_bookmarked ??
+                    false,
+                language,
+                created_at:
+                    story.created_at ||
+                    story.generated_at ||
+                    story.updated_at ||
+                    "",
+            };
+        });
+    }, [stories, childName]);
+
     const handleDeleteChild = async () => {
         try {
             setDeleting(true);
@@ -341,6 +414,84 @@ function ChildDetails() {
             setDeleting(false);
             setDeleteModalOpen(false);
         }
+    };
+
+    const handleFavourite = async (story) => {
+        if (!story?.id || favouriteLoadingId) return;
+
+        const previousFavouriteValue = story.is_favourite;
+        const nextFavouriteValue = !previousFavouriteValue;
+
+        try {
+            setFavouriteLoadingId(story.id);
+            setError("");
+
+            setStories((previous) =>
+                previous.map((item) =>
+                    item.id === story.id
+                        ? {
+                            ...item,
+                            is_favourite: nextFavouriteValue,
+                            favourite: nextFavouriteValue,
+                        }
+                        : item
+                )
+            );
+
+            if (nextFavouriteValue) {
+                await parentLibraryApi.addFavourite(story.id);
+                setSuccessMessage("Story added to favourites.");
+            } else {
+                await parentLibraryApi.removeFavourite(story.id);
+                setSuccessMessage("Story removed from favourites.");
+            }
+
+            window.setTimeout(() => {
+                setSuccessMessage("");
+            }, 3000);
+        } catch (requestError) {
+            setStories((previous) =>
+                previous.map((item) =>
+                    item.id === story.id
+                        ? {
+                            ...item,
+                            is_favourite: previousFavouriteValue,
+                            favourite: previousFavouriteValue,
+                        }
+                        : item
+                )
+            );
+
+            setError(
+                getApiErrorMessage(
+                    requestError,
+                    "Unable to update favourite status."
+                )
+            );
+        } finally {
+            setFavouriteLoadingId(null);
+        }
+    };
+
+    const handleReadStory = (story) => {
+        navigate(`/story/${story.id}`);
+    };
+
+    const handleQuiz = (story) => {
+        navigate(`/parent/stories/${story.id}/quiz`);
+    };
+
+    const handleDownload = (story) => {
+        if (story.pdf_url) {
+            window.open(story.pdf_url, "_blank", "noopener,noreferrer");
+            return;
+        }
+
+        navigate(`/story/${story.id}`, {
+            state: {
+                downloadPdf: true,
+            },
+        });
     };
 
     const validateNote = () => {
@@ -407,6 +558,11 @@ function ChildDetails() {
             id: "overview",
             label: "Overview",
             icon: FaChartLine,
+        },
+        {
+            id: "stories",
+            label: "Story Library",
+            icon: FaBookOpen,
         },
         {
             id: "quizzes",
@@ -957,6 +1113,31 @@ function ChildDetails() {
                                                 View Certificate
                                             </Link>
                                         </div>
+                                    ))}
+                                </div>
+                            )}
+                        </section>
+                    )}
+
+                    {activeTab === "stories" && (
+                        <section className="mt-6">
+                            {normalizedStories.length === 0 ? (
+                                <EmptyState
+                                    icon={FaBookOpen}
+                                    title="No stories created yet"
+                                    description="Bilingual stories generated for this child will appear here."
+                                />
+                            ) : (
+                                <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+                                    {normalizedStories.map((story) => (
+                                        <StoryCard
+                                            key={story.id}
+                                            story={story}
+                                            onFavourite={handleFavourite}
+                                            onRead={handleReadStory}
+                                            onDownload={handleDownload}
+                                            onQuiz={handleQuiz}
+                                        />
                                     ))}
                                 </div>
                             )}
