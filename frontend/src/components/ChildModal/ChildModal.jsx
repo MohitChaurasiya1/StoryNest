@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { FaTimes, FaChild, FaCheck } from 'react-icons/fa';
 import './ChildModal.css';
 
@@ -35,6 +36,17 @@ export default function ChildModal({ isOpen, onClose, onSave, childToEdit = null
     setError(null);
   }, [childToEdit, isOpen]);
 
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   const handleSubmit = async (e) => {
@@ -64,17 +76,21 @@ export default function ChildModal({ isOpen, onClose, onSave, childToEdit = null
     }
   };
 
-  return (
-    <div className="modal-backdrop animate-fade-in">
+  return createPortal(
+    <div 
+      className="modal-backdrop animate-fade-in"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
       <div className="modal-card">
         <div className="modal-header">
           <h3>{childToEdit ? 'Edit Child Profile' : 'Add New Child'}</h3>
-          <button onClick={onClose} className="btn-close"><FaTimes /></button>
+          <button onClick={onClose} className="btn-close" aria-label="Close modal"><FaTimes /></button>
         </div>
 
-        {error && <div className="modal-error-banner">{error}</div>}
-
         <form onSubmit={handleSubmit} className="modal-form">
+          {error && <div className="modal-error-banner">{error}</div>}
           <div className="form-group">
             <label>Avatar Emoji</label>
             <div className="avatar-grid">
@@ -165,6 +181,7 @@ export default function ChildModal({ isOpen, onClose, onSave, childToEdit = null
           </div>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

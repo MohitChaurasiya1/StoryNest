@@ -1,3 +1,5 @@
+import React, { useEffect } from "react";
+import { createPortal } from "react-dom";
 import { FaExclamationTriangle, FaSpinner, FaTrash } from "react-icons/fa";
 
 function ConfirmDeleteModal({
@@ -11,9 +13,20 @@ function ConfirmDeleteModal({
   onConfirm,
   onCancel,
 }) {
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
       <div className="w-full max-w-md rounded-2xl bg-white shadow-2xl">
         <div className="flex flex-col items-center border-b border-slate-200 px-6 py-6">
@@ -74,7 +87,8 @@ function ConfirmDeleteModal({
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 

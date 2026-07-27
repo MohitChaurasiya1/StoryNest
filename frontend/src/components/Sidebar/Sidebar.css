@@ -4,11 +4,14 @@
   color: var(--text-primary);
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
+  height: 100vh;
+  position: sticky;
+  top: 0;
+  left: 0;
   border-right: 2px solid var(--border-color);
   flex-shrink: 0;
-  position: relative;
   z-index: 10;
+  overflow-y: auto;
 }
 
 .sidebar-header {
@@ -116,9 +119,13 @@
 @media (max-width: 768px) {
   .sidebar-container {
     width: 100%;
+    height: auto;
     min-height: auto;
+    position: relative;
+    top: auto;
     border-right: none;
     border-bottom: 2px solid var(--border-color);
+    overflow-y: visible;
   }
   .sidebar-header {
     flex-direction: row;

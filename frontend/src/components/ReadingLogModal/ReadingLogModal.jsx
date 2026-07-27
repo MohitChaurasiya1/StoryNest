@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { FaTimes, FaBook, FaClock, FaStar } from 'react-icons/fa';
+import '../ChildModal/ChildModal.css';
 import './ReadingLogModal.css';
 
 export default function ReadingLogModal({ isOpen, onClose, onSave, childName = "Child", stories = [] }) {
@@ -13,6 +15,17 @@ export default function ReadingLogModal({ isOpen, onClose, onSave, childName = "
   const [notes, setNotes] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
+
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -65,17 +78,21 @@ export default function ReadingLogModal({ isOpen, onClose, onSave, childName = "
     }
   };
 
-  return (
-    <div className="modal-backdrop animate-fade-in">
+  return createPortal(
+    <div 
+      className="modal-backdrop animate-fade-in"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
       <div className="modal-card">
         <div className="modal-header">
           <h3><FaBook style={{ color: 'var(--coral)', marginRight: '8px' }} /> Log Reading Session for {childName}</h3>
-          <button onClick={onClose} className="btn-close"><FaTimes /></button>
+          <button onClick={onClose} className="btn-close" aria-label="Close modal"><FaTimes /></button>
         </div>
 
-        {error && <div className="modal-error-banner">{error}</div>}
-
         <form onSubmit={handleSubmit} className="modal-form">
+          {error && <div className="modal-error-banner">{error}</div>}
           {stories.length > 0 && (
             <div className="form-group">
               <label>Select From Library (Optional)</label>
@@ -182,6 +199,7 @@ export default function ReadingLogModal({ isOpen, onClose, onSave, childName = "
           </div>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
