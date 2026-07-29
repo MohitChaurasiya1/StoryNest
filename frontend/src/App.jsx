@@ -43,7 +43,47 @@ function App() {
             path="/teacher"
             element={
               <ProtectedRoute>
-                <TeacherDashboard />
+                <TeacherDashboard activeTab="dashboard" />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/teacher/analysis"
+            element={
+              <ProtectedRoute>
+                <TeacherDashboard activeTab="analysis" />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/teacher/inbox"
+            element={
+              <ProtectedRoute>
+                <TeacherDashboard activeTab="inbox" />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/teacher/lessons"
+            element={
+              <ProtectedRoute>
+                <TeacherDashboard activeTab="lessons" />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/teacher/students"
+            element={
+              <ProtectedRoute>
+                <TeacherDashboard activeTab="students" />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/teacher/settings"
+            element={
+              <ProtectedRoute>
+                <TeacherDashboard activeTab="settings" />
               </ProtectedRoute>
             }
           />

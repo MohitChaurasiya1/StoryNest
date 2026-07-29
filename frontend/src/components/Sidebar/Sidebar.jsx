@@ -36,10 +36,11 @@ export default function Sidebar({ role }) {
       case 'teacher':
         return [
           { type: 'link', label: 'Dashboard', path: '/teacher', icon: FaChartLine },
-          { type: 'link', label: 'Analysis', path: '/teacher#analysis', icon: FaChartLine },
-          { type: 'link', label: 'Inbox', path: '/teacher#inbox', icon: FaInbox },
-          { type: 'link', label: 'Lessons', path: '/teacher#lessons', icon: FaBook },
-          { type: 'link', label: 'Settings', path: '/teacher#settings', icon: FaCog },
+          { type: 'link', label: 'Analysis', path: '/teacher/analysis', icon: FaChartLine },
+          { type: 'link', label: 'Inbox', path: '/teacher/inbox', icon: FaInbox },
+          { type: 'link', label: 'Lessons', path: '/teacher/lessons', icon: FaBook },
+          { type: 'link', label: 'Students', path: '/teacher/students', icon: FaUserGraduate },
+          { type: 'link', label: 'Settings', path: '/teacher/settings', icon: FaCog },
         ];
       case 'parent':
         return [

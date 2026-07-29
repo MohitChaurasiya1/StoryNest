@@ -4,11 +4,13 @@ from .models import (
     ReadingLog, ReadingProgress, ReadingSession,
     Quiz, QuizQuestion, QuizAttempt,
     Achievement, ChildAchievement,
-    ParentNote, Certificate, FavouriteStory
+    ParentNote, Certificate, FavouriteStory,
+    TeacherProfile, TeacherClass, ClassStudent, Lesson, LessonSubmission, TeacherMessage
 )
 
 
 class UserSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = User
         fields = ["id", "username", "email", "role", "phone"]
@@ -276,3 +278,73 @@ class FavouriteStorySerializer(serializers.ModelSerializer):
             "story", "story_title", "created_at",
         ]
         read_only_fields = ["id", "parent", "created_at"]
+
+
+class TeacherProfileSerializer(serializers.ModelSerializer):
+    username = serializers.ReadOnlyField(source='user.username')
+    email = serializers.ReadOnlyField(source='user.email')
+
+    class Meta:
+        model = TeacherProfile
+        fields = [
+            "id", "username", "email", "school_name", "grade_level",
+            "subject", "bio", "avatar", "email_notifications",
+            "theme_preference", "created_at"
+        ]
+        read_only_fields = ["id", "created_at"]
+
+
+class TeacherClassSerializer(serializers.ModelSerializer):
+    teacher_name = serializers.ReadOnlyField(source='teacher.username')
+    enrolled_count = serializers.SerializerMethodField()
+
+    class Meta:
+        model = TeacherClass
+        fields = ["id", "name", "grade_level", "academic_year", "teacher_name", "enrolled_count", "created_at"]
+        read_only_fields = ["id", "created_at"]
+
+    def get_enrolled_count(self, obj):
+        return obj.enrolled_students.count()
+
+
+class LessonSubmissionSerializer(serializers.ModelSerializer):
+    child_name = serializers.ReadOnlyField(source='child.name')
+    lesson_title = serializers.ReadOnlyField(source='lesson.title')
+
+    class Meta:
+        model = LessonSubmission
+        fields = [
+            "id", "lesson", "lesson_title", "child", "child_name",
+            "status", "completion_percentage", "score",
+            "reading_time_minutes", "completed_at", "updated_at"
+        ]
+        read_only_fields = ["id", "updated_at"]
+
+
+class LessonSerializer(serializers.ModelSerializer):
+    story_title = serializers.ReadOnlyField(source='story.title_en')
+    students_completed = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Lesson
+        fields = [
+            "id", "teacher", "classroom", "story", "story_title",
+            "title", "description", "grade", "status", "due_date",
+            "due_date_timestamp", "total_students", "students_completed",
+            "created_at"
+        ]
+        read_only_fields = ["id", "teacher", "created_at"]
+
+    def get_students_completed(self, obj):
+        return obj.submissions.filter(status='completed').count()
+
+
+class TeacherMessageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TeacherMessage
+        fields = [
+            "id", "sender", "recipient", "sender_name", "recipient_name",
+            "subject", "content", "message_type", "is_read", "created_at"
+        ]
+        read_only_fields = ["id", "created_at"]
+

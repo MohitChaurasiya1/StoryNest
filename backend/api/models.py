@@ -319,3 +319,163 @@ class FavouriteStory(models.Model):
 
     def __str__(self):
         return f"{self.child.name} favorited {self.story.title_en}"
+
+
+class TeacherProfile(models.Model):
+    user = models.OneToOneField(
+        User,
+        on_delete=models.CASCADE,
+        related_name='teacher_profile'
+    )
+    school_name = models.CharField(max_length=255, default='Oakridge Elementary')
+    grade_level = models.CharField(max_length=50, default='Grade 2 & 3')
+    subject = models.CharField(max_length=100, default='Reading & Hindi Literature')
+    bio = models.TextField(blank=True, default='Passionate primary grade teacher specializing in story-based language learning.')
+    avatar = models.CharField(max_length=10, default='MR')
+    email_notifications = models.BooleanField(default=True)
+    theme_preference = models.CharField(max_length=20, default='light')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"TeacherProfile for {self.user.username}"
+
+
+class TeacherClass(models.Model):
+    teacher = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='classes'
+    )
+    name = models.CharField(max_length=100, default='Grade 2 - Owls')
+    grade_level = models.CharField(max_length=50, default='Grade 2')
+    academic_year = models.CharField(max_length=20, default='2025-2026')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.name} ({self.teacher.username})"
+
+
+class ClassStudent(models.Model):
+    classroom = models.ForeignKey(
+        TeacherClass,
+        on_delete=models.CASCADE,
+        related_name='enrolled_students'
+    )
+    child = models.ForeignKey(
+        ChildProfile,
+        on_delete=models.CASCADE,
+        related_name='class_enrollments'
+    )
+    status = models.CharField(max_length=50, default='active')
+    enrolled_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('classroom', 'child')
+
+    def __str__(self):
+        return f"{self.child.name} in {self.classroom.name}"
+
+
+class Lesson(models.Model):
+    STATUS_CHOICES = [
+        ('active', 'Active'),
+        ('upcoming', 'Upcoming'),
+        ('completed', 'Completed'),
+    ]
+
+    teacher = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='created_lessons'
+    )
+    classroom = models.ForeignKey(
+        TeacherClass,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='lessons'
+    )
+    story = models.ForeignKey(
+        Story,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='assigned_lessons'
+    )
+    title = models.CharField(max_length=255)
+    description = models.TextField(blank=True, null=True)
+    grade = models.CharField(max_length=50, default='Grade 2')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='active')
+    due_date = models.CharField(max_length=100, default='Due Tomorrow')
+    due_date_timestamp = models.DateTimeField(blank=True, null=True)
+    total_students = models.IntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.title} ({self.status})"
+
+
+class LessonSubmission(models.Model):
+    lesson = models.ForeignKey(
+        Lesson,
+        on_delete=models.CASCADE,
+        related_name='submissions'
+    )
+    child = models.ForeignKey(
+        ChildProfile,
+        on_delete=models.CASCADE,
+        related_name='lesson_submissions'
+    )
+    status = models.CharField(max_length=20, default='assigned')
+    completion_percentage = models.IntegerField(default=0)
+    score = models.IntegerField(default=0)
+    reading_time_minutes = models.IntegerField(default=0)
+    completed_at = models.DateTimeField(blank=True, null=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ('lesson', 'child')
+
+    def __str__(self):
+        return f"{self.child.name} - {self.lesson.title} ({self.status})"
+
+
+class TeacherMessage(models.Model):
+    MESSAGE_TYPE_CHOICES = [
+        ('parent', 'Parent'),
+        ('student', 'Student'),
+        ('admin', 'Admin'),
+        ('system', 'System'),
+    ]
+
+    sender = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='sent_teacher_messages',
+        null=True,
+        blank=True
+    )
+    recipient = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='received_teacher_messages',
+        null=True,
+        blank=True
+    )
+    sender_name = models.CharField(max_length=100, default='System Alert')
+    recipient_name = models.CharField(max_length=100, default='Ms. Rivera')
+    subject = models.CharField(max_length=255)
+    content = models.TextField()
+    message_type = models.CharField(max_length=20, choices=MESSAGE_TYPE_CHOICES, default='parent')
+    is_read = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"Msg: '{self.subject}' from {self.sender_name}"
+

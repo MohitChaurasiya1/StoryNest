@@ -31,15 +31,31 @@ from .parent_views import (
     IssueCertificateView,
     FamilyReadingLogsView,
 )
+from .teacher_views import (
+    TeacherDashboardView,
+    TeacherAnalysisView,
+    TeacherInboxViewSet,
+    TeacherLessonViewSet,
+    TeacherStudentViewSet,
+    TeacherSettingsView,
+)
 
 router = DefaultRouter()
 router.register(r'stories', StoryViewSet, basename='story')
 router.register(r'parent/children', ChildProfileViewSet, basename='parent-children')
 router.register(r'parent/notes', ParentNoteViewSet, basename='parent-notes')
+router.register(r'teacher/inbox', TeacherInboxViewSet, basename='teacher-inbox')
+router.register(r'teacher/lessons', TeacherLessonViewSet, basename='teacher-lessons')
+router.register(r'teacher/students', TeacherStudentViewSet, basename='teacher-students')
 
 urlpatterns = [
     # Story endpoints
     path('stories/generate/', generate_story_api, name='generate_story'),
+
+    # Teacher Module Endpoints
+    path('teacher/dashboard/', TeacherDashboardView.as_view(), name='teacher_dashboard'),
+    path('teacher/analysis/', TeacherAnalysisView.as_view(), name='teacher_analysis'),
+    path('teacher/settings/', TeacherSettingsView.as_view(), name='teacher_settings'),
 
     # Auth JWT & Profile endpoints
     path('auth/register/', RegisterView.as_view(), name='auth_register'),
@@ -86,3 +102,4 @@ urlpatterns = [
     # Standard DRF Router URLs
     path('', include(router.urls)),
 ]
+

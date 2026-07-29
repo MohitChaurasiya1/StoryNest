@@ -1100,4 +1100,30 @@ export const http = {
     unwrapResponse(await api.delete(url, config)),
 };
 
-export default api;
+/*
+|--------------------------------------------------------------------------
+| Teacher Module API
+|--------------------------------------------------------------------------
+*/
+
+export const teacherAPI = {
+  getDashboard: () => http.get("/teacher/dashboard/"),
+  getAnalysis: () => http.get("/teacher/analysis/"),
+  getInbox: (params) => http.get("/teacher/inbox/", { params }),
+  markMessageRead: (id) => http.post(`/teacher/inbox/${id}/mark_read/`),
+  markAllMessagesRead: () => http.post("/teacher/inbox/mark_all_read/"),
+  sendMessage: (data) => http.post("/teacher/inbox/", data),
+  deleteMessage: (id) => http.delete(`/teacher/inbox/${id}/`),
+  getLessons: (params) => http.get("/teacher/lessons/", { params }),
+  createLesson: (data) => http.post("/teacher/lessons/", data),
+  updateLesson: (id, data) => http.put(`/teacher/lessons/${id}/`, data),
+  deleteLesson: (id) => http.delete(`/teacher/lessons/${id}/`),
+  getLessonSubmissions: (id) => http.get(`/teacher/lessons/${id}/submissions/`),
+  getStudents: (params) => http.get("/teacher/students/", { params }),
+  getStudentDetails: (id) => http.get(`/teacher/students/${id}/details/`),
+  issueCertificate: (id, data) => http.post(`/teacher/students/${id}/issue_certificate/`, data),
+  getSettings: () => http.get("/teacher/settings/"),
+  updateSettings: (data) => http.put("/teacher/settings/", data),
+};
+
+export default api;

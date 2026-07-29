@@ -278,7 +278,7 @@ export default function StoryCreator() {
         bedtimeSafe
       };
 
-      api.post('/stories/generate/', payload, { timeout: 60000 })
+      api.post('/stories/generate/', payload, { timeout: 600000 })
         .then(response => {
           clearInterval(timer);
           setGenProgress(100);
