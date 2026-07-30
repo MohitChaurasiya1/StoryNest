@@ -1,5 +1,6 @@
-import { FaBars, FaBell, FaCog, FaSearch, FaUserCircle } from "react-icons/fa";
+import { FaBars, FaCog, FaSearch, FaUserCircle } from "react-icons/fa";
 import { Link } from "react-router-dom";
+import NotificationBell from "./NotificationBell";
 
 function ParentNavbar({
   title = "Parent Dashboard",
@@ -30,21 +31,16 @@ function ParentNavbar({
         </div>
 
         <div className="flex items-center gap-4">
-          <div className="hidden lg:flex items-center gap-3 rounded-xl border border-slate-200 px-4 py-2 w-80">
-            <FaSearch className="text-slate-400" />
+          <Link
+            to="/parent/search"
+            className="hidden lg:flex items-center gap-3 rounded-xl border border-slate-200 px-4 py-2 w-80 text-slate-400 hover:border-rose-500 transition"
+          >
+            <FaSearch />
+            <span className="text-sm">Search children, stories, goals...</span>
+          </Link>
 
-            <input
-              type="text"
-              placeholder="Search children, stories..."
-              className="w-full bg-transparent outline-none text-sm"
-            />
-          </div>
+          <NotificationBell />
 
-          <button className="relative flex h-11 w-11 items-center justify-center rounded-xl border border-slate-200 hover:bg-slate-100">
-            <FaBell />
-
-            <span className="absolute right-2 top-2 h-2.5 w-2.5 rounded-full bg-red-500"></span>
-          </button>
 
           <Link
             to="/parent/settings"

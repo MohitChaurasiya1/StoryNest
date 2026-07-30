@@ -5,8 +5,11 @@ from .models import (
     Quiz, QuizQuestion, QuizAttempt,
     Achievement, ChildAchievement,
     ParentNote, Certificate, FavouriteStory,
-    TeacherProfile, TeacherClass, ClassStudent, Lesson, LessonSubmission, TeacherMessage
+    TeacherProfile, TeacherClass, ClassStudent, Lesson, LessonSubmission, TeacherMessage,
+    StoryApproval, Notification, ChildGoal, ReadingStreak,
+    ReadingSchedule, StoryRating, RewardShopItem, RewardPurchase,
 )
+
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -383,4 +386,102 @@ class TeacherMessageSerializer(serializers.ModelSerializer):
             "subject", "content", "message_type", "is_read", "created_at"
         ]
         read_only_fields = ["id", "created_at"]
+
+
+class StoryApprovalSerializer(serializers.ModelSerializer):
+    story_title = serializers.ReadOnlyField(source='story.title_en')
+    child_name = serializers.ReadOnlyField(source='story.child_name')
+
+    class Meta:
+        model = StoryApproval
+        fields = [
+            "id", "story", "story_title", "child_name", "parent",
+            "status", "reviewer_notes", "reviewed_at", "created_at"
+        ]
+        read_only_fields = ["id", "parent", "created_at"]
+
+
+class NotificationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Notification
+        fields = [
+            "id", "user", "notification_type", "title", "message",
+            "is_read", "related_object_type", "related_object_id", "created_at"
+        ]
+        read_only_fields = ["id", "user", "created_at"]
+
+
+class ChildGoalSerializer(serializers.ModelSerializer):
+    child_name = serializers.ReadOnlyField(source='child.name')
+    progress_percentage = serializers.ReadOnlyField()
+
+    class Meta:
+        model = ChildGoal
+        fields = [
+            "id", "parent", "child", "child_name", "goal_type", "title",
+            "description", "target_value", "current_value", "deadline",
+            "status", "progress_percentage", "created_at", "updated_at"
+        ]
+        read_only_fields = ["id", "parent", "created_at", "updated_at"]
+
+
+class ReadingStreakSerializer(serializers.ModelSerializer):
+    child_name = serializers.ReadOnlyField(source='child.name')
+
+    class Meta:
+        model = ReadingStreak
+        fields = [
+            "id", "child", "child_name", "current_streak",
+            "longest_streak", "last_read_date", "total_stars", "updated_at"
+        ]
+        read_only_fields = ["id", "updated_at"]
+
+
+class ReadingScheduleSerializer(serializers.ModelSerializer):
+    child_name = serializers.ReadOnlyField(source='child.name')
+    day_name = serializers.CharField(source='get_day_of_week_display', read_only=True)
+
+    class Meta:
+        model = ReadingSchedule
+        fields = [
+            "id", "parent", "child", "child_name", "day_of_week",
+            "day_name", "time", "label", "is_active", "created_at"
+        ]
+        read_only_fields = ["id", "parent", "created_at"]
+
+
+class StoryRatingSerializer(serializers.ModelSerializer):
+    story_title = serializers.ReadOnlyField(source='story.title_en')
+    parent_username = serializers.ReadOnlyField(source='parent.username')
+
+    class Meta:
+        model = StoryRating
+        fields = [
+            "id", "parent", "parent_username", "story", "story_title",
+            "rating", "comment", "created_at", "updated_at"
+        ]
+        read_only_fields = ["id", "parent", "created_at", "updated_at"]
+
+
+class RewardShopItemSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RewardShopItem
+        fields = [
+            "id", "name", "category", "cost_stars", "emoji",
+            "description", "is_active", "created_at"
+        ]
+        read_only_fields = ["id", "created_at"]
+
+
+class RewardPurchaseSerializer(serializers.ModelSerializer):
+    child_name = serializers.ReadOnlyField(source='child.name')
+    item_details = RewardShopItemSerializer(source='item', read_only=True)
+
+    class Meta:
+        model = RewardPurchase
+        fields = [
+            "id", "child", "child_name", "item", "item_details", "purchased_at"
+        ]
+        read_only_fields = ["id", "purchased_at"]
+
 

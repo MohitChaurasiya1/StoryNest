@@ -10,56 +10,50 @@ import {
   FaQuestionCircle,
   FaTimes,
   FaUser,
+  FaStickyNote,
+  FaCheckCircle,
+  FaBullseye,
+  FaBell,
+  FaHistory,
+  FaHeart,
+  FaFire,
+  FaUsers,
+  FaCalendarAlt,
+  FaStore,
+  FaSearch,
+  FaFileDownload,
 } from "react-icons/fa";
 import { NavLink } from "react-router-dom";
 
 const navigationItems = [
-  {
-    name: "Dashboard",
-    path: "/parent",
-    icon: FaHome,
-  },
-  {
-    name: "All Children",
-    path: "/parent/children",
-    icon: FaChild,
-  },
-  {
-    name: "Story Library",
-    path: "/parent/library",
-    icon: FaBookOpen,
-  },
-  {
-    name: "Progress",
-    path: "/parent/progress",
-    icon: FaChartLine,
-  },
-  {
-    name: "Quiz Reports",
-    path: "/parent/quizzes",
-    icon: FaQuestionCircle,
-  },
-  {
-    name: "Achievements",
-    path: "/parent/achievements",
-    icon: FaMedal,
-  },
-  {
-    name: "Certificates",
-    path: "/parent/certificates",
-    icon: FaCertificate,
-  },
-  {
-    name: "Profile",
-    path: "/parent/profile",
-    icon: FaUser,
-  },
-  {
-    name: "Settings",
-    path: "/parent/settings",
-    icon: FaCog,
-  },
+  { name: "Dashboard", path: "/parent", icon: FaHome },
+  { name: "All Children", path: "/parent/children", icon: FaChild },
+  { name: "Parent Notes", path: "/parent/notes", icon: FaStickyNote },
+  { name: "Story Approvals", path: "/parent/approvals", icon: FaCheckCircle },
+  { name: "Story Library", path: "/parent/library", icon: FaBookOpen },
+  { name: "Favorites", path: "/parent/favorites", icon: FaHeart },
+  { name: "Reading Analytics", path: "/parent/analytics", icon: FaChartLine },
+  { name: "Learning Goals", path: "/parent/goals", icon: FaBullseye },
+  { name: "Notifications", path: "/parent/notifications", icon: FaBell },
+  { name: "Activity Timeline", path: "/parent/timeline", icon: FaHistory },
+  { name: "Reading Streak", path: "/parent/streak", icon: FaFire },
+  { name: "Growth Report", path: "/parent/growth", icon: FaMagic },
+  { name: "Child Comparison", path: "/parent/comparison", icon: FaUsers },
+  { name: "AI Insights", path: "/parent/ai-insights", icon: FaMagic },
+  { name: "Recommendations", path: "/parent/recommendations", icon: FaBookOpen },
+  { name: "Reading Schedule", path: "/parent/schedule", icon: FaCalendarAlt },
+  { name: "Rewards Shop", path: "/parent/rewards", icon: FaStore },
+  { name: "Global Search", path: "/parent/search", icon: FaSearch },
+  { name: "Export Reports", path: "/parent/reports", icon: FaFileDownload },
+  { name: "Progress", path: "/parent/progress", icon: FaChartLine },
+  { name: "Quiz Reports", path: "/parent/quizzes", icon: FaQuestionCircle },
+  { name: "Achievements", path: "/parent/achievements", icon: FaMedal },
+  { name: "Certificates", path: "/parent/certificates", icon: FaCertificate },
+  { name: "Profile", path: "/parent/profile", icon: FaUser },
+  { name: "Settings", path: "/parent/settings", icon: FaCog },
 ];
+
+
 
 function ParentSidebar({ isOpen = false, onClose = () => {} }) {
   const getLinkClasses = ({ isActive }) =>
@@ -139,13 +133,17 @@ function ParentSidebar({ isOpen = false, onClose = () => {} }) {
                   to={item.path}
                   end={item.path === "/parent"}
                   className={getLinkClasses}
-                  onClick={onClose}
+                  onClick={() => {
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                    onClose();
+                  }}
                 >
                   <Icon className="text-lg flex-shrink-0" />
                   <span>{item.name}</span>
                 </NavLink>
               );
             })}
+
           </nav>
 
           <div className="mt-4 rounded-3xl bg-gradient-to-br from-rose-500/10 via-purple-500/10 to-sky-500/10 border border-rose-200/50 dark:border-slate-800 p-4 relative overflow-hidden">

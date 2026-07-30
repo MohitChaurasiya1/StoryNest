@@ -488,3 +488,232 @@ class TeacherMessage(models.Model):
     def __str__(self):
         return f"Msg: '{self.subject}' from {self.sender_name}"
 
+
+class StoryApproval(models.Model):
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('approved', 'Approved'),
+        ('rejected', 'Rejected'),
+    ]
+
+    story = models.OneToOneField(
+        Story,
+        on_delete=models.CASCADE,
+        related_name='approval'
+    )
+    parent = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='story_approvals'
+    )
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    reviewer_notes = models.TextField(blank=True, default='')
+    reviewed_at = models.DateTimeField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"Approval: {self.story.title_en} ({self.status})"
+
+
+class Notification(models.Model):
+    TYPE_CHOICES = [
+        ('story_completed', 'Story Completed'),
+        ('new_badge', 'New Badge'),
+        ('certificate_earned', 'Certificate Earned'),
+        ('teacher_story', 'Teacher Uploaded Story'),
+        ('goal_completed', 'Goal Completed'),
+        ('quiz_finished', 'Quiz Finished'),
+        ('streak_milestone', 'Streak Milestone'),
+        ('approval_needed', 'Approval Needed'),
+        ('system', 'System'),
+    ]
+
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='notifications'
+    )
+    notification_type = models.CharField(max_length=30, choices=TYPE_CHOICES, default='system')
+    title = models.CharField(max_length=255)
+    message = models.TextField()
+    is_read = models.BooleanField(default=False)
+    related_object_type = models.CharField(max_length=50, blank=True, default='')
+    related_object_id = models.IntegerField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"Notification: {self.title} ({self.notification_type})"
+
+
+class ChildGoal(models.Model):
+    GOAL_TYPE_CHOICES = [
+        ('stories_per_week', 'Stories Per Week'),
+        ('minutes_per_day', 'Minutes Per Day'),
+        ('quiz_score', 'Quiz Score Above'),
+        ('quizzes_per_week', 'Quizzes Per Week'),
+        ('streak_days', 'Reading Streak Days'),
+        ('custom', 'Custom Goal'),
+    ]
+    STATUS_CHOICES = [
+        ('active', 'Active'),
+        ('completed', 'Completed'),
+        ('expired', 'Expired'),
+        ('paused', 'Paused'),
+    ]
+
+    parent = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='child_goals'
+    )
+    child = models.ForeignKey(
+        ChildProfile,
+        on_delete=models.CASCADE,
+        related_name='goals'
+    )
+    goal_type = models.CharField(max_length=30, choices=GOAL_TYPE_CHOICES, default='stories_per_week')
+    title = models.CharField(max_length=255)
+    description = models.TextField(blank=True, default='')
+    target_value = models.IntegerField(default=5)
+    current_value = models.IntegerField(default=0)
+    deadline = models.DateField(blank=True, null=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='active')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"Goal: {self.title} for {self.child.name}"
+
+    @property
+    def progress_percentage(self):
+        if self.target_value <= 0:
+            return 0
+        return min(100, round((self.current_value / self.target_value) * 100))
+
+
+class ReadingStreak(models.Model):
+    child = models.OneToOneField(
+        ChildProfile,
+        on_delete=models.CASCADE,
+        related_name='streak'
+    )
+    current_streak = models.IntegerField(default=0)
+    longest_streak = models.IntegerField(default=0)
+    last_read_date = models.DateField(blank=True, null=True)
+    total_stars = models.IntegerField(default=0)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Streak: {self.child.name} ({self.current_streak} days)"
+
+
+class ReadingSchedule(models.Model):
+    DAY_CHOICES = [
+        (0, 'Monday'),
+        (1, 'Tuesday'),
+        (2, 'Wednesday'),
+        (3, 'Thursday'),
+        (4, 'Friday'),
+        (5, 'Saturday'),
+        (6, 'Sunday'),
+    ]
+
+    parent = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='reading_schedules'
+    )
+    child = models.ForeignKey(
+        ChildProfile,
+        on_delete=models.CASCADE,
+        related_name='reading_schedules'
+    )
+    day_of_week = models.IntegerField(choices=DAY_CHOICES)
+    time = models.TimeField()
+    label = models.CharField(max_length=100, blank=True, default='Reading Time')
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['day_of_week', 'time']
+
+    def __str__(self):
+        return f"Schedule: {self.child.name} - {self.get_day_of_week_display()} {self.time}"
+
+
+class StoryRating(models.Model):
+    parent = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='story_ratings'
+    )
+    story = models.ForeignKey(
+        Story,
+        on_delete=models.CASCADE,
+        related_name='ratings'
+    )
+    rating = models.IntegerField(default=5)
+    comment = models.TextField(blank=True, default='')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ('parent', 'story')
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"Rating: {self.story.title_en} - {self.rating}/5 by {self.parent.username}"
+
+
+class RewardShopItem(models.Model):
+    CATEGORY_CHOICES = [
+        ('theme', 'Theme'),
+        ('avatar', 'Avatar'),
+        ('story_pack', 'Story Pack'),
+        ('badge', 'Badge'),
+    ]
+
+    name = models.CharField(max_length=100)
+    category = models.CharField(max_length=20, choices=CATEGORY_CHOICES, default='badge')
+    cost_stars = models.IntegerField(default=10)
+    emoji = models.CharField(max_length=20, default='🎁')
+    description = models.TextField(blank=True, default='')
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['category', 'cost_stars']
+
+    def __str__(self):
+        return f"{self.emoji} {self.name} ({self.cost_stars}⭐)"
+
+
+class RewardPurchase(models.Model):
+    child = models.ForeignKey(
+        ChildProfile,
+        on_delete=models.CASCADE,
+        related_name='reward_purchases'
+    )
+    item = models.ForeignKey(
+        RewardShopItem,
+        on_delete=models.CASCADE,
+        related_name='purchases'
+    )
+    purchased_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('child', 'item')
+        ordering = ['-purchased_at']
+
+    def __str__(self):
+        return f"{self.child.name} bought {self.item.name}"
+

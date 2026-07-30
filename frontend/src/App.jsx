@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { useEffect } from 'react';
 import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -15,8 +15,32 @@ import Achievements from './components/ParentModule/Achievements';
 import Certificates from './components/ParentModule/Certificates';
 import ParentProfile from './components/ParentModule/ParentProfile';
 import ParentSettings from './components/ParentModule/ParentSettings';
+import ParentNotes from './components/ParentModule/ParentNotes';
+import StoryApprovals from './components/ParentModule/StoryApprovals';
+import ReadingAnalytics from './components/ParentModule/ReadingAnalytics';
+import ChildGoals from './components/ParentModule/ChildGoals';
+import NotificationCenter from './components/ParentModule/NotificationCenter';
+import ActivityTimeline from './components/ParentModule/ActivityTimeline';
+import FavoriteStories from './components/ParentModule/FavoriteStories';
+import ReadingStreak from './components/ParentModule/ReadingStreak';
+import ChildGrowthDashboard from './components/ParentModule/ChildGrowthDashboard';
+import ChildComparison from './components/ParentModule/ChildComparison';
+import AIInsights from './components/ParentModule/AIInsights';
+import StoryRecommendations from './components/ParentModule/StoryRecommendations';
+import ReadingSchedule from './components/ParentModule/ReadingSchedule';
+import RewardsShop from './components/ParentModule/RewardsShop';
+import GlobalSearch from './components/ParentModule/GlobalSearch';
+import ReportExport from './components/ParentModule/ReportExport';
 import StoryCreator from './pages/StoryCreator/StoryCreator';
 import StoryReader from './pages/StoryReader';
+
+function ScrollToTop() {
+  const { pathname } = useLocation();
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [pathname]);
+  return null;
+}
 
 function App() {
   // Auto‑reload the entire app every 5 minutes to keep data fresh
@@ -26,10 +50,13 @@ function App() {
     }, 300000); // 5 min
     return () => clearInterval(intervalId);
   }, []);
+
   return (
     <AuthProvider>
       <BrowserRouter>
+        <ScrollToTop />
         <Routes>
+
           <Route path="/" element={<LandingPage />} />
           <Route
             path="/admin"
@@ -167,6 +194,135 @@ function App() {
               </ProtectedRoute>
             }
           />
+          <Route
+            path="/parent/notes"
+            element={
+              <ProtectedRoute>
+                <ParentNotes />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/parent/approvals"
+            element={
+              <ProtectedRoute>
+                <StoryApprovals />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/parent/analytics"
+            element={
+              <ProtectedRoute>
+                <ReadingAnalytics />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/parent/goals"
+            element={
+              <ProtectedRoute>
+                <ChildGoals />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/parent/notifications"
+            element={
+              <ProtectedRoute>
+                <NotificationCenter />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/parent/timeline"
+            element={
+              <ProtectedRoute>
+                <ActivityTimeline />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/parent/favorites"
+            element={
+              <ProtectedRoute>
+                <FavoriteStories />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/parent/streak"
+            element={
+              <ProtectedRoute>
+                <ReadingStreak />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/parent/growth"
+            element={
+              <ProtectedRoute>
+                <ChildGrowthDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/parent/comparison"
+            element={
+              <ProtectedRoute>
+                <ChildComparison />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/parent/ai-insights"
+            element={
+              <ProtectedRoute>
+                <AIInsights />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/parent/recommendations"
+            element={
+              <ProtectedRoute>
+                <StoryRecommendations />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/parent/schedule"
+            element={
+              <ProtectedRoute>
+                <ReadingSchedule />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/parent/rewards"
+            element={
+              <ProtectedRoute>
+                <RewardsShop />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/parent/search"
+            element={
+              <ProtectedRoute>
+                <GlobalSearch />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/parent/reports"
+            element={
+              <ProtectedRoute>
+                <ReportExport />
+              </ProtectedRoute>
+            }
+          />
+
           <Route
             path="/create"
             element={

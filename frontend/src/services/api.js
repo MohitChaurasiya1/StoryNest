@@ -1126,6 +1126,87 @@ export const http = {
     unwrapResponse(await api.delete(url, config)),
 };
 
+export const parentNotesApi = {
+  getNotes: (params) => http.get('/parent/notes/', { params }),
+  createNote: (data) => http.post('/parent/notes/', data),
+  updateNote: (id, data) => http.patch(`/parent/notes/${id}/`, data),
+  deleteNote: (id) => http.delete(`/parent/notes/${id}/`),
+};
+
+export const parentApprovalsApi = {
+  getApprovals: (params) => http.get('/parent/approvals/', { params }),
+  approveStory: (id, notes = '') => http.post(`/parent/approvals/${id}/approve/`, { notes }),
+  rejectStory: (id, notes = '') => http.post(`/parent/approvals/${id}/reject/`, { notes }),
+};
+
+export const parentNotificationsApi = {
+  getNotifications: (params) => http.get('/parent/notifications/', { params }),
+  markRead: (id) => http.post(`/parent/notifications/${id}/mark_read/`),
+  markAllRead: () => http.post('/parent/notifications/mark_all_read/'),
+  deleteNotification: (id) => http.delete(`/parent/notifications/${id}/`),
+  getUnreadCount: () => http.get('/parent/notifications/unread_count/'),
+};
+
+export const parentGoalsApi = {
+  getGoals: (childId) => http.get('/parent/goals/', { params: { child_id: childId } }),
+  createGoal: (data) => http.post('/parent/goals/', data),
+  updateGoal: (id, data) => http.patch(`/parent/goals/${id}/`, data),
+  deleteGoal: (id) => http.delete(`/parent/goals/${id}/`),
+};
+
+export const parentAnalyticsApi = {
+  getAnalytics: (childId) => http.get(`/parent/children/${childId}/analytics/`),
+};
+
+export const parentStreakApi = {
+  getStreak: (childId) => http.get(`/parent/children/${childId}/streak/`),
+};
+
+export const parentScheduleApi = {
+  getSchedules: (childId) => http.get('/parent/schedules/', { params: { child_id: childId } }),
+  createSchedule: (data) => http.post('/parent/schedules/', data),
+  updateSchedule: (id, data) => http.patch(`/parent/schedules/${id}/`, data),
+  deleteSchedule: (id) => http.delete(`/parent/schedules/${id}/`),
+};
+
+export const parentRatingsApi = {
+  getRatings: (storyId) => http.get('/parent/ratings/', { params: { story_id: storyId } }),
+  createRating: (data) => http.post('/parent/ratings/', data),
+  updateRating: (id, data) => http.patch(`/parent/ratings/${id}/`, data),
+  deleteRating: (id) => http.delete(`/parent/ratings/${id}/`),
+};
+
+export const parentRewardsApi = {
+  getShopItems: () => http.get('/parent/rewards/shop/'),
+  getPurchases: (childId) => http.get(`/parent/children/${childId}/rewards/`),
+  purchaseItem: (childId, itemId) => http.post(`/parent/children/${childId}/rewards/`, { item_id: itemId }),
+};
+
+export const parentTimelineApi = {
+  getTimeline: (childId) => http.get(`/parent/children/${childId}/timeline/`),
+};
+
+export const parentGrowthApi = {
+  getGrowth: (childId) => http.get(`/parent/children/${childId}/growth/`),
+};
+
+export const parentComparisonApi = {
+  getComparison: () => http.get('/parent/comparison/'),
+};
+
+export const parentAIApi = {
+  getInsights: (childId) => http.get(`/parent/children/${childId}/ai-insights/`),
+  getRecommendations: (childId) => http.get(`/parent/children/${childId}/recommendations/`),
+};
+
+export const parentSearchApi = {
+  search: (query) => http.get('/parent/search/', { params: { q: query } }),
+};
+
+export const parentReportsApi = {
+  getExportData: () => http.get('/parent/reports/export/'),
+};
+
 /*
 |--------------------------------------------------------------------------
 | Teacher Module API
@@ -1152,4 +1233,5 @@ export const teacherAPI = {
   updateSettings: (data) => http.put("/teacher/settings/", data),
 };
 
-export default api;
+export default api;
+

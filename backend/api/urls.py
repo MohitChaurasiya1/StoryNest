@@ -40,10 +40,25 @@ from .teacher_views import (
     TeacherSettingsView,
 )
 
+from .parent_views_extended import (
+    StoryApprovalViewSet, NotificationViewSet, ChildGoalViewSet,
+    ReadingAnalyticsView, ReadingStreakView, ReadingScheduleViewSet,
+    StoryRatingViewSet, RewardShopItemViewSet, RewardPurchaseView,
+    ChildActivityTimelineView, ChildGrowthDashboardView,
+    MultiChildComparisonView, AIInsightsView, AIStoryRecommendationView,
+    GlobalSearchView, ReportExportView,
+)
+
 router = DefaultRouter()
 router.register(r'stories', StoryViewSet, basename='story')
 router.register(r'parent/children', ChildProfileViewSet, basename='parent-children')
 router.register(r'parent/notes', ParentNoteViewSet, basename='parent-notes')
+router.register(r'parent/approvals', StoryApprovalViewSet, basename='parent-approvals')
+router.register(r'parent/notifications', NotificationViewSet, basename='parent-notifications')
+router.register(r'parent/goals', ChildGoalViewSet, basename='parent-goals')
+router.register(r'parent/schedules', ReadingScheduleViewSet, basename='parent-schedules')
+router.register(r'parent/ratings', StoryRatingViewSet, basename='parent-ratings')
+router.register(r'parent/rewards/shop', RewardShopItemViewSet, basename='reward-shop')
 router.register(r'teacher/inbox', TeacherInboxViewSet, basename='teacher-inbox')
 router.register(r'teacher/lessons', TeacherLessonViewSet, basename='teacher-lessons')
 router.register(r'teacher/students', TeacherStudentViewSet, basename='teacher-students')
@@ -79,6 +94,18 @@ urlpatterns = [
     path('parent/children/<int:id>/stories/', ChildStoriesView.as_view(), name='child_stories'),
     path('parent/children/<int:id>/achievements/', ChildAchievementsView.as_view(), name='child_achievements'),
     
+    # Extended Feature Endpoints
+    path('parent/children/<int:child_id>/analytics/', ReadingAnalyticsView.as_view(), name='reading_analytics'),
+    path('parent/children/<int:child_id>/streak/', ReadingStreakView.as_view(), name='reading_streak'),
+    path('parent/children/<int:child_id>/rewards/', RewardPurchaseView.as_view(), name='reward_purchase'),
+    path('parent/children/<int:child_id>/timeline/', ChildActivityTimelineView.as_view(), name='child_timeline'),
+    path('parent/children/<int:child_id>/growth/', ChildGrowthDashboardView.as_view(), name='child_growth'),
+    path('parent/children/<int:child_id>/ai-insights/', AIInsightsView.as_view(), name='child_ai_insights'),
+    path('parent/children/<int:child_id>/recommendations/', AIStoryRecommendationView.as_view(), name='child_recommendations'),
+    path('parent/comparison/', MultiChildComparisonView.as_view(), name='multi_child_comparison'),
+    path('parent/search/', GlobalSearchView.as_view(), name='global_search'),
+    path('parent/reports/export/', ReportExportView.as_view(), name='report_export'),
+
     # Progress & Quizzes
     path('parent/children/<int:child_id>/progress/<int:story_id>/', ReadingProgressView.as_view(), name='child_reading_progress'),
     path('parent/stories/<int:story_id>/quiz/', QuizDetailView.as_view(), name='quiz_detail'),
@@ -102,4 +129,5 @@ urlpatterns = [
     # Standard DRF Router URLs
     path('', include(router.urls)),
 ]
+
 
