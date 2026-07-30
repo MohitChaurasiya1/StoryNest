@@ -107,5 +107,12 @@ docker-compose up --build
 
 
 
-
+ cd d:\StoryNest\StoryNest\backend 
+>> 
+>> # Run database migrations (if needed)
+>> .\venv\Scripts\python.exe manage.py migrate
+>> 
+>> # Start the Django API server on port 8000
+>> .\venv\Scripts\python.exe manage.py runserver 8000
+>> 
 
