@@ -436,7 +436,7 @@ function ParentProfile() {
 
                     <div className="flex min-h-[70vh] items-center justify-center">
                         <div className="text-center">
-                            <FaSpinner className="mx-auto animate-spin text-5xl text-indigo-600" />
+                            <FaSpinner className="mx-auto animate-spin text-5xl text-rose-500" />
 
                             <p className="mt-4 font-medium text-slate-600">
                                 Loading parent profile...
@@ -484,7 +484,7 @@ function ParentProfile() {
                         </div>
                     )}
 
-                    <section className="overflow-hidden rounded-3xl bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-lg">
+                    <section className="overflow-hidden rounded-3xl bg-gradient-to-r from-rose-500 via-orange-500 to-amber-500 text-white shadow-lg">
                         <div className="p-6 sm:p-8">
                             <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
                                 <div className="flex flex-col items-center gap-5 text-center sm:flex-row sm:text-left">
@@ -501,7 +501,7 @@ function ParentProfile() {
                                         />
 
                                         <label
-                                            className={`absolute bottom-1 right-1 flex h-11 w-11 cursor-pointer items-center justify-center rounded-full bg-white text-indigo-600 shadow-lg transition hover:scale-105 ${avatarUploading
+                                            className={`absolute bottom-1 right-1 flex h-11 w-11 cursor-pointer items-center justify-center rounded-full bg-white text-rose-500 shadow-lg transition hover:scale-105 ${avatarUploading
                                                     ? "pointer-events-none opacity-70"
                                                     : ""
                                                 }`}
@@ -536,7 +536,7 @@ function ParentProfile() {
                                             )}
                                         </div>
 
-                                        <p className="mt-2 text-indigo-100">
+                                        <p className="mt-2 text-rose-100">
                                             {formData.email ||
                                                 "No email available"}
                                         </p>
@@ -560,7 +560,7 @@ function ParentProfile() {
                                     <button
                                         type="button"
                                         onClick={handleEdit}
-                                        className="flex items-center justify-center gap-2 rounded-xl bg-white px-5 py-3 font-semibold text-indigo-700 shadow-sm hover:bg-indigo-50"
+                                        className="flex items-center justify-center gap-2 rounded-xl bg-white px-5 py-3 font-semibold text-rose-600 shadow-sm hover:bg-rose-50"
                                     >
                                         <FaEdit />
                                         Edit Profile
@@ -575,7 +575,7 @@ function ParentProfile() {
                             title="Profile Completion"
                             value={`${profileCompletion}%`}
                             icon={FaUser}
-                            color="indigo"
+                            color="rose"
                             description="Account information"
                         />
 
@@ -640,7 +640,7 @@ function ParentProfile() {
                                         <button
                                             type="submit"
                                             disabled={saving}
-                                            className="flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
+                                            className="flex items-center gap-2 rounded-xl bg-rose-500 px-4 py-2 text-sm font-semibold text-white hover:bg-rose-600 disabled:cursor-not-allowed disabled:opacity-60"
                                         >
                                             {saving ? (
                                                 <FaSpinner className="animate-spin" />
@@ -751,7 +751,7 @@ function ParentProfile() {
                                         maxLength={500}
                                         placeholder="Write a short description about yourself..."
                                         className={`w-full resize-none rounded-xl border px-4 py-3 text-sm outline-none transition ${editMode
-                                                ? "border-slate-300 bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
+                                                ? "border-slate-300 bg-white focus:border-rose-500 focus:ring-4 focus:ring-rose-100"
                                                 : "cursor-default border-slate-200 bg-slate-50 text-slate-600"
                                             }`}
                                     />
@@ -776,7 +776,7 @@ function ParentProfile() {
                                     <button
                                         type="submit"
                                         disabled={saving}
-                                        className="flex items-center justify-center gap-2 rounded-xl bg-indigo-600 px-5 py-3 font-semibold text-white hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
+                                        className="flex items-center justify-center gap-2 rounded-xl bg-rose-500 px-5 py-3 font-semibold text-white hover:bg-rose-600 disabled:cursor-not-allowed disabled:opacity-60"
                                     >
                                         {saving ? (
                                             <FaSpinner className="animate-spin" />
@@ -811,7 +811,7 @@ function ParentProfile() {
                                         />
 
                                         <div className="absolute inset-3 flex flex-col items-center justify-center rounded-full bg-white">
-                                            <span className="text-3xl font-bold text-indigo-600">
+                                            <span className="text-3xl font-bold text-rose-500">
                                                 {profileCompletion}%
                                             </span>
 
@@ -935,7 +935,7 @@ function ProfileInput({
             <div
                 className={`flex items-center gap-3 rounded-xl border px-4 transition ${disabled
                         ? "border-slate-200 bg-slate-50"
-                        : "border-slate-300 bg-white focus-within:border-indigo-500 focus-within:ring-4 focus-within:ring-indigo-100"
+                        : "border-slate-300 bg-white focus-within:border-rose-500 focus-within:ring-4 focus-within:ring-rose-100"
                     }`}
             >
                 {Icon && (

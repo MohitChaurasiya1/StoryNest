@@ -603,7 +603,7 @@ function ChildDetails() {
 
                     <div className="flex min-h-[70vh] items-center justify-center">
                         <div className="text-center">
-                            <FaSpinner className="mx-auto animate-spin text-5xl text-indigo-600" />
+                            <FaSpinner className="mx-auto animate-spin text-5xl text-rose-500" />
 
                             <p className="mt-4 font-medium text-slate-600">
                                 Loading child details...
@@ -638,7 +638,7 @@ function ChildDetails() {
 
                             <Link
                                 to="/parent/children"
-                                className="mt-5 inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-5 py-3 font-semibold text-white"
+                                className="mt-5 inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-rose-500 to-amber-500 px-5 py-3 font-bold text-white shadow-md"
                             >
                                 <FaArrowLeft />
                                 Back to Children
@@ -651,13 +651,20 @@ function ChildDetails() {
     }
 
     return (
-        <div className="min-h-screen bg-slate-50">
+        <div className="min-h-screen bg-gradient-to-b from-rose-50/40 via-purple-50/20 to-white dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 relative overflow-hidden">
+            {/* Floating Background Blobs */}
+            <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden opacity-30 dark:opacity-10">
+                <div className="absolute -top-32 -right-32 h-96 w-96 rounded-full bg-rose-400 blur-3xl" />
+                <div className="absolute top-1/3 -left-32 h-96 w-96 rounded-full bg-amber-300 blur-3xl" />
+                <div className="absolute -bottom-32 right-1/4 h-96 w-96 rounded-full bg-purple-400 blur-3xl" />
+            </div>
+
             <ParentSidebar
                 isOpen={sidebarOpen}
                 onClose={() => setSidebarOpen(false)}
             />
 
-            <div className="lg:pl-72">
+            <div className="lg:pl-72 relative z-10">
                 <ParentNavbar
                     title={childName}
                     subtitle="Child profile, progress and learning activity"
@@ -669,14 +676,15 @@ function ChildDetails() {
                     onMenuClick={() => setSidebarOpen(true)}
                 />
 
-                <main className="p-4 sm:p-6 lg:p-8">
+                <main className="p-4 sm:p-6 lg:p-8 space-y-6">
                     {error && (
-                        <div className="mb-6 flex items-start justify-between rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-red-700">
-                            <p>{error}</p>
+                        <div className="flex items-start justify-between rounded-3xl border border-red-200 bg-red-50/90 dark:bg-red-950/50 p-5 text-red-700 dark:text-red-300 backdrop-blur-md shadow-lg shadow-red-500/5">
+                            <p className="font-semibold">{error}</p>
 
                             <button
                                 type="button"
                                 onClick={() => setError("")}
+                                className="ml-4 rounded-xl p-1 hover:bg-red-100 dark:hover:bg-red-900"
                                 aria-label="Dismiss error"
                             >
                                 <FaTimes />
@@ -685,83 +693,120 @@ function ChildDetails() {
                     )}
 
                     {successMessage && (
-                        <div className="mb-6 rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-4 font-medium text-emerald-700">
+                        <div className="flex items-center gap-3 rounded-3xl border border-emerald-200 bg-emerald-50/90 dark:bg-emerald-950/50 p-5 font-bold text-emerald-700 dark:text-emerald-300 backdrop-blur-md shadow-lg shadow-emerald-500/5">
+                            <span>✨</span>
                             {successMessage}
                         </div>
                     )}
 
-                    <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                         <Link
                             to="/parent/children"
-                            className="inline-flex items-center gap-2 font-semibold text-indigo-600 hover:text-indigo-700"
+                            className="inline-flex items-center gap-2 font-bold text-rose-600 hover:text-rose-700 transition"
                         >
                             <FaArrowLeft />
-                            Back to Children
+                            Back to All Children
                         </Link>
 
                         <div className="flex flex-wrap gap-3">
-                            <Link
-                                to={`/parent/children/${id}/edit`}
-                                className="inline-flex items-center gap-2 rounded-xl border border-indigo-200 bg-indigo-50 px-4 py-2.5 font-semibold text-indigo-700 hover:bg-indigo-100"
-                            >
-                                <FaEdit />
-                                Edit Profile
-                            </Link>
-
                             <button
                                 type="button"
                                 onClick={() => setDeleteModalOpen(true)}
-                                className="inline-flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-2.5 font-semibold text-red-700 hover:bg-red-100"
+                                className="inline-flex items-center gap-2 rounded-2xl border border-red-200 dark:border-red-900 bg-red-50/80 dark:bg-red-950/50 px-4 py-2.5 font-bold text-red-600 dark:text-red-300 hover:bg-red-100 transition"
                             >
                                 <FaTrash />
-                                Delete
+                                Delete Child
                             </button>
                         </div>
                     </div>
 
-                    <section className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
-                        <div className="bg-gradient-to-r from-indigo-600 to-violet-600 px-6 py-8 text-white sm:px-8">
-                            <div className="flex flex-col gap-6 md:flex-row md:items-center">
-                                <img
-                                    src={
-                                        child.avatar ||
-                                        `https://ui-avatars.com/api/?background=ffffff&color=4f46e5&size=200&name=${encodeURIComponent(
-                                            childName
-                                        )}`
-                                    }
-                                    alt={childName}
-                                    className="h-28 w-28 rounded-full border-4 border-white/50 object-cover shadow-xl"
-                                />
+                    {/* Hero Header Card */}
+                    <section className="overflow-hidden rounded-3xl border border-rose-100 dark:border-slate-800 bg-white/90 dark:bg-slate-900/90 shadow-2xl shadow-rose-500/10 backdrop-blur-xl">
+                        <div className="bg-gradient-to-r from-rose-500 via-orange-500 to-amber-500 px-6 py-8 text-white sm:px-8 relative">
+                            <div className="absolute top-0 right-0 -mt-6 -mr-6 h-40 w-40 rounded-full bg-white/10 blur-xl pointer-events-none" />
+
+                            <div className="flex flex-col gap-6 md:flex-row md:items-center relative z-10">
+                                <div className="h-28 w-28 min-w-[112px] rounded-3xl bg-white/20 p-1 backdrop-blur-md shadow-2xl">
+                                    {child?.avatar && typeof child.avatar === 'string' && child.avatar.length <= 4 ? (
+                                        <div className="h-full w-full rounded-[22px] bg-white dark:bg-slate-900 flex items-center justify-center text-5xl">
+                                            {child.avatar}
+                                        </div>
+                                    ) : (
+                                        <img
+                                            src={
+                                                child.avatar ||
+                                                `https://ui-avatars.com/api/?background=ffffff&color=ff6b6b&size=200&name=${encodeURIComponent(
+                                                    childName
+                                                )}`
+                                            }
+                                            alt={childName}
+                                            className="h-full w-full rounded-[22px] object-cover"
+                                        />
+                                    )}
+                                </div>
 
                                 <div className="flex-1">
-                                    <h1 className="text-3xl font-bold">
-                                        {childName}
-                                    </h1>
+                                    <div className="flex items-center gap-3">
+                                        <h1 className="text-3xl sm:text-4xl font-black drop-shadow-sm">
+                                            {childName}
+                                        </h1>
+                                        <span className="rounded-full bg-white/20 px-3 py-1 text-xs font-extrabold backdrop-blur-md">
+                                            ✨ Super Reader
+                                        </span>
+                                    </div>
 
-                                    <div className="mt-3 flex flex-wrap gap-3 text-sm">
-                                        <span className="rounded-full bg-white/20 px-4 py-2">
-                                            Age: {age} years
+                                    <div className="mt-3 flex flex-wrap gap-2.5 text-xs font-bold">
+                                        <span className="rounded-full bg-white/20 px-3.5 py-1.5 backdrop-blur-md">
+                                            🎈 Age: {age} years
                                         </span>
 
-                                        <span className="rounded-full bg-white/20 px-4 py-2">
-                                            {child.reading_level || "Beginner"}
+                                        <span className="rounded-full bg-white/20 px-3.5 py-1.5 backdrop-blur-md">
+                                            📖 {child.reading_level || "Beginner"}
                                         </span>
 
                                         {child.favourite_animal && (
-                                            <span className="rounded-full bg-white/20 px-4 py-2">
-                                                Favourite: {child.favourite_animal}
+                                            <span className="rounded-full bg-white/20 px-3.5 py-1.5 backdrop-blur-md">
+                                                🦁 Favorite Animal: {child.favourite_animal}
+                                            </span>
+                                        )}
+
+                                        {child.favourite_colour && (
+                                            <span className="rounded-full bg-white/20 px-3.5 py-1.5 backdrop-blur-md">
+                                                🎨 Favorite Color: {child.favourite_colour}
                                             </span>
                                         )}
                                     </div>
-
-                                    {child.learning_goals && (
-                                        <p className="mt-4 max-w-3xl leading-7 text-indigo-50">
-                                            {child.learning_goals}
-                                        </p>
-                                    )}
                                 </div>
                             </div>
                         </div>
+
+                        {/* Navigation Tabs */}
+                        <div className="flex overflow-x-auto border-b border-slate-100 dark:border-slate-800 bg-white/50 dark:bg-slate-900/50 px-4 sm:px-6">
+                            <div className="flex gap-2 py-3">
+                                {tabs.map((tab) => {
+                                    const Icon = tab.icon;
+                                    const isActive = activeTab === tab.id;
+
+                                    return (
+                                        <button
+                                            key={tab.id}
+                                            type="button"
+                                            onClick={() => setActiveTab(tab.id)}
+                                            className={[
+                                                "flex items-center gap-2 rounded-2xl px-4 py-2.5 text-xs font-extrabold transition-all duration-200 whitespace-nowrap",
+                                                isActive
+                                                    ? "bg-gradient-to-r from-rose-500 to-amber-500 text-white shadow-md shadow-rose-500/20"
+                                                    : "text-slate-600 hover:bg-rose-50 hover:text-rose-600 dark:text-slate-400 dark:hover:bg-slate-800",
+                                            ].join(" ")}
+                                        >
+                                            <Icon className="text-sm" />
+                                            <span>{tab.label}</span>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    </section>
 
                         <div className="grid gap-5 p-6 sm:grid-cols-2 xl:grid-cols-4">
                             <ProfileDetail
@@ -788,14 +833,13 @@ function ChildDetails() {
                                 }
                             />
                         </div>
-                    </section>
 
                     <section className="mt-6 grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
                         <StatsCard
                             title="Stories Read"
                             value={storiesRead}
                             icon={FaBookOpen}
-                            color="indigo"
+                            color="rose"
                             description={`${completedStories} completed`}
                         />
 
@@ -834,9 +878,9 @@ function ChildDetails() {
                                         key={tab.id}
                                         type="button"
                                         onClick={() => setActiveTab(tab.id)}
-                                        className={`flex items-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold transition ${activeTab === tab.id
-                                            ? "bg-indigo-600 text-white"
-                                            : "text-slate-600 hover:bg-indigo-50 hover:text-indigo-700"
+                                        className={`flex items-center gap-2 rounded-xl px-5 py-3 text-sm font-bold transition ${activeTab === tab.id
+                                            ? "bg-gradient-to-r from-rose-500 to-amber-500 text-white shadow-md shadow-rose-500/20"
+                                            : "text-slate-600 hover:bg-rose-50 hover:text-rose-600"
                                             }`}
                                     >
                                         <Icon />
@@ -1150,7 +1194,7 @@ function ChildDetails() {
                                 <button
                                     type="button"
                                     onClick={() => setNoteModalOpen(true)}
-                                    className="flex items-center gap-2 rounded-xl bg-indigo-600 px-5 py-3 font-semibold text-white hover:bg-indigo-700"
+                                    className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-rose-500 to-amber-500 px-5 py-3 font-bold text-white hover:from-rose-600 hover:to-amber-600 shadow-md shadow-rose-500/20 transition"
                                 >
                                     <FaPlus />
                                     Add Parent Note
@@ -1208,7 +1252,7 @@ function ChildDetails() {
                                         }))
                                     }
                                     placeholder="Optional story ID"
-                                    className="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-indigo-500"
+                                    className="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-rose-500 focus:ring-4 focus:ring-rose-100"
                                 />
                             </div>
 
@@ -1232,7 +1276,7 @@ function ChildDetails() {
                                     placeholder="Write your observations or comments..."
                                     className={`w-full resize-none rounded-xl border px-4 py-3 outline-none ${noteErrors.note
                                         ? "border-red-400"
-                                        : "border-slate-300 focus:border-indigo-500"
+                                        : "border-slate-300 focus:border-rose-500"
                                         }`}
                                 />
 
@@ -1260,7 +1304,7 @@ function ChildDetails() {
                                 <button
                                     type="submit"
                                     disabled={savingNote}
-                                    className="flex items-center justify-center gap-2 rounded-xl bg-indigo-600 px-5 py-3 font-semibold text-white hover:bg-indigo-700 disabled:opacity-60"
+                                    className="flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-rose-500 to-amber-500 px-5 py-3 font-bold text-white hover:from-rose-600 hover:to-amber-600 shadow-md shadow-rose-500/20 disabled:opacity-60 transition"
                                 >
                                     {savingNote && (
                                         <FaSpinner className="animate-spin" />
@@ -1319,7 +1363,7 @@ function InsightCard({ title, value, suffix = "" }) {
 function EmptyState({ icon: Icon, title, description }) {
     return (
         <div className="rounded-2xl border border-dashed border-slate-300 bg-white px-6 py-16 text-center">
-            <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-indigo-100 text-3xl text-indigo-600">
+            <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-rose-100 text-3xl text-rose-500">
                 <Icon />
             </div>
 

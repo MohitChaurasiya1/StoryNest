@@ -403,7 +403,7 @@ function ChildProgress() {
 
                     <div className="flex min-h-[70vh] items-center justify-center">
                         <div className="text-center">
-                            <FaSpinner className="mx-auto animate-spin text-5xl text-indigo-600" />
+                            <FaSpinner className="mx-auto animate-spin text-5xl text-rose-500" />
 
                             <p className="mt-4 font-medium text-slate-600">
                                 Loading progress data...
@@ -451,7 +451,7 @@ function ChildProgress() {
                                     Search Child
                                 </label>
 
-                                <div className="flex items-center gap-3 rounded-xl border border-slate-300 px-4 py-3 focus-within:border-indigo-500">
+                                <div className="flex items-center gap-3 rounded-xl border border-slate-300 px-4 py-3 focus-within:border-rose-500">
                                     <FaSearch className="text-slate-400" />
 
                                     <input
@@ -476,7 +476,7 @@ function ChildProgress() {
                                     onChange={(event) =>
                                         setSelectedChildId(event.target.value)
                                     }
-                                    className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none focus:border-indigo-500"
+                                    className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none focus:border-rose-500"
                                 >
                                     <option value="all">All Children</option>
 
@@ -501,7 +501,7 @@ function ChildProgress() {
                                     onChange={(event) =>
                                         setTimeRange(event.target.value)
                                     }
-                                    className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none focus:border-indigo-500"
+                                    className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none focus:border-rose-500"
                                 >
                                     <option value="7">Last 7 Days</option>
                                     <option value="30">Last 30 Days</option>
@@ -513,7 +513,7 @@ function ChildProgress() {
                     </section>
 
                     {selectedChild && (
-                        <section className="mt-6 overflow-hidden rounded-3xl bg-gradient-to-r from-indigo-600 to-violet-600 p-6 text-white shadow-lg">
+                        <section className="mt-6 overflow-hidden rounded-3xl bg-gradient-to-r from-rose-500 via-orange-500 to-amber-500 p-6 text-white shadow-2xl shadow-rose-500/20">
                             <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
                                 <img
                                     src={
@@ -527,7 +527,7 @@ function ChildProgress() {
                                 />
 
                                 <div>
-                                    <p className="text-sm font-medium text-indigo-100">
+                                    <p className="text-sm font-medium text-rose-100">
                                         Progress report for
                                     </p>
 
@@ -553,7 +553,7 @@ function ChildProgress() {
                     <section className="relative mt-6">
                         {progressLoading && (
                             <div className="absolute inset-0 z-30 flex items-center justify-center rounded-2xl bg-slate-50/70 backdrop-blur-sm">
-                                <FaSpinner className="animate-spin text-4xl text-indigo-600" />
+                                <FaSpinner className="animate-spin text-4xl text-rose-500" />
                             </div>
                         )}
 
@@ -562,7 +562,7 @@ function ChildProgress() {
                                 title="Stories Read"
                                 value={totalStories}
                                 icon={FaBookOpen}
-                                color="indigo"
+                                color="rose"
                                 description={`${completedStories} completed`}
                             />
 
@@ -648,7 +648,7 @@ function ChildProgress() {
                             <div className="rounded-2xl border border-slate-200 bg-white shadow-sm">
                                 <div className="border-b border-slate-200 px-6 py-5">
                                     <div className="flex items-center gap-3">
-                                        <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-indigo-100 text-indigo-600">
+                                        <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-rose-100 text-rose-500">
                                             <FaBookOpen />
                                         </div>
 
@@ -709,14 +709,14 @@ function ChildProgress() {
                                                                 {item.pages} pages
                                                             </span>
 
-                                                            <span className="font-bold text-indigo-600">
+                                                            <span className="font-bold text-rose-500">
                                                                 {item.progress}%
                                                             </span>
                                                         </div>
 
                                                         <div className="h-2 overflow-hidden rounded-full bg-slate-100">
                                                             <div
-                                                                className="h-full rounded-full bg-indigo-600 transition-all"
+                                                                className="h-full rounded-full bg-gradient-to-r from-rose-500 to-amber-500 transition-all"
                                                                 style={{
                                                                     width:
                                                                         calculateProgressWidth(

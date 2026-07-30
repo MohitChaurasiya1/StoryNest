@@ -45,18 +45,39 @@ class ChangePasswordSerializer(serializers.Serializer):
 
 class ParentProfileSerializer(serializers.ModelSerializer):
     username = serializers.ReadOnlyField(source='user.username')
-    email = serializers.ReadOnlyField(source='user.email')
-    phone = serializers.ReadOnlyField(source='user.phone')
+    first_name = serializers.CharField(source='user.first_name', required=False, allow_blank=True)
+    last_name = serializers.CharField(source='user.last_name', required=False, allow_blank=True)
+    email = serializers.CharField(source='user.email', required=False, allow_blank=True)
+    phone = serializers.CharField(required=False, allow_blank=True)
 
     class Meta:
         model = ParentProfile
         fields = [
-            "id", "username", "email", "phone",
+            "id", "username", "first_name", "last_name", "email", "phone",
+            "bio", "avatar", "address", "city", "state", "country", "postal_code",
             "preferred_language", "theme_preference",
-            "email_notifications", "weekly_reports",
+            "email_notifications", "weekly_reports", "settings",
             "created_at"
         ]
         read_only_fields = ["id", "created_at"]
+
+    def update(self, instance, validated_data):
+        user_data = validated_data.pop('user', {})
+        if user_data:
+            user = instance.user
+            if 'first_name' in user_data:
+                user.first_name = user_data['first_name']
+            if 'last_name' in user_data:
+                user.last_name = user_data['last_name']
+            if 'email' in user_data:
+                user.email = user_data['email']
+            user.save()
+
+        if 'phone' in validated_data and validated_data['phone']:
+            instance.user.phone = validated_data['phone']
+            instance.user.save()
+
+        return super().update(instance, validated_data)
 
 
 class ChildProfileSerializer(serializers.ModelSerializer):
@@ -76,6 +97,20 @@ class ChildProfileSerializer(serializers.ModelSerializer):
             "stories_read", "quiz_average", "completion_percentage",
         ]
         read_only_fields = ["id", "parent", "created_at", "updated_at"]
+
+    def to_internal_value(self, data):
+        # Convert empty string dob to None
+        if isinstance(data, dict):
+            mutable_data = data.copy()
+            if mutable_data.get('dob') == "":
+                mutable_data['dob'] = None
+            data = mutable_data
+        elif hasattr(data, 'dict'):
+            mutable_data = data.dict()
+            if mutable_data.get('dob') == "":
+                mutable_data['dob'] = None
+            data = mutable_data
+        return super().to_internal_value(data)
 
     def get_stories_read(self, obj):
         from .models import ReadingLog
@@ -97,6 +132,7 @@ class ChildProfileSerializer(serializers.ModelSerializer):
             return 0
         read_count = ReadingLog.objects.filter(child=obj).count()
         return min(100, round((read_count / total_stories) * 100))
+
 
 
 class StoryPageSerializer(serializers.ModelSerializer):

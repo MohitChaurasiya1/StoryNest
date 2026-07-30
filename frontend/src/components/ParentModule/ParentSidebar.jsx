@@ -4,6 +4,8 @@ import {
   FaChartLine,
   FaChild,
   FaCog,
+  FaHome,
+  FaMagic,
   FaMedal,
   FaQuestionCircle,
   FaTimes,
@@ -13,7 +15,12 @@ import { NavLink } from "react-router-dom";
 
 const navigationItems = [
   {
-    name: "Children",
+    name: "Dashboard",
+    path: "/parent",
+    icon: FaHome,
+  },
+  {
+    name: "All Children",
     path: "/parent/children",
     icon: FaChild,
   },
@@ -57,11 +64,11 @@ const navigationItems = [
 function ParentSidebar({ isOpen = false, onClose = () => {} }) {
   const getLinkClasses = ({ isActive }) =>
     [
-      "flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold",
-      "transition-all duration-200",
+      "flex items-center gap-3.5 rounded-2xl px-4 py-3 text-sm font-bold",
+      "transition-all duration-300",
       isActive
-        ? "bg-indigo-600 text-white shadow-md shadow-indigo-200"
-        : "text-slate-600 hover:bg-indigo-50 hover:text-indigo-700",
+        ? "bg-gradient-to-r from-orange-500 via-rose-500 to-purple-600 text-white shadow-lg shadow-rose-500/20 translate-x-1"
+        : "text-slate-600 hover:bg-rose-50 hover:text-rose-600 dark:text-slate-300 dark:hover:bg-slate-800/60 dark:hover:text-rose-400",
     ].join(" ");
 
   return (
@@ -70,36 +77,39 @@ function ParentSidebar({ isOpen = false, onClose = () => {} }) {
         <button
           type="button"
           aria-label="Close parent sidebar overlay"
-          className="fixed inset-0 z-40 bg-slate-950/40 backdrop-blur-sm lg:hidden"
+          className="fixed inset-0 z-40 bg-slate-950/60 backdrop-blur-md lg:hidden"
           onClick={onClose}
         />
       )}
 
       <aside
         className={[
-          "fixed left-0 top-0 z-50 h-screen w-72 border-r border-slate-200",
-          "bg-white px-4 py-5 shadow-xl transition-transform duration-300",
+          "fixed left-0 top-0 z-50 h-screen w-72 border-r border-rose-100/80 dark:border-slate-800",
+          "bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl px-5 py-6 shadow-2xl transition-transform duration-300",
           "lg:translate-x-0 lg:shadow-none",
           isOpen ? "translate-x-0" : "-translate-x-full",
         ].join(" ")}
       >
         <div className="flex h-full flex-col">
-          <div className="flex items-center justify-between px-2">
+          <div className="flex items-center justify-between px-1">
             <NavLink
-              to="/parent/children"
-              className="flex items-center gap-3"
+              to="/parent"
+              className="flex items-center gap-3 group"
               onClick={onClose}
             >
-              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-600 to-violet-600 text-xl font-bold text-white shadow-lg shadow-indigo-200">
-                S
+              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-tr from-rose-500 via-orange-500 to-amber-400 text-xl font-bold text-white shadow-md shadow-rose-500/30 group-hover:scale-105 transition-transform duration-300">
+                <FaMagic className="animate-pulse" />
               </div>
 
               <div>
-                <h1 className="text-xl font-extrabold tracking-tight text-slate-900">
+                <h1 className="text-xl font-extrabold tracking-tight text-slate-900 dark:text-white flex items-center gap-1">
                   StoryNest
+                  <span className="inline-block text-xs px-2 py-0.5 rounded-full bg-rose-100 dark:bg-rose-950 text-rose-600 dark:text-rose-300 font-bold">
+                    Parent
+                  </span>
                 </h1>
-                <p className="text-xs font-medium text-slate-500">
-                  Parent Portal
+                <p className="text-xs font-semibold text-slate-400">
+                  AI Magical Storybook
                 </p>
               </div>
             </NavLink>
@@ -108,16 +118,16 @@ function ParentSidebar({ isOpen = false, onClose = () => {} }) {
               type="button"
               onClick={onClose}
               aria-label="Close sidebar"
-              className="flex h-10 w-10 items-center justify-center rounded-xl text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 lg:hidden"
+              className="flex h-10 w-10 items-center justify-center rounded-xl text-slate-500 transition hover:bg-slate-100 dark:hover:bg-slate-800 lg:hidden"
             >
               <FaTimes />
             </button>
           </div>
 
-          <div className="my-6 border-t border-slate-200" />
+          <div className="my-5 border-t border-slate-100 dark:border-slate-800" />
 
           <nav
-            className="flex-1 space-y-2 overflow-y-auto pr-1"
+            className="flex-1 space-y-1.5 overflow-y-auto pr-1"
             aria-label="Parent navigation"
           >
             {navigationItems.map((item) => {
@@ -127,28 +137,28 @@ function ParentSidebar({ isOpen = false, onClose = () => {} }) {
                 <NavLink
                   key={item.path}
                   to={item.path}
+                  end={item.path === "/parent"}
                   className={getLinkClasses}
                   onClick={onClose}
                 >
-                  <Icon className="text-lg" />
+                  <Icon className="text-lg flex-shrink-0" />
                   <span>{item.name}</span>
                 </NavLink>
               );
             })}
           </nav>
 
-          <div className="mt-6 rounded-2xl bg-gradient-to-br from-indigo-50 to-violet-50 p-4">
-            <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-white text-indigo-600 shadow-sm">
-              <FaBookOpen />
+          <div className="mt-4 rounded-3xl bg-gradient-to-br from-rose-500/10 via-purple-500/10 to-sky-500/10 border border-rose-200/50 dark:border-slate-800 p-4 relative overflow-hidden">
+            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-tr from-rose-500 to-amber-500 text-white shadow-md mb-2">
+              <FaBookOpen className="text-sm" />
             </div>
 
-            <h2 className="font-bold text-slate-900">
-              Read together
+            <h2 className="font-extrabold text-slate-900 dark:text-white text-sm">
+              Magic Reading Nest ✨
             </h2>
 
-            <p className="mt-1 text-xs leading-5 text-slate-600">
-              Track stories, quizzes, reading progress and achievements for
-              every child.
+            <p className="mt-1 text-xs leading-relaxed text-slate-500 dark:text-slate-400">
+              Track stories, quizzes, reading progress and achievements for your kids.
             </p>
           </div>
         </div>

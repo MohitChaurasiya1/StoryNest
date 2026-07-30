@@ -92,14 +92,14 @@ function StoryCard({
                             Progress
                         </span>
 
-                        <span className="font-bold text-indigo-600">
+                        <span className="font-bold text-rose-500">
                             {completion}%
                         </span>
                     </div>
 
                     <div className="h-3 overflow-hidden rounded-full bg-slate-200">
                         <div
-                            className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-violet-600 transition-all"
+                            className="h-full rounded-full bg-gradient-to-r from-rose-500 to-amber-500 transition-all"
                             style={{
                                 width: `${completion}%`,
                             }}
@@ -111,7 +111,7 @@ function StoryCard({
                 <div className="mt-6 grid grid-cols-2 gap-3">
                     <button
                         onClick={() => onRead?.(story)}
-                        className="flex items-center justify-center gap-2 rounded-xl bg-indigo-600 px-4 py-3 font-semibold text-white transition hover:bg-indigo-700"
+                        className="flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-rose-500 to-amber-500 px-4 py-3 font-bold text-white transition hover:from-rose-600 hover:to-amber-600 shadow-md shadow-rose-500/20"
                     >
                         <FaBookOpen />
                         Read
@@ -127,7 +127,7 @@ function StoryCard({
 
                     <button
                         onClick={() => onQuiz?.(story)}
-                        className="col-span-2 flex items-center justify-center gap-2 rounded-xl border border-indigo-200 bg-indigo-50 px-4 py-3 font-semibold text-indigo-700 transition hover:bg-indigo-100"
+                        className="col-span-2 flex items-center justify-center gap-2 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 font-bold text-rose-600 transition hover:bg-rose-100"
                     >
                         <FaQuestionCircle />
                         View Quiz

@@ -568,7 +568,7 @@ function Certificates() {
 
           <div className="flex min-h-[70vh] items-center justify-center">
             <div className="text-center">
-              <FaSpinner className="mx-auto animate-spin text-5xl text-indigo-600" />
+              <FaSpinner className="mx-auto animate-spin text-5xl text-rose-500" />
 
               <p className="mt-4 font-medium text-slate-600">
                 Loading certificates...
@@ -620,7 +620,7 @@ function Certificates() {
               title="Total Certificates"
               value={totalCertificates}
               icon={FaCertificate}
-              color="indigo"
+              color="rose"
               description="Certificates issued"
             />
 
@@ -686,7 +686,7 @@ function Certificates() {
                   Search Certificates
                 </label>
 
-                <div className="flex items-center gap-3 rounded-xl border border-slate-300 px-4 py-3 focus-within:border-indigo-500">
+                <div className="flex items-center gap-3 rounded-xl border border-slate-300 px-4 py-3 focus-within:border-rose-500">
                   <FaSearch className="text-slate-400" />
 
                   <input
@@ -739,7 +739,7 @@ function Certificates() {
                 <button
                   type="button"
                   onClick={clearFilters}
-                  className="flex items-center gap-2 text-sm font-semibold text-indigo-600 hover:text-indigo-700"
+                  className="flex items-center gap-2 text-sm font-semibold text-rose-500 hover:text-rose-600"
                 >
                   <FaFilter />
                   Clear Filters
@@ -751,7 +751,7 @@ function Certificates() {
           <section className="relative mt-6">
             {certificateLoading && (
               <div className="absolute inset-0 z-30 flex items-center justify-center rounded-2xl bg-slate-50/70 backdrop-blur-sm">
-                <FaSpinner className="animate-spin text-4xl text-indigo-600" />
+                <FaSpinner className="animate-spin text-4xl text-rose-500" />
               </div>
             )}
 
@@ -775,7 +775,7 @@ function Certificates() {
                   <button
                     type="button"
                     onClick={clearFilters}
-                    className="mt-6 rounded-xl bg-indigo-600 px-5 py-3 font-semibold text-white hover:bg-indigo-700"
+                    className="mt-6 rounded-xl bg-rose-500 px-5 py-3 font-semibold text-white hover:bg-rose-600"
                   >
                     Clear Filters
                   </button>
@@ -817,12 +817,12 @@ function Certificates() {
                           </p>
 
                           {certificate.story_title && (
-                            <div className="mt-4 rounded-xl bg-indigo-50 px-4 py-3">
-                              <p className="text-xs font-semibold uppercase tracking-wide text-indigo-500">
+                            <div className="mt-4 rounded-xl bg-rose-50 px-4 py-3">
+                              <p className="text-xs font-semibold uppercase tracking-wide text-rose-500">
                                 Story
                               </p>
 
-                              <p className="mt-1 font-semibold text-indigo-800">
+                              <p className="mt-1 font-semibold text-rose-800">
                                 {certificate.story_title}
                               </p>
                             </div>
@@ -859,7 +859,7 @@ function Certificates() {
                                   certificate
                                 )
                               }
-                              className="flex items-center justify-center gap-2 rounded-xl border border-indigo-200 bg-indigo-50 px-3 py-3 text-sm font-semibold text-indigo-700 hover:bg-indigo-100"
+                              className="flex items-center justify-center gap-2 rounded-xl border border-rose-200 bg-rose-50 px-3 py-3 text-sm font-semibold text-rose-600 hover:bg-rose-100"
                               title="Preview certificate"
                             >
                               <FaEye />
@@ -895,7 +895,7 @@ function Certificates() {
                                   certificate
                                 )
                               }
-                              className="flex items-center justify-center gap-2 rounded-xl bg-indigo-600 px-3 py-3 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-60"
+                              className="flex items-center justify-center gap-2 rounded-xl bg-rose-500 px-3 py-3 text-sm font-semibold text-white hover:bg-rose-600 disabled:opacity-60"
                               title="Download certificate"
                             >
                               {downloadLoadingId ===
@@ -946,7 +946,7 @@ function Certificates() {
                         Previous
                       </button>
 
-                      <span className="rounded-lg bg-indigo-50 px-4 py-2 text-sm font-bold text-indigo-700">
+                      <span className="rounded-lg bg-rose-50 px-4 py-2 text-sm font-bold text-rose-600">
                         {currentPage} / {totalPages}
                       </span>
 
@@ -1002,12 +1002,12 @@ function Certificates() {
             <div className="bg-slate-100 p-4 sm:p-8">
               <div
                 ref={certificatePreviewRef}
-                className="relative mx-auto aspect-[1.414/1] w-full overflow-hidden border-[10px] border-indigo-600 bg-white p-4 shadow-xl"
+                className="relative mx-auto aspect-[1.414/1] w-full overflow-hidden border-[10px] border-rose-500 bg-white p-4 shadow-xl"
               >
                 <div className="flex h-full flex-col items-center justify-center border-4 border-amber-400 px-6 py-8 text-center sm:px-14">
                   <FaCertificate className="text-5xl text-amber-500 sm:text-7xl" />
 
-                  <p className="mt-4 text-xl font-bold text-indigo-600 sm:text-3xl">
+                  <p className="mt-4 text-xl font-bold text-rose-500 sm:text-3xl">
                     StoryNest
                   </p>
 
@@ -1019,7 +1019,7 @@ function Certificates() {
                     This certificate is proudly presented to
                   </p>
 
-                  <h2 className="mt-3 border-b-2 border-amber-400 px-8 pb-2 text-2xl font-bold text-indigo-600 sm:text-5xl">
+                  <h2 className="mt-3 border-b-2 border-amber-400 px-8 pb-2 text-2xl font-bold text-rose-500 sm:text-5xl">
                     {previewCertificate.child_name}
                   </h2>
 
@@ -1054,7 +1054,7 @@ function Certificates() {
                     <div className="text-right">
                       <div className="mb-2 h-px w-28 bg-slate-400 sm:w-40" />
 
-                      <p className="font-bold text-indigo-600">
+                      <p className="font-bold text-rose-500">
                         StoryNest Learning Platform
                       </p>
                     </div>
@@ -1081,7 +1081,7 @@ function Certificates() {
                     previewCertificate
                   )
                 }
-                className="flex items-center justify-center gap-2 rounded-xl border border-indigo-200 bg-indigo-50 px-5 py-3 font-semibold text-indigo-700 hover:bg-indigo-100"
+                className="flex items-center justify-center gap-2 rounded-xl border border-rose-200 bg-rose-50 px-5 py-3 font-semibold text-rose-600 hover:bg-rose-100"
               >
                 <FaPrint />
                 Print
@@ -1098,7 +1098,7 @@ function Certificates() {
                     previewCertificate
                   )
                 }
-                className="flex items-center justify-center gap-2 rounded-xl bg-indigo-600 px-5 py-3 font-semibold text-white hover:bg-indigo-700 disabled:opacity-60"
+                className="flex items-center justify-center gap-2 rounded-xl bg-rose-500 px-5 py-3 font-semibold text-white hover:bg-rose-600 disabled:opacity-60"
               >
                 {downloadLoadingId ===
                 previewCertificate.id ? (
@@ -1134,7 +1134,7 @@ function FilterSelect({
         onChange={(event) =>
           onChange(event.target.value)
         }
-        className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none focus:border-indigo-500"
+        className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none focus:border-rose-500"
       >
         {options.map((option) => (
           <option

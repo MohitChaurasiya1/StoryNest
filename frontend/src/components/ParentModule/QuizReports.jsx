@@ -392,7 +392,7 @@ function QuizReports() {
 
                     <div className="flex min-h-[70vh] items-center justify-center">
                         <div className="text-center">
-                            <FaSpinner className="mx-auto animate-spin text-5xl text-indigo-600" />
+                            <FaSpinner className="mx-auto animate-spin text-5xl text-rose-500" />
 
                             <p className="mt-4 font-medium text-slate-600">
                                 Loading quiz reports...
@@ -440,7 +440,7 @@ function QuizReports() {
                                     Search Reports
                                 </label>
 
-                                <div className="flex items-center gap-3 rounded-xl border border-slate-300 px-4 py-3 focus-within:border-indigo-500">
+                                <div className="flex items-center gap-3 rounded-xl border border-slate-300 px-4 py-3 focus-within:border-rose-500">
                                     <FaSearch className="text-slate-400" />
 
                                     <input
@@ -532,7 +532,7 @@ function QuizReports() {
                     <section className="relative mt-6">
                         {reportLoading && (
                             <div className="absolute inset-0 z-30 flex items-center justify-center rounded-2xl bg-slate-50/70 backdrop-blur-sm">
-                                <FaSpinner className="animate-spin text-4xl text-indigo-600" />
+                                <FaSpinner className="animate-spin text-4xl text-rose-500" />
                             </div>
                         )}
 
@@ -541,7 +541,7 @@ function QuizReports() {
                                 title="Quiz Attempts"
                                 value={totalAttempts}
                                 icon={FaClipboardList}
-                                color="indigo"
+                                color="rose"
                                 description={`Last ${timeRange} days`}
                             />
 
@@ -604,7 +604,7 @@ function QuizReports() {
 
                         <section className="mt-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
                             <div className="flex items-center gap-3">
-                                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-indigo-100 text-indigo-600">
+                                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-rose-100 text-rose-500">
                                     <FaAward />
                                 </div>
 
@@ -712,7 +712,7 @@ function QuizReports() {
                                                 >
                                                     <td className="whitespace-nowrap px-5 py-4">
                                                         <div className="flex items-center gap-3">
-                                                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-indigo-100 font-bold text-indigo-700">
+                                                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-rose-100 font-bold text-rose-600">
                                                                 {report.child_name
                                                                     .charAt(0)
                                                                     .toUpperCase()}
@@ -804,7 +804,7 @@ function QuizReports() {
                                             Previous
                                         </button>
 
-                                        <span className="rounded-lg bg-indigo-50 px-4 py-2 text-sm font-bold text-indigo-700">
+                                        <span className="rounded-lg bg-rose-50 px-4 py-2 text-sm font-bold text-rose-600">
                                             {currentPage} / {totalPages}
                                         </span>
 
@@ -846,7 +846,7 @@ function FilterSelect({
             <select
                 value={value}
                 onChange={(event) => onChange(event.target.value)}
-                className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none focus:border-indigo-500"
+                className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none focus:border-rose-500"
             >
                 {options.map((option) => (
                     <option

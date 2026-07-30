@@ -476,6 +476,20 @@ export const parentProfileApi = {
 
     return unwrapResponse(response);
   },
+
+  async getSettings() {
+    const response = await api.get("/parent/profile/");
+    return unwrapResponse(response);
+  },
+
+  async updateSettings(settings) {
+    const response = await api.patch("/parent/profile/", settings);
+    return unwrapResponse(response);
+  },
+
+  async deleteAccount(payload = {}) {
+    return parentAuthApi.deleteAccount(payload);
+  },
 };
 
 /*
@@ -516,6 +530,15 @@ export const parentDashboardApi = {
 |--------------------------------------------------------------------------
 */
 
+const sanitizeChildPayload = (payload) => {
+  if (!payload || payload instanceof FormData) return payload;
+  const cleaned = { ...payload };
+  if (cleaned.dob === "" || cleaned.dob === undefined) {
+    cleaned.dob = null;
+  }
+  return cleaned;
+};
+
 export const parentChildrenApi = {
   async getChildren(params = {}) {
     const response = await api.get("/parent/children/", {
@@ -534,8 +557,9 @@ export const parentChildrenApi = {
   },
 
   async createChild(payload) {
-    const requestPayload =
-      payload instanceof FormData ? payload : toFormData(payload);
+    const cleanedPayload = sanitizeChildPayload(payload);
+    const hasFile = cleanedPayload?.avatar instanceof File || cleanedPayload?.avatar instanceof Blob;
+    const requestPayload = hasFile ? toFormData(cleanedPayload) : cleanedPayload;
 
     const response = await api.post(
       "/parent/children/",
@@ -546,8 +570,9 @@ export const parentChildrenApi = {
   },
 
   async updateChild(childId, payload) {
-    const requestPayload =
-      payload instanceof FormData ? payload : toFormData(payload);
+    const cleanedPayload = sanitizeChildPayload(payload);
+    const hasFile = cleanedPayload?.avatar instanceof File || cleanedPayload?.avatar instanceof Blob;
+    const requestPayload = hasFile ? toFormData(cleanedPayload) : cleanedPayload;
 
     const response = await api.patch(
       `/parent/children/${childId}/`,
@@ -558,8 +583,9 @@ export const parentChildrenApi = {
   },
 
   async replaceChild(childId, payload) {
-    const requestPayload =
-      payload instanceof FormData ? payload : toFormData(payload);
+    const cleanedPayload = sanitizeChildPayload(payload);
+    const hasFile = cleanedPayload?.avatar instanceof File || cleanedPayload?.avatar instanceof Blob;
+    const requestPayload = hasFile ? toFormData(cleanedPayload) : cleanedPayload;
 
     const response = await api.put(
       `/parent/children/${childId}/`,

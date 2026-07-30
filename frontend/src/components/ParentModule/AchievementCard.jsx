@@ -7,7 +7,7 @@ import {
 } from "react-icons/fa";
 
 const badgeColors = {
-  BOOKWORM: "from-blue-500 to-indigo-600",
+  BOOKWORM: "from-blue-500 to-sky-600",
   EXPLORER: "from-green-500 to-emerald-600",
   BILINGUAL: "from-purple-500 to-violet-600",
   NIGHT_OWL: "from-slate-700 to-slate-900",
@@ -35,14 +35,14 @@ function AchievementCard({ achievement, onClick }) {
 
   const BadgeIcon = badgeIcons[achievement?.code] || FaMedal;
   const badgeGradient =
-    badgeColors[achievement?.code] || "from-indigo-500 to-violet-600";
+    badgeColors[achievement?.code] || "from-rose-500 to-amber-500";
 
   return (
     <div
       onClick={() => onClick?.(achievement)}
       className={`group rounded-2xl border bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl ${
         unlocked
-          ? "border-indigo-200"
+          ? "border-rose-200"
           : "border-slate-200 opacity-90"
       }`}
     >
@@ -80,14 +80,14 @@ function AchievementCard({ achievement, onClick }) {
         <div className="mt-6">
           <div className="mb-2 flex items-center justify-between text-sm">
             <span className="font-medium text-slate-600">Progress</span>
-            <span className="font-bold text-indigo-600">
+            <span className="font-bold text-rose-500">
               {achievement?.progress || 0}%
             </span>
           </div>
 
           <div className="h-3 overflow-hidden rounded-full bg-slate-200">
             <div
-              className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-violet-600 transition-all"
+              className="h-full rounded-full bg-gradient-to-r from-rose-500 to-amber-500 transition-all"
               style={{
                 width: `${achievement?.progress || 0}%`,
               }}
@@ -107,7 +107,7 @@ function AchievementCard({ achievement, onClick }) {
         ) : (
           <div className="flex justify-between text-sm">
             <span className="text-slate-500">Target</span>
-            <span className="font-semibold text-indigo-600">
+            <span className="font-semibold text-rose-500">
               {achievement?.target || "-"}
             </span>
           </div>

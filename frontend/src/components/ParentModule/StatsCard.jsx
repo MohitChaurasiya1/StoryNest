@@ -4,14 +4,14 @@ function StatsCard({
   title,
   value,
   icon: Icon,
-  color = "indigo",
+  color = "rose",
   change,
   changeType = "increase",
   description,
 }) {
   const colorClasses = {
     indigo:
-      "bg-indigo-100 text-indigo-600 border-indigo-100 shadow-indigo-100",
+      "bg-rose-100 text-rose-500 border-indigo-100 shadow-rose-100",
     emerald:
       "bg-emerald-100 text-emerald-600 border-emerald-100 shadow-emerald-100",
     blue: "bg-blue-100 text-blue-600 border-blue-100 shadow-blue-100",
@@ -24,7 +24,7 @@ function StatsCard({
     teal: "bg-teal-100 text-teal-600 border-teal-100 shadow-teal-100",
   };
 
-  const selectedColor = colorClasses[color] || colorClasses.indigo;
+  const selectedColor = colorClasses[color] || colorClasses.rose;
 
   return (
     <div className="group rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">

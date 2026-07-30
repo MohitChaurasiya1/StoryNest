@@ -37,6 +37,15 @@ class ParentProfile(models.Model):
     theme_preference = models.CharField(max_length=20, choices=THEME_CHOICES, default='light')
     email_notifications = models.BooleanField(default=True)
     weekly_reports = models.BooleanField(default=True)
+    bio = models.TextField(blank=True, default='')
+    avatar = models.CharField(max_length=255, blank=True, default='')
+    phone = models.CharField(max_length=50, blank=True, default='')
+    address = models.CharField(max_length=255, blank=True, default='')
+    city = models.CharField(max_length=100, blank=True, default='')
+    state = models.CharField(max_length=100, blank=True, default='')
+    country = models.CharField(max_length=100, blank=True, default='')
+    postal_code = models.CharField(max_length=20, blank=True, default='')
+    settings = models.JSONField(default=dict, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

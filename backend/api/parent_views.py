@@ -149,6 +149,12 @@ class ChangePasswordView(APIView):
 class UpdateProfileView(APIView):
     permission_classes = [IsAuthenticated]
 
+    def patch(self, request):
+        return self.put(request)
+
+    def post(self, request):
+        return self.put(request)
+
     def put(self, request):
         user = request.user
         user.email = request.data.get('email', user.email)
@@ -156,6 +162,12 @@ class UpdateProfileView(APIView):
         user.first_name = request.data.get('first_name', user.first_name)
         user.last_name = request.data.get('last_name', user.last_name)
         user.save()
+
+        profile, _ = ParentProfile.objects.get_or_create(user=user)
+        if 'phone' in request.data:
+            profile.phone = request.data.get('phone')
+            profile.save()
+
         return Response(UserSerializer(user).data)
 
 
@@ -177,14 +189,53 @@ class ParentProfileView(APIView):
 
     def get(self, request):
         profile, _ = ParentProfile.objects.get_or_create(user=request.user)
-        return Response(ParentProfileSerializer(profile).data)
+        data = ParentProfileSerializer(profile).data
+        # Flatten settings into main response object if present for easier frontend consumption
+        settings = profile.settings or {}
+        data['settings'] = {
+            "email_notifications": profile.email_notifications,
+            "weekly_reports": profile.weekly_reports,
+            "theme": profile.theme_preference,
+            "language": profile.preferred_language,
+            **settings
+        }
+        return Response(data)
+
+    def patch(self, request):
+        return self.put(request)
 
     def put(self, request):
         profile, _ = ParentProfile.objects.get_or_create(user=request.user)
-        serializer = ParentProfileSerializer(profile, data=request.data, partial=True)
+        
+        # If payload contains settings object or settings keys directly, save into settings JSON
+        incoming_data = request.data.copy() if hasattr(request.data, 'copy') else dict(request.data)
+        
+        if 'theme' in incoming_data:
+            profile.theme_preference = incoming_data['theme']
+        if 'language' in incoming_data:
+            profile.preferred_language = incoming_data['language']
+        if 'email_notifications' in incoming_data:
+            profile.email_notifications = bool(incoming_data['email_notifications'])
+        if 'weekly_reports' in incoming_data:
+            profile.weekly_reports = bool(incoming_data['weekly_reports'])
+
+        current_settings = profile.settings or {}
+        current_settings.update(incoming_data)
+        profile.settings = current_settings
+        profile.save()
+
+        serializer = ParentProfileSerializer(profile, data=incoming_data, partial=True)
         if serializer.is_valid():
             serializer.save()
-            return Response(serializer.data)
+            data = serializer.data
+            data['settings'] = {
+                "email_notifications": profile.email_notifications,
+                "weekly_reports": profile.weekly_reports,
+                "theme": profile.theme_preference,
+                "language": profile.preferred_language,
+                **profile.settings
+            }
+            return Response(data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 

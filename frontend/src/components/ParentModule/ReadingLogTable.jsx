@@ -105,7 +105,7 @@ function ReadingLogTable({ logs = [] }) {
 
           <button
             onClick={exportCSV}
-            className="flex items-center justify-center gap-2 rounded-xl bg-indigo-600 px-5 py-2 font-semibold text-white hover:bg-indigo-700"
+            className="flex items-center justify-center gap-2 rounded-xl bg-rose-500 px-5 py-2 font-semibold text-white hover:bg-rose-600"
           >
             <FaDownload />
             Export CSV
@@ -173,7 +173,7 @@ function ReadingLogTable({ logs = [] }) {
                     {log.duration} min
                   </td>
                   <td className="px-5 py-4 text-center">
-                    <span className="rounded-full bg-indigo-100 px-3 py-1 text-xs font-semibold text-indigo-700">
+                    <span className="rounded-full bg-rose-100 px-3 py-1 text-xs font-semibold text-rose-600">
                       {log.completion_percentage}%
                     </span>
                   </td>

@@ -357,7 +357,7 @@ function ParentSettings() {
 
           <div className="flex min-h-[70vh] items-center justify-center">
             <div className="text-center">
-              <FaSpinner className="mx-auto animate-spin text-5xl text-indigo-600" />
+              <FaSpinner className="mx-auto animate-spin text-5xl text-rose-500" />
 
               <p className="mt-4 font-medium text-slate-600">
                 Loading settings...
@@ -405,18 +405,19 @@ function ParentSettings() {
             </div>
           )}
 
-          <section className="overflow-hidden rounded-3xl bg-gradient-to-r from-indigo-600 to-violet-600 p-6 text-white shadow-lg sm:p-8">
-            <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+          <section className="overflow-hidden rounded-3xl bg-gradient-to-r from-rose-500 via-orange-500 to-amber-500 p-6 text-white shadow-2xl shadow-rose-500/20 sm:p-8 relative">
+            <div className="absolute top-0 right-0 -mt-6 -mr-6 h-40 w-40 rounded-full bg-white/10 blur-xl pointer-events-none" />
+            <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between relative z-10">
               <div>
-                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white/20 text-2xl">
+                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white/20 text-2xl shadow-inner backdrop-blur-md">
                   <FaUserCog />
                 </div>
 
-                <h1 className="mt-4 text-3xl font-bold">
-                  Personalize Your StoryNest Experience
+                <h1 className="mt-4 text-3xl font-black tracking-tight drop-shadow-sm">
+                  Personalize Your StoryNest Experience ✨
                 </h1>
 
-                <p className="mt-2 max-w-2xl leading-7 text-indigo-100">
+                <p className="mt-2 max-w-2xl leading-relaxed text-rose-100 font-medium text-sm sm:text-base">
                   Control account notifications, privacy,
                   language, appearance and security from one
                   place.
@@ -429,7 +430,7 @@ function ParentSettings() {
                     type="button"
                     onClick={handleResetSettings}
                     disabled={savingSettings}
-                    className="rounded-xl border border-white/30 bg-white/10 px-5 py-3 font-semibold text-white hover:bg-white/20 disabled:opacity-60"
+                    className="rounded-2xl border border-white/40 bg-white/10 px-5 py-3 font-bold text-white hover:bg-white/20 disabled:opacity-60 transition"
                   >
                     Reset Changes
                   </button>
@@ -438,7 +439,7 @@ function ParentSettings() {
                     type="button"
                     onClick={handleSaveSettings}
                     disabled={savingSettings}
-                    className="flex items-center justify-center gap-2 rounded-xl bg-white px-5 py-3 font-semibold text-indigo-700 hover:bg-indigo-50 disabled:opacity-60"
+                    className="flex items-center justify-center gap-2 rounded-2xl bg-white px-5 py-3 font-extrabold text-rose-600 hover:bg-rose-50 disabled:opacity-60 shadow-lg transition"
                   >
                     {savingSettings ? (
                       <FaSpinner className="animate-spin" />
@@ -457,7 +458,7 @@ function ParentSettings() {
             <div className="space-y-6">
               <SettingsSection
                 icon={FaBell}
-                iconClass="bg-indigo-100 text-indigo-600"
+                iconClass="bg-rose-100 dark:bg-rose-950/60 text-rose-600"
                 title="Notifications"
                 description="Choose which updates you want to receive."
               >
@@ -825,7 +826,7 @@ function ParentSettings() {
                     <button
                       type="submit"
                       disabled={savingPassword}
-                      className="flex items-center gap-2 rounded-xl bg-indigo-600 px-5 py-3 font-semibold text-white hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
+                      className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-rose-500 to-amber-500 px-5 py-3 font-bold text-white hover:from-rose-600 hover:to-amber-600 shadow-md shadow-rose-500/20 disabled:cursor-not-allowed disabled:opacity-60 transition"
                     >
                       {savingPassword ? (
                         <FaSpinner className="animate-spin" />
@@ -942,16 +943,16 @@ function ParentSettings() {
                 </div>
               </div>
 
-              <div className="rounded-2xl border border-indigo-200 bg-indigo-50 p-6">
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-indigo-600 text-xl text-white">
+              <div className="rounded-2xl border border-rose-200 bg-rose-50 dark:bg-rose-950/30 dark:border-rose-900 p-6">
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-rose-500 to-amber-500 text-xl text-white shadow-md">
                   <FaEnvelope />
                 </div>
 
-                <h2 className="mt-4 text-lg font-bold text-indigo-900">
+                <h2 className="mt-4 text-lg font-bold text-rose-900 dark:text-rose-200">
                   Notification Tip
                 </h2>
 
-                <p className="mt-2 text-sm leading-6 text-indigo-700">
+                <p className="mt-2 text-sm leading-6 text-rose-700 dark:text-rose-300">
                   Keep weekly progress reports enabled to
                   receive a regular summary of reading time,
                   quiz scores and achievements.
@@ -977,9 +978,9 @@ function ParentSettings() {
           </section>
 
           {settingsChanged && (
-            <div className="sticky bottom-4 z-30 mt-6 flex flex-col gap-3 rounded-2xl border border-indigo-200 bg-white p-4 shadow-xl sm:flex-row sm:items-center sm:justify-between">
-              <p className="font-medium text-slate-700">
-                You have unsaved settings changes.
+            <div className="sticky bottom-4 z-30 mt-6 flex flex-col gap-3 rounded-2xl border border-rose-200 dark:border-rose-900 bg-white dark:bg-slate-900 p-4 shadow-xl shadow-rose-500/10 sm:flex-row sm:items-center sm:justify-between">
+              <p className="font-bold text-slate-700 dark:text-slate-200">
+                ✨ You have unsaved settings changes.
               </p>
 
               <div className="flex gap-3">
@@ -987,7 +988,7 @@ function ParentSettings() {
                   type="button"
                   onClick={handleResetSettings}
                   disabled={savingSettings}
-                  className="flex-1 rounded-xl border border-slate-300 px-5 py-3 font-semibold text-slate-700 hover:bg-slate-100 disabled:opacity-60 sm:flex-none"
+                  className="flex-1 rounded-xl border border-slate-300 px-5 py-3 font-bold text-slate-700 hover:bg-slate-100 disabled:opacity-60 sm:flex-none transition"
                 >
                   Cancel
                 </button>
@@ -996,7 +997,7 @@ function ParentSettings() {
                   type="button"
                   onClick={handleSaveSettings}
                   disabled={savingSettings}
-                  className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-indigo-600 px-5 py-3 font-semibold text-white hover:bg-indigo-700 disabled:opacity-60 sm:flex-none"
+                  className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-rose-500 to-amber-500 px-5 py-3 font-bold text-white hover:from-rose-600 hover:to-amber-600 shadow-md shadow-rose-500/20 disabled:opacity-60 sm:flex-none transition"
                 >
                   {savingSettings ? (
                     <FaSpinner className="animate-spin" />
@@ -1171,8 +1172,8 @@ function SettingToggle({
         onClick={onChange}
         className={`relative h-7 w-12 shrink-0 rounded-full transition ${
           checked
-            ? "bg-indigo-600"
-            : "bg-slate-300"
+            ? "bg-rose-500"
+            : "bg-slate-300 dark:bg-slate-700"
         }`}
       >
         <span
@@ -1198,15 +1199,15 @@ function ThemeOption({
       onClick={onClick}
       className={`rounded-2xl border p-5 text-left transition ${
         selected
-          ? "border-indigo-500 bg-indigo-50 ring-4 ring-indigo-100"
-          : "border-slate-200 bg-white hover:border-indigo-300"
+          ? "border-rose-500 bg-rose-50 dark:bg-rose-950/30 ring-4 ring-rose-100 dark:ring-rose-900/40"
+          : "border-slate-200 bg-white hover:border-rose-300 dark:border-slate-700 dark:bg-slate-800"
       }`}
     >
       <div
         className={`flex h-11 w-11 items-center justify-center rounded-xl ${
           selected
-            ? "bg-indigo-600 text-white"
-            : "bg-slate-100 text-slate-600"
+            ? "bg-gradient-to-br from-rose-500 to-amber-500 text-white shadow-md"
+            : "bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300"
         }`}
       >
         <Icon />
@@ -1244,7 +1245,7 @@ function SettingsSelect({
         name={name}
         value={value}
         onChange={onChange}
-        className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+        className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none focus:border-rose-500 focus:ring-4 focus:ring-rose-100 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
       >
         {options.map((option) => (
           <option
@@ -1276,7 +1277,7 @@ function PasswordInput({
         {label}
       </label>
 
-      <div className="flex items-center gap-3 rounded-xl border border-slate-300 px-4 focus-within:border-indigo-500 focus-within:ring-4 focus-within:ring-indigo-100 dark:border-slate-700 dark:bg-slate-800">
+      <div className="flex items-center gap-3 rounded-xl border border-slate-300 px-4 focus-within:border-rose-500 focus-within:ring-4 focus-within:ring-rose-100 dark:border-slate-700 dark:bg-slate-800">
         <FaLock className="text-slate-400" />
 
         <input
@@ -1296,7 +1297,7 @@ function PasswordInput({
         <button
           type="button"
           onClick={onToggleVisibility}
-          className="text-slate-400 hover:text-indigo-600"
+          className="text-slate-400 hover:text-rose-500"
           aria-label={
             visible
               ? "Hide password"

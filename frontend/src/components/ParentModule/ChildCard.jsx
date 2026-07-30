@@ -8,6 +8,9 @@ import {
     FaFilePdf,
     FaAward,
     FaCertificate,
+    FaStar,
+    FaHeart,
+    FaMagic,
 } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import { generateCertificatePDF } from "../../utils/pdfGenerator";
@@ -30,80 +33,100 @@ function ChildCard({
         });
     };
 
+    const isEmojiAvatar = child?.avatar && typeof child?.avatar === 'string' && child?.avatar.length <= 4;
+
     return (
-        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+        <div className="group relative rounded-3xl border border-rose-100/80 dark:border-slate-800 bg-white/90 dark:bg-slate-900/90 p-6 shadow-xl shadow-rose-500/5 backdrop-blur-xl transition-all duration-300 hover:-translate-y-1.5 hover:shadow-2xl hover:shadow-rose-500/10">
+            {/* Background Glow */}
+            <div className="absolute -top-12 -right-12 h-32 w-32 rounded-full bg-gradient-to-br from-rose-400/20 to-purple-500/20 blur-2xl group-hover:scale-125 transition-transform duration-500 pointer-events-none" />
+
             {/* Header */}
-            <div className="flex items-center gap-4">
-                <img
-                    src={
-                        child?.avatar ||
-                        "https://ui-avatars.com/api/?length=2&bold=true&background=6366f1&color=fff&name=" +
-                        encodeURIComponent(child?.name || "Child")
-                    }
-                    alt={child?.name}
-                    className="h-16 w-16 min-w-[64px] rounded-full border-2 border-indigo-100 object-cover shadow-sm"
-                />
+            <div className="flex items-center gap-4 relative z-10">
+                <div className="relative">
+                    <div className="h-16 w-16 min-w-[64px] rounded-2xl bg-gradient-to-tr from-rose-500 via-amber-400 to-purple-600 p-0.5 shadow-md shadow-rose-500/20">
+                        {isEmojiAvatar ? (
+                            <div className="h-full w-full rounded-[14px] bg-white dark:bg-slate-800 flex items-center justify-center text-3xl">
+                                {child.avatar}
+                            </div>
+                        ) : (
+                            <img
+                                src={
+                                    child?.avatar ||
+                                    "https://ui-avatars.com/api/?length=2&bold=true&background=ff6b6b&color=fff&name=" +
+                                    encodeURIComponent(child?.name || "Child")
+                                }
+                                alt={child?.name}
+                                className="h-full w-full rounded-[14px] object-cover"
+                            />
+                        )}
+                    </div>
+                    <span className="absolute -bottom-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-amber-400 text-[10px] text-white font-black shadow">
+                        ★
+                    </span>
+                </div>
 
                 <div className="flex-1 overflow-hidden">
-                    <h2 className="truncate text-lg font-bold text-slate-900" title={child?.name}>
-                        {child?.name}
-                    </h2>
+                    <div className="flex items-center gap-2">
+                        <h2 className="truncate text-lg font-extrabold text-slate-900 dark:text-white" title={child?.name}>
+                            {child?.name}
+                        </h2>
+                    </div>
 
-                    <p className="text-xs text-slate-500">
-                        {child?.age} Years
+                    <p className="text-xs font-semibold text-slate-400">
+                        {child?.age ? `${child.age} Years Old` : "Young Reader"}
                     </p>
 
-                    <span className="mt-1 inline-flex rounded-full bg-indigo-100 px-2.5 py-0.5 text-xs font-semibold text-indigo-700">
-                        {child?.reading_level || "Beginner"}
+                    <span className="mt-1.5 inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-rose-50 to-orange-50 dark:from-rose-950/60 dark:to-orange-950/60 px-3 py-0.5 text-xs font-bold text-rose-600 dark:text-rose-300 border border-rose-200/60 dark:border-rose-900/60">
+                        ✨ {child?.reading_level || "Beginner"}
                     </span>
                 </div>
             </div>
 
-            {/* Stats */}
-            <div className="mt-5 grid grid-cols-2 gap-3">
-                <div className="rounded-xl bg-slate-50 p-3">
-                    <div className="flex items-center gap-1.5 text-indigo-600">
+            {/* Stats Grid */}
+            <div className="mt-5 grid grid-cols-2 gap-3 relative z-10">
+                <div className="rounded-2xl bg-rose-50/70 dark:bg-slate-800/60 border border-rose-100/70 dark:border-slate-700/60 p-3 transition-transform duration-300 group-hover:scale-[1.02]">
+                    <div className="flex items-center gap-1.5 text-rose-600 dark:text-rose-400">
                         <FaBookOpen className="text-xs" />
-                        <span className="text-[10px] font-semibold uppercase tracking-wider">
+                        <span className="text-[10px] font-extrabold uppercase tracking-wider">
                             Stories
                         </span>
                     </div>
 
-                    <p className="mt-1 text-xl font-bold text-slate-800">
+                    <p className="mt-1 text-2xl font-black text-slate-900 dark:text-white">
                         {storiesRead}
                     </p>
                 </div>
 
-                <div className="rounded-xl bg-slate-50 p-3">
-                    <div className="flex items-center gap-1.5 text-emerald-600">
+                <div className="rounded-2xl bg-teal-50/70 dark:bg-slate-800/60 border border-teal-100/70 dark:border-slate-700/60 p-3 transition-transform duration-300 group-hover:scale-[1.02]">
+                    <div className="flex items-center gap-1.5 text-teal-600 dark:text-teal-400">
                         <FaGraduationCap className="text-xs" />
-                        <span className="text-[10px] font-semibold uppercase tracking-wider">
+                        <span className="text-[10px] font-extrabold uppercase tracking-wider">
                             Quiz Avg
                         </span>
                     </div>
 
-                    <p className="mt-1 text-xl font-bold text-slate-800">
+                    <p className="mt-1 text-2xl font-black text-slate-900 dark:text-white">
                         {quizAverage}%
                     </p>
                 </div>
             </div>
 
-            {/* Progress */}
-            <div className="mt-5">
+            {/* Overall Progress */}
+            <div className="mt-5 relative z-10">
                 <div className="mb-1.5 flex items-center justify-between">
-                    <span className="flex items-center gap-1.5 text-xs font-medium text-slate-600">
-                        <FaChartLine className="text-indigo-500" />
-                        Overall Progress
+                    <span className="flex items-center gap-1.5 text-xs font-bold text-slate-600 dark:text-slate-300">
+                        <FaChartLine className="text-purple-500" />
+                        Reading Progress
                     </span>
 
-                    <span className="text-xs font-bold text-indigo-600">
+                    <span className="text-xs font-extrabold text-purple-600 dark:text-purple-400">
                         {progress}%
                     </span>
                 </div>
 
-                <div className="h-2.5 overflow-hidden rounded-full bg-slate-100">
+                <div className="h-3 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800 p-0.5 border border-slate-200/50 dark:border-slate-700/50">
                     <div
-                        className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-violet-600 transition-all"
+                        className="h-full rounded-full bg-gradient-to-r from-rose-500 via-amber-500 to-purple-600 transition-all duration-500"
                         style={{
                             width: `${progress}%`,
                         }}
@@ -112,35 +135,32 @@ function ChildCard({
             </div>
 
             {/* Extra Details */}
-            <div className="mt-5 space-y-1.5 text-xs text-slate-600">
-                <div className="flex justify-between">
-                    <span>Favourite Animal</span>
-                    <span className="font-semibold text-slate-800">
-                        {child?.favourite_animal || "-"}
-                    </span>
-                </div>
+            <div className="mt-4 space-y-1.5 text-xs text-slate-600 dark:text-slate-400 relative z-10">
+                {child?.favourite_animal && (
+                    <div className="flex justify-between items-center py-0.5">
+                        <span className="text-slate-400">Favorite Animal</span>
+                        <span className="font-bold text-slate-800 dark:text-slate-200">
+                            {child.favourite_animal}
+                        </span>
+                    </div>
+                )}
 
-                <div className="flex justify-between">
-                    <span>Favourite Colour</span>
-                    <span className="font-semibold text-slate-800">
-                        {child?.favourite_colour || "-"}
-                    </span>
-                </div>
-
-                <div className="flex justify-between">
-                    <span>Learning Goal</span>
-                    <span className="max-w-[170px] truncate font-semibold text-slate-800" title={child?.learning_goals}>
-                        {child?.learning_goals || "-"}
-                    </span>
-                </div>
+                {child?.learning_goals && (
+                    <div className="flex justify-between items-center py-0.5">
+                        <span className="text-slate-400">Learning Goal</span>
+                        <span className="max-w-[170px] truncate font-bold text-slate-800 dark:text-slate-200" title={child.learning_goals}>
+                            {child.learning_goals}
+                        </span>
+                    </div>
+                )}
             </div>
 
-            {/* Structured 2-Row Action Buttons */}
-            <div className="mt-6 flex flex-col gap-2.5 pt-4 border-t border-slate-100">
+            {/* Action Buttons */}
+            <div className="mt-5 flex flex-col gap-2.5 pt-4 border-t border-slate-100 dark:border-slate-800 relative z-10">
                 <div className="flex items-center gap-2">
                     <Link
                         to={`/parent/children/${child?.id}`}
-                        className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-xs font-semibold text-white transition hover:bg-indigo-700 shadow-sm"
+                        className="flex flex-1 items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-rose-500 to-purple-600 px-4 py-2.5 text-xs font-bold text-white shadow-md shadow-rose-500/20 transition-all duration-300 hover:scale-[1.02] hover:shadow-rose-500/30"
                     >
                         <FaEye />
                         View Profile
@@ -148,7 +168,7 @@ function ChildCard({
 
                     <button
                         onClick={() => onEdit(child)}
-                        className="flex h-8 w-8 items-center justify-center rounded-xl border border-slate-300 text-indigo-600 transition hover:bg-indigo-50"
+                        className="flex h-9 w-9 items-center justify-center rounded-2xl border border-slate-200 dark:border-slate-700 text-rose-600 dark:text-rose-400 transition hover:bg-rose-50 dark:hover:bg-slate-800"
                         title="Edit Child Profile"
                     >
                         <FaEdit className="text-xs" />
@@ -156,7 +176,7 @@ function ChildCard({
 
                     <button
                         onClick={() => onDelete(child)}
-                        className="flex h-8 w-8 items-center justify-center rounded-xl border border-red-200 text-red-600 transition hover:bg-red-50"
+                        className="flex h-9 w-9 items-center justify-center rounded-2xl border border-slate-200 dark:border-slate-700 text-red-500 transition hover:bg-red-50 dark:hover:bg-slate-800"
                         title="Delete Child Profile"
                     >
                         <FaTrash className="text-xs" />
@@ -166,7 +186,7 @@ function ChildCard({
                 <div className="grid grid-cols-3 gap-2">
                     <button
                         onClick={handleDownloadPdf}
-                        className="flex items-center justify-center gap-1 rounded-xl border border-emerald-200 bg-emerald-50 px-2 py-1.5 text-[11px] font-semibold text-emerald-700 transition hover:bg-emerald-100"
+                        className="flex items-center justify-center gap-1 rounded-xl border border-emerald-200/80 dark:border-emerald-900 bg-emerald-50/80 dark:bg-emerald-950/50 px-2 py-2 text-[11px] font-bold text-emerald-700 dark:text-emerald-300 transition hover:bg-emerald-100"
                         title="Download Certificate PDF"
                     >
                         <FaFilePdf />
@@ -174,7 +194,7 @@ function ChildCard({
                     </button>
                     <Link
                         to={`/parent/achievements?child=${child?.id}`}
-                        className="flex items-center justify-center gap-1 rounded-xl border border-amber-200 bg-amber-50 px-2 py-1.5 text-[11px] font-semibold text-amber-700 transition hover:bg-amber-100"
+                        className="flex items-center justify-center gap-1 rounded-xl border border-amber-200/80 dark:border-amber-900 bg-amber-50/80 dark:bg-amber-950/50 px-2 py-2 text-[11px] font-bold text-amber-700 dark:text-amber-300 transition hover:bg-amber-100"
                         title="View Achievements"
                     >
                         <FaAward />
@@ -182,7 +202,7 @@ function ChildCard({
                     </Link>
                     <Link
                         to={`/parent/certificates?child=${child?.id}`}
-                        className="flex items-center justify-center gap-1 rounded-xl border border-purple-200 bg-purple-50 px-2 py-1.5 text-[11px] font-semibold text-purple-700 transition hover:bg-purple-100"
+                        className="flex items-center justify-center gap-1 rounded-xl border border-purple-200/80 dark:border-purple-900 bg-purple-50/80 dark:bg-purple-950/50 px-2 py-2 text-[11px] font-bold text-purple-700 dark:text-purple-300 transition hover:bg-purple-100"
                         title="View Certificates"
                     >
                         <FaCertificate />

@@ -57,7 +57,7 @@ function ProgressChart({
                     {subtitle && <p className="mt-1 text-sm text-slate-500">{subtitle}</p>}
                 </div>
                 {type === "bar" && (
-                    <span className="rounded-lg bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-700">
+                    <span className="rounded-lg bg-rose-50 px-3 py-1 text-xs font-semibold text-rose-600">
                         Total: {values.reduce((a, b) => a + b, 0)}
                     </span>
                 )}
@@ -181,7 +181,7 @@ function ProgressChart({
                 {hoveredIndex !== null && data[hoveredIndex] && (
                     <div className="absolute top-2 right-4 rounded-xl border border-slate-200 bg-slate-900 px-3 py-1.5 text-xs text-white shadow-lg">
                         <span className="font-bold">{data[hoveredIndex][xKey]}: </span>
-                        <span className="text-indigo-300 font-semibold">{data[hoveredIndex][dataKey]}</span>
+                        <span className="text-rose-300 font-semibold">{data[hoveredIndex][dataKey]}</span>
                     </div>
                 )}
             </div>

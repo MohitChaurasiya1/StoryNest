@@ -57,7 +57,7 @@ function ParentNavbar({
             to="/parent/profile"
             className="flex items-center gap-3 rounded-xl border border-slate-200 px-3 py-2 hover:bg-slate-50"
           >
-            <FaUserCircle className="text-3xl text-indigo-600" />
+            <FaUserCircle className="text-3xl text-rose-500" />
 
             <div className="hidden md:block">
               <p className="text-sm font-semibold text-slate-900">

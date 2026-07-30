@@ -246,11 +246,7 @@ function ChildrenList() {
   const openDeleteModal = (child) => {
     setSelectedChild(child);
     setDeleteModalOpen(true);
-  };
-
-  const closeDeleteModal = () => {
-    if (deleting) return;
-
+  };  const closeDeleteModal = () => {
     setSelectedChild(null);
     setDeleteModalOpen(false);
   };
@@ -424,16 +420,23 @@ function ChildrenList() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-gradient-to-b from-rose-50/40 via-purple-50/20 to-white dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 relative overflow-hidden">
+      {/* Floating Background Blobs */}
+      <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden opacity-30 dark:opacity-10">
+        <div className="absolute -top-32 -right-32 h-96 w-96 rounded-full bg-rose-400 blur-3xl" />
+        <div className="absolute top-1/3 -left-32 h-96 w-96 rounded-full bg-amber-300 blur-3xl" />
+        <div className="absolute -bottom-32 right-1/4 h-96 w-96 rounded-full bg-purple-400 blur-3xl" />
+      </div>
+
       <ParentSidebar
         isOpen={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
       />
 
-      <div className="lg:pl-72">
+      <div className="lg:pl-72 relative z-10">
         <ParentNavbar
-          title="My Children"
-          subtitle="Manage child profiles and monitor learning progress"
+          title="All Children"
+          subtitle="Manage your little adventurers and track their learning journeys"
           parentName={
             dashboard.parent_name ||
             dashboard.parent?.name ||
@@ -442,15 +445,15 @@ function ChildrenList() {
           onMenuClick={() => setSidebarOpen(true)}
         />
 
-        <main className="p-4 sm:p-6 lg:p-8">
+        <main className="p-4 sm:p-6 lg:p-8 space-y-8">
           {error && (
-            <div className="mb-6 flex items-start justify-between rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-red-700">
-              <p>{error}</p>
+            <div className="flex items-start justify-between rounded-3xl border border-red-200 bg-red-50/90 dark:bg-red-950/50 p-5 text-red-700 dark:text-red-300 backdrop-blur-md shadow-lg shadow-red-500/5">
+              <p className="font-semibold">{error}</p>
 
               <button
                 type="button"
                 onClick={() => setError("")}
-                className="ml-4"
+                className="ml-4 rounded-xl p-1 hover:bg-red-100 dark:hover:bg-red-900"
                 aria-label="Dismiss error"
               >
                 <FaTimes />
@@ -459,139 +462,170 @@ function ChildrenList() {
           )}
 
           {successMessage && (
-            <div className="mb-6 rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-4 font-medium text-emerald-700">
+            <div className="flex items-center gap-3 rounded-3xl border border-emerald-200 bg-emerald-50/90 dark:bg-emerald-950/50 p-5 font-bold text-emerald-700 dark:text-emerald-300 backdrop-blur-md shadow-lg shadow-emerald-500/5">
+              <span>✨</span>
               {successMessage}
             </div>
           )}
 
-          <section className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
-            <StatsCard
-              title="Total Children"
-              value={normalizedChildren.length}
-              icon={FaChild}
-              color="indigo"
-              description="Active profiles"
-            />
+          {/* Hero Banner Section */}
+          <section className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-rose-500 via-orange-500 to-amber-500 p-6 sm:p-8 text-white shadow-2xl shadow-rose-500/20">
+            <div className="absolute top-0 right-0 -mt-8 -mr-8 h-48 w-48 rounded-full bg-white/10 blur-xl pointer-events-none" />
+            <div className="absolute bottom-0 left-1/3 -mb-10 h-32 w-32 rounded-full bg-amber-300/20 blur-lg pointer-events-none" />
 
-            <StatsCard
-              title="Stories Read"
-              value={totalStoriesRead}
-              icon={FaBookOpen}
-              color="blue"
-              description="All children"
-            />
+            <div className="relative z-10 flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+              <div className="max-w-2xl">
+                <div className="inline-flex items-center gap-2 rounded-full bg-white/20 px-3.5 py-1 text-xs font-black uppercase tracking-wider backdrop-blur-md mb-3">
+                  <span className="h-2 w-2 rounded-full bg-amber-300 animate-pulse" />
+                  AI-Powered Learning Platform 🚀
+                </div>
 
-            <StatsCard
-              title="Average Quiz Score"
-              value={`${averageQuizScore}%`}
-              icon={FaUserGraduate}
-              color="emerald"
-              description="Overall average"
-            />
+                <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-white drop-shadow-sm">
+                  Your Little <span className="underline decoration-amber-300 decoration-wavy decoration-2">Story Adventurers</span>
+                </h1>
 
-            <StatsCard
-              title="Active Readers"
-              value={
-                dashboard.active_readers ??
-                normalizedChildren.filter(
-                  (child) =>
-                    Number(child.completion_percentage || 0) > 0
-                ).length
-              }
-              icon={FaBookOpen}
-              color="violet"
-              description="Currently learning"
-            />
-          </section>
-
-          <section className="mt-8 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-              <div>
-                <h2 className="text-2xl font-bold text-slate-900">
-                  Child Profiles
-                </h2>
-
-                <p className="mt-1 text-sm text-slate-500">
-                  Add, edit and manage your children's learning
-                  information.
+                <p className="mt-2 text-sm sm:text-base leading-relaxed text-rose-100 font-medium">
+                  Track reading stats, quiz performance, unlocked achievement badges, and certificates for all your children in one place.
                 </p>
               </div>
 
               <button
                 type="button"
                 onClick={openAddModal}
-                className="flex items-center justify-center gap-2 rounded-xl bg-indigo-600 px-5 py-3 font-semibold text-white transition hover:bg-indigo-700"
+                className="inline-flex items-center justify-center gap-2.5 rounded-2xl bg-white px-6 py-3.5 font-extrabold text-rose-600 shadow-xl transition-all duration-300 hover:bg-rose-50 hover:scale-105 active:scale-95"
               >
-                <FaPlus />
-                Add Child
+                <FaPlus className="text-sm" />
+                Add New Child
               </button>
-            </div>
-
-            <div className="mt-6 flex flex-col gap-4 md:flex-row">
-              <div className="flex flex-1 items-center gap-3 rounded-xl border border-slate-300 bg-white px-4 py-3">
-                <FaSearch className="text-slate-400" />
-
-                <input
-                  type="search"
-                  value={searchTerm}
-                  onChange={(event) => {
-                    setSearchTerm(event.target.value);
-                    setCurrentPage(1);
-                  }}
-                  placeholder="Search by name, interest or animal..."
-                  className="w-full bg-transparent text-sm outline-none"
-                />
-              </div>
-
-              <select
-                value={levelFilter}
-                onChange={(event) => {
-                  setLevelFilter(event.target.value);
-                  setCurrentPage(1);
-                }}
-                className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none focus:border-indigo-500"
-              >
-                <option value="all">All reading levels</option>
-
-                {readingLevels.map((level) => (
-                  <option key={level} value={level}>
-                    {level}
-                  </option>
-                ))}
-              </select>
             </div>
           </section>
 
-          <section className="mt-6">
-            {loading ? (
-              <div className="flex min-h-80 items-center justify-center rounded-2xl border border-slate-200 bg-white">
-                <div className="text-center">
-                  <FaSpinner className="mx-auto animate-spin text-4xl text-indigo-600" />
+          {/* Dashboard Stats Row */}
+          <section className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
+            <div className="rounded-3xl border border-rose-100 dark:border-slate-800 bg-white/90 dark:bg-slate-900/90 p-5 shadow-xl shadow-rose-500/5 backdrop-blur-xl flex items-center gap-4">
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-rose-100 dark:bg-rose-950/60 text-rose-600 text-2xl font-black shadow-sm">
+                👶
+              </div>
+              <div>
+                <p className="text-xs font-extrabold uppercase tracking-wider text-slate-400">Total Children</p>
+                <h3 className="text-2xl font-black text-slate-900 dark:text-white mt-0.5">{normalizedChildren.length}</h3>
+                <p className="text-[11px] font-semibold text-rose-500">Active Profiles</p>
+              </div>
+            </div>
 
-                  <p className="mt-4 font-medium text-slate-600">
+            <div className="rounded-3xl border border-sky-100 dark:border-slate-800 bg-white/90 dark:bg-slate-900/90 p-5 shadow-xl shadow-sky-500/5 backdrop-blur-xl flex items-center gap-4">
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-sky-100 dark:bg-sky-950/60 text-sky-600 text-2xl font-black shadow-sm">
+                📚
+              </div>
+              <div>
+                <p className="text-xs font-extrabold uppercase tracking-wider text-slate-400">Stories Read</p>
+                <h3 className="text-2xl font-black text-slate-900 dark:text-white mt-0.5">{totalStoriesRead}</h3>
+                <p className="text-[11px] font-semibold text-sky-500">Across All Children</p>
+              </div>
+            </div>
+
+            <div className="rounded-3xl border border-emerald-100 dark:border-slate-800 bg-white/90 dark:bg-slate-900/90 p-5 shadow-xl shadow-emerald-500/5 backdrop-blur-xl flex items-center gap-4">
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 text-2xl font-black shadow-sm">
+                🎯
+              </div>
+              <div>
+                <p className="text-xs font-extrabold uppercase tracking-wider text-slate-400">Quiz Average</p>
+                <h3 className="text-2xl font-black text-slate-900 dark:text-white mt-0.5">{averageQuizScore}%</h3>
+                <p className="text-[11px] font-semibold text-emerald-500">Comprehension</p>
+              </div>
+            </div>
+
+            <div className="rounded-3xl border border-amber-100 dark:border-slate-800 bg-white/90 dark:bg-slate-900/90 p-5 shadow-xl shadow-amber-500/5 backdrop-blur-xl flex items-center gap-4">
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-amber-100 dark:bg-amber-950/60 text-amber-600 text-2xl font-black shadow-sm">
+                🌟
+              </div>
+              <div>
+                <p className="text-xs font-extrabold uppercase tracking-wider text-slate-400">Active Readers</p>
+                <h3 className="text-2xl font-black text-slate-900 dark:text-white mt-0.5">
+                  {dashboard.active_readers ?? normalizedChildren.filter((child) => Number(child.completion_percentage || 0) > 0).length}
+                </h3>
+                <p className="text-[11px] font-semibold text-amber-500">Currently Learning</p>
+              </div>
+            </div>
+          </section>
+
+          {/* Search & Filter Header */}
+          <section className="rounded-3xl border border-rose-100/80 dark:border-slate-800 bg-white/90 dark:bg-slate-900/90 p-6 shadow-xl shadow-rose-500/5 backdrop-blur-xl space-y-6">
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+              <div>
+                <h2 className="text-2xl font-black tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
+                  Child Profiles <span>🎈</span>
+                </h2>
+
+                <p className="mt-1 text-sm font-semibold text-slate-500 dark:text-slate-400">
+                  Select a child to view detailed stories, quiz reports, achievements, and reading progress.
+                </p>
+              </div>
+
+              {/* Search Bar */}
+              <div className="flex flex-col sm:flex-row gap-3">
+                <div className="flex flex-1 items-center gap-3 rounded-2xl border border-rose-200/70 dark:border-slate-700 bg-rose-50/40 dark:bg-slate-800/50 px-4 py-2.5 shadow-inner min-w-[280px]">
+                  <FaSearch className="text-rose-400" />
+                  <input
+                    type="search"
+                    value={searchTerm}
+                    onChange={(event) => {
+                      setSearchTerm(event.target.value);
+                      setCurrentPage(1);
+                    }}
+                    placeholder="Search by child name or interests..."
+                    className="w-full bg-transparent text-sm font-bold text-slate-800 dark:text-white placeholder:text-slate-400 outline-none"
+                  />
+                </div>
+
+                <select
+                  value={levelFilter}
+                  onChange={(event) => {
+                    setLevelFilter(event.target.value);
+                    setCurrentPage(1);
+                  }}
+                  className="rounded-2xl border border-rose-200/70 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2.5 text-sm font-bold text-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-rose-500"
+                >
+                  <option value="all">All Reading Levels</option>
+                  {readingLevels.map((level) => (
+                    <option key={level} value={level}>
+                      {level}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          </section>
+
+          {/* Children Grid Section */}
+          <section>
+            {loading ? (
+              <div className="flex min-h-80 items-center justify-center rounded-3xl border border-rose-100 dark:border-slate-800 bg-white/90 dark:bg-slate-900/90 shadow-xl">
+                <div className="text-center">
+                  <FaSpinner className="mx-auto animate-spin text-4xl text-rose-500" />
+                  <p className="mt-4 font-bold text-slate-600 dark:text-slate-300">
                     Loading child profiles...
                   </p>
                 </div>
               </div>
             ) : paginatedChildren.length === 0 ? (
-              <div className="rounded-2xl border border-dashed border-slate-300 bg-white px-6 py-16 text-center">
-                <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-indigo-100 text-3xl text-indigo-600">
-                  <FaChild />
+              <div className="rounded-3xl border-2 border-dashed border-rose-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 p-12 text-center backdrop-blur-xl">
+                <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-3xl bg-rose-100 dark:bg-rose-950 text-4xl shadow-md">
+                  🦁
                 </div>
 
-                <h3 className="mt-5 text-xl font-bold text-slate-900">
+                <h3 className="mt-5 text-2xl font-black text-slate-900 dark:text-white">
                   No child profiles found
                 </h3>
 
-                <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-500">
-                  Create a child profile to start tracking stories,
-                  quizzes, achievements and reading progress.
+                <p className="mx-auto mt-2 max-w-md text-sm font-medium leading-relaxed text-slate-500 dark:text-slate-400">
+                  Create a child profile to start generating custom AI stories, tracking quiz history, and issuing certificates.
                 </p>
 
                 <button
                   type="button"
                   onClick={openAddModal}
-                  className="mt-6 inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-5 py-3 font-semibold text-white hover:bg-indigo-700"
+                  className="mt-6 inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-rose-500 to-amber-500 px-6 py-3 font-extrabold text-white shadow-lg shadow-rose-500/20 transition-all hover:scale-105"
                 >
                   <FaPlus />
                   Add First Child
@@ -609,6 +643,7 @@ function ChildrenList() {
                     />
                   ))}
                 </div>
+
 
                 {totalPages > 1 && (
                   <div className="mt-8 flex flex-col items-center justify-between gap-4 rounded-2xl border border-slate-200 bg-white p-4 sm:flex-row">
@@ -634,7 +669,7 @@ function ChildrenList() {
                         Previous
                       </button>
 
-                      <span className="rounded-lg bg-indigo-50 px-4 py-2 text-sm font-bold text-indigo-700">
+                      <span className="rounded-lg bg-rose-50 px-4 py-2 text-sm font-bold text-rose-600">
                         {currentPage} / {totalPages}
                       </span>
 
@@ -715,7 +750,7 @@ function ChildrenList() {
                     className={`w-full rounded-xl border px-4 py-3 outline-none ${
                       formErrors.reading_level
                         ? "border-red-400"
-                        : "border-slate-300 focus:border-indigo-500"
+                        : "border-slate-300 focus:border-rose-500"
                     }`}
                   >
                     {readingLevels.map((level) => (
@@ -788,7 +823,7 @@ function ChildrenList() {
                     className={`w-full resize-none rounded-xl border px-4 py-3 outline-none ${
                       formErrors.interests
                         ? "border-red-400"
-                        : "border-slate-300 focus:border-indigo-500"
+                        : "border-slate-300 focus:border-rose-500"
                     }`}
                   />
 
@@ -813,7 +848,7 @@ function ChildrenList() {
                     className={`w-full resize-none rounded-xl border px-4 py-3 outline-none ${
                       formErrors.learning_goals
                         ? "border-red-400"
-                        : "border-slate-300 focus:border-indigo-500"
+                        : "border-slate-300 focus:border-rose-500"
                     }`}
                   />
 
@@ -838,7 +873,7 @@ function ChildrenList() {
                 <button
                   type="submit"
                   disabled={saving}
-                  className="flex items-center justify-center gap-2 rounded-xl bg-indigo-600 px-6 py-3 font-semibold text-white hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
+                  className="flex items-center justify-center gap-2 rounded-xl bg-rose-500 px-6 py-3 font-semibold text-white hover:bg-rose-600 disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {saving && <FaSpinner className="animate-spin" />}
 
@@ -894,7 +929,7 @@ function FormField({
         className={`w-full rounded-xl border px-4 py-3 outline-none ${
           error
             ? "border-red-400"
-            : "border-slate-300 focus:border-indigo-500"
+            : "border-slate-300 focus:border-rose-500"
         }`}
       />
 
