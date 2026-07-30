@@ -246,7 +246,9 @@ function ChildrenList() {
   const openDeleteModal = (child) => {
     setSelectedChild(child);
     setDeleteModalOpen(true);
-  };  const closeDeleteModal = () => {
+  };
+
+  const closeDeleteModal = () => {
     setSelectedChild(null);
     setDeleteModalOpen(false);
   };
@@ -316,8 +318,7 @@ function ChildrenList() {
 
       const payload = {
         name: formData.name.trim(),
-        child_name: formData.name.trim(),
-        dob: formData.dob,
+        dob: formData.dob || null,
         interests: formData.interests.trim(),
         favourite_colour: formData.favourite_colour.trim(),
         favourite_animal: formData.favourite_animal.trim(),
