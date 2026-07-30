@@ -861,12 +861,22 @@ function ChildrenList() {
                 </div>
               </div>
 
-              <div className="mt-8 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+              <div style={{ display: "flex", gap: "12px", marginTop: "32px", justifyContent: "flex-end" }}>
                 <button
                   type="button"
                   onClick={closeFormModal}
                   disabled={saving}
-                  className="rounded-xl border border-slate-300 px-6 py-3 font-semibold text-slate-700 hover:bg-slate-100 disabled:opacity-50"
+                  style={{
+                    padding: "12px 24px",
+                    borderRadius: "12px",
+                    border: "1px solid #cbd5e1",
+                    backgroundColor: "white",
+                    fontWeight: "600",
+                    color: "#334155",
+                    cursor: saving ? "not-allowed" : "pointer",
+                    opacity: saving ? 0.5 : 1,
+                    fontSize: "14px",
+                  }}
                 >
                   Cancel
                 </button>
@@ -874,7 +884,21 @@ function ChildrenList() {
                 <button
                   type="submit"
                   disabled={saving}
-                  className="flex items-center justify-center gap-2 rounded-xl bg-rose-500 px-6 py-3 font-semibold text-white hover:bg-rose-600 disabled:cursor-not-allowed disabled:opacity-60"
+                  style={{
+                    padding: "12px 24px",
+                    borderRadius: "12px",
+                    border: "none",
+                    backgroundColor: "#f43f5e",
+                    fontWeight: "600",
+                    color: "white",
+                    cursor: saving ? "not-allowed" : "pointer",
+                    opacity: saving ? 0.6 : 1,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: "8px",
+                    fontSize: "14px",
+                  }}
                 >
                   {saving && <FaSpinner className="animate-spin" />}
 

@@ -156,7 +156,7 @@ function ChildCard({
             </div>
 
             {/* Action Buttons */}
-            <div className="mt-5 flex flex-col gap-2.5 pt-4 border-t border-slate-100 dark:border-slate-800 relative z-10">
+            <div className="mt-5 flex flex-col gap-2.5 pt-4 border-t border-slate-100 dark:border-slate-800 relative z-20">
                 <div className="flex items-center gap-2">
                     <Link
                         to={`/parent/children/${child?.id}`}
@@ -167,7 +167,8 @@ function ChildCard({
                     </Link>
 
                     <button
-                        onClick={() => onEdit(child)}
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); onEdit(child); }}
                         className="flex h-9 w-9 items-center justify-center rounded-2xl border border-slate-200 dark:border-slate-700 text-rose-600 dark:text-rose-400 transition hover:bg-rose-50 dark:hover:bg-slate-800"
                         title="Edit Child Profile"
                     >
@@ -175,7 +176,8 @@ function ChildCard({
                     </button>
 
                     <button
-                        onClick={() => onDelete(child)}
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); onDelete(child); }}
                         className="flex h-9 w-9 items-center justify-center rounded-2xl border border-slate-200 dark:border-slate-700 text-red-500 transition hover:bg-red-50 dark:hover:bg-slate-800"
                         title="Delete Child Profile"
                     >
