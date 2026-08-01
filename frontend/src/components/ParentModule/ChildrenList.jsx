@@ -482,7 +482,7 @@ function ChildrenList() {
                 </div>
 
                 <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-white drop-shadow-sm">
-                  Your Little <span className="underline decoration-amber-300 decoration-wavy decoration-2">Story Adventurers</span>
+                  Your Little <span>Story Adventurers</span>
                 </h1>
 
                 <p className="mt-2 text-sm sm:text-base leading-relaxed text-rose-100 font-medium">
