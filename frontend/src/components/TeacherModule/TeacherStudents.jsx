@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { teacherAPI } from '../../services/api';
 import { 
   FaSearch, FaTimes, FaBook, FaCheckCircle, FaStar, 
@@ -209,292 +210,385 @@ export default function TeacherStudents() {
       )}
 
       {/* ELABORATED STUDENT DETAILED REPORT MODAL */}
-      {selectedStudent && (
-        <div className="modal-overlay">
-          <div className="modal-content elaborated-student-modal animate-fade-in">
-            {/* Modal Top Header */}
-            <div className="modal-header" style={{ marginBottom: '1rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
-                <div 
-                  className="student-card-avatar" 
-                  style={{ 
-                    width: '60px', 
-                    height: '60px', 
-                    margin: 0, 
-                    fontSize: '1.4rem', 
-                    background: 'linear-gradient(135deg, #7C3AED, #9333EA)' 
-                  }}
-                >
-                  {selectedStudent.avatar}
-                </div>
-                <div>
-                  <h3 style={{ margin: '0 0 0.25rem 0', fontWeight: '800', color: '#0F172A' }}>
-                    {selectedStudent.name}
-                  </h3>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', fontSize: '0.88rem', color: '#64748B' }}>
-                    <span><FaGraduationCap /> {selectedStudent.grade}</span>
-                    <span><FaEnvelope /> Parent: {studentDetails?.parent_name || selectedStudent.parent_name} ({studentDetails?.parent_email || 'parent@example.com'})</span>
-                  </div>
-                </div>
+      {selectedStudent && createPortal(
+        <div className="modal-overlay student-report-overlay animate-fade-in" onClick={(e) => { if (e.target.classList.contains('modal-overlay')) setSelectedStudent(null); }}>
+          <div className="modal-content elaborated-student-modal student-report-modal">
+            
+            {/* Executive Document Header Bar */}
+            <div className="report-modal-top-bar">
+              <div className="report-doc-title">
+                <span className="report-doc-badge">OFFICIAL REPORT</span>
+                <span className="report-doc-sub">StoryNest Student Analytics & Academic Progress</span>
               </div>
-
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+              <div className="report-actions-toolbar">
                 <button 
-                  className="btn" 
-                  style={{ background: '#F1F5F9', color: '#334155', padding: '0.5rem 0.9rem', borderRadius: '10px', border: '1px solid #E2E8F0', fontWeight: '700', fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.4rem' }}
+                  className="report-btn secondary-btn"
                   onClick={handlePrintReport}
+                  title="Print or Save PDF"
                 >
-                  <FaPrint /> Print Report
+                  <FaPrint /> <span>Print Report</span>
                 </button>
                 <button 
-                  className="btn" 
-                  style={{ background: '#7C3AED', color: '#FFF', padding: '0.5rem 0.9rem', borderRadius: '10px', border: 'none', fontWeight: '700', fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.4rem' }}
+                  className="report-btn primary-btn"
                   onClick={() => setShowCertModal(true)}
                 >
-                  <FaAward /> Issue Certificate
+                  <FaAward /> <span>Issue Certificate</span>
                 </button>
-                <button className="close-modal-btn" onClick={() => setSelectedStudent(null)}>
+                <button 
+                  className="report-close-btn" 
+                  onClick={() => setSelectedStudent(null)}
+                  title="Close Report"
+                >
                   <FaTimes />
                 </button>
               </div>
             </div>
 
-            {/* Navigation Tabs inside Modal */}
-            <div className="student-detail-nav-tabs">
-              {[
-                { id: 'overview', label: '📊 Overview & Stats', icon: FaChartLine },
-                { id: 'stories', label: '📚 Stories Read Library', icon: FaBook },
-                { id: 'quizzes', label: '📝 Quizzes & Scores', icon: FaStar },
-                { id: 'certs', label: '🏆 Certificates & Badges', icon: FaAward },
-                { id: 'lessons', label: '📋 Lesson Submissions', icon: FaTasks },
-              ].map(tab => (
-                <button
-                  key={tab.id}
-                  className={`student-detail-tab-btn ${detailTab === tab.id ? 'active' : ''}`}
-                  onClick={() => setDetailTab(tab.id)}
-                >
-                  {tab.label}
-                </button>
-              ))}
+            {/* Student Profile Hero Banner */}
+            <div className="report-hero-card">
+              <div className="hero-avatar-wrapper">
+                <div className="hero-avatar-circle">
+                  {selectedStudent.avatar}
+                </div>
+                <span className="hero-status-indicator" title="Active Student" />
+              </div>
+
+              <div className="hero-details">
+                <div className="hero-name-row">
+                  <h2>{selectedStudent.name}</h2>
+                  <span className="hero-grade-badge">
+                    <FaGraduationCap /> {selectedStudent.grade}
+                  </span>
+                  <span 
+                    className="hero-status-pill"
+                    style={{
+                      backgroundColor: getStatusColor(selectedStudent.status).bg,
+                      color: getStatusColor(selectedStudent.status).color
+                    }}
+                  >
+                    {selectedStudent.status}
+                  </span>
+                </div>
+
+                <div className="hero-meta-row">
+                  <span>
+                    <strong>Parent:</strong> {studentDetails?.parent_name || selectedStudent.parent_name || 'Parent Account'}
+                  </span>
+                  <span className="meta-divider">•</span>
+                  <span>
+                    <FaEnvelope style={{ marginRight: '0.35rem', color: '#64748B' }} />
+                    {studentDetails?.parent_email || 'parent@example.com'}
+                  </span>
+                  <span className="meta-divider">•</span>
+                  <span>
+                    <strong>Level:</strong> {studentDetails?.reading_level || selectedStudent.reading_level || 'Intermediate'}
+                  </span>
+                </div>
+              </div>
             </div>
 
-            {/* Loading Spinner / State */}
-            {loadingDetails ? (
-              <p style={{ padding: '2rem', textAlign: 'center', color: '#64748B' }}>Loading student detailed report...</p>
-            ) : studentDetails ? (
-              <div>
-                {/* TAB 1: OVERVIEW */}
-                {detailTab === 'overview' && (
-                  <div>
-                    {/* Stat Highlight Row */}
-                    <div className="report-stats-row">
-                      <div className="report-stat-box">
-                        <div className="report-stat-value">{studentDetails.stats?.total_stories_read || 8}</div>
-                        <div className="report-stat-label">Stories Read</div>
-                      </div>
-                      <div className="report-stat-box">
-                        <div className="report-stat-value">{studentDetails.stats?.total_reading_hours || 4.2} hrs</div>
-                        <div className="report-stat-label">Total Time Spent</div>
-                      </div>
-                      <div className="report-stat-box">
-                        <div className="report-stat-value" style={{ color: studentDetails.stats?.quiz_average >= 80 ? '#16A34A' : '#D97706' }}>
-                          {studentDetails.stats?.quiz_average || 85}%
+            {/* Modern Tab Navigation */}
+            <div className="student-report-tabs">
+              {[
+                { id: 'overview', label: 'Overview & Stats', icon: FaChartLine },
+                { id: 'stories', label: 'Reading Log History', icon: FaBook },
+                { id: 'quizzes', label: 'Quizzes & Accuracy', icon: FaStar },
+                { id: 'certs', label: 'Certificates & Badges', icon: FaAward },
+                { id: 'lessons', label: 'Lesson Assignments', icon: FaTasks },
+              ].map(tab => {
+                const IconComponent = tab.icon;
+                return (
+                  <button
+                    key={tab.id}
+                    className={`report-tab-btn ${detailTab === tab.id ? 'active' : ''}`}
+                    onClick={() => setDetailTab(tab.id)}
+                  >
+                    <IconComponent className="tab-icon" />
+                    <span>{tab.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Modal Body / Tab Content */}
+            <div className="report-modal-body">
+              {loadingDetails ? (
+                <div className="report-loading-state">
+                  <div className="loading-spinner" />
+                  <p>Gathering comprehensive student analytics...</p>
+                </div>
+              ) : studentDetails ? (
+                <div className="tab-content-container">
+                  
+                  {/* TAB 1: OVERVIEW */}
+                  {detailTab === 'overview' && (
+                    <div className="tab-overview-view">
+                      {/* Metric Cards Row */}
+                      <div className="exec-stats-grid">
+                        <div className="exec-stat-card purple-accent">
+                          <div className="exec-stat-header">
+                            <div className="exec-stat-icon purple"><FaBook /></div>
+                            <span className="exec-stat-tag">Reading Volume</span>
+                          </div>
+                          <div className="exec-stat-value">{studentDetails.stats?.total_stories_read || 8}</div>
+                          <div className="exec-stat-label">Stories Read</div>
                         </div>
-                        <div className="report-stat-label">Quiz Accuracy</div>
-                      </div>
-                      <div className="report-stat-box">
-                        <div className="report-stat-value" style={{ color: '#7C3AED' }}>
-                          {studentDetails.stats?.certificates_earned || 2}
+
+                        <div className="exec-stat-card blue-accent">
+                          <div className="exec-stat-header">
+                            <div className="exec-stat-icon blue"><FaClock /></div>
+                            <span className="exec-stat-tag">Time Engagement</span>
+                          </div>
+                          <div className="exec-stat-value">{studentDetails.stats?.total_reading_hours || 4.2} <small>hrs</small></div>
+                          <div className="exec-stat-label">Total Time Spent</div>
                         </div>
-                        <div className="report-stat-label">Certificates</div>
-                      </div>
-                      <div className="report-stat-box">
-                        <div className="report-stat-value" style={{ color: '#F59E0B' }}>
-                          {studentDetails.stats?.badges_earned || 3}
+
+                        <div className="exec-stat-card green-accent">
+                          <div className="exec-stat-header">
+                            <div className="exec-stat-icon green"><FaChartLine /></div>
+                            <span className="exec-stat-tag">Comprehension</span>
+                          </div>
+                          <div className="exec-stat-value" style={{ color: studentDetails.stats?.quiz_average >= 80 ? '#16A34A' : '#D97706' }}>
+                            {studentDetails.stats?.quiz_average || 85}%
+                          </div>
+                          <div className="exec-stat-label">Quiz Accuracy Score</div>
                         </div>
-                        <div className="report-stat-label">Badges Unlocked</div>
+
+                        <div className="exec-stat-card amber-accent">
+                          <div className="exec-stat-header">
+                            <div className="exec-stat-icon amber"><FaTrophy /></div>
+                            <span className="exec-stat-tag">Honors & Badges</span>
+                          </div>
+                          <div className="exec-stat-value">
+                            {(studentDetails.stats?.certificates_earned || 2) + (studentDetails.stats?.badges_earned || 3)}
+                          </div>
+                          <div className="exec-stat-label">Total Awards Unlocked</div>
+                        </div>
+                      </div>
+
+                      {/* Profile & Assessment Dual Panel */}
+                      <div className="report-insights-row">
+                        <div className="insight-card">
+                          <div className="insight-card-header">
+                            <h5>Reading & Learning Profile</h5>
+                          </div>
+                          <div className="insight-card-body">
+                            <div className="profile-detail-item">
+                              <span className="detail-label">Reading Proficiency Level</span>
+                              <span className="detail-val font-semibold">{studentDetails.reading_level || 'Grade 2 Advanced'}</span>
+                            </div>
+                            <div className="profile-detail-item">
+                              <span className="detail-label">Primary Reading Interests</span>
+                              <div className="interest-pills">
+                                {(studentDetails.interests || 'Animals, Space, Magic').split(',').map((item, idx) => (
+                                  <span key={idx} className="interest-pill">{item.trim()}</span>
+                                ))}
+                              </div>
+                            </div>
+                            <div className="profile-detail-item">
+                              <span className="detail-label">Active Learning Goals</span>
+                              <p className="detail-text">{studentDetails.learning_goals || 'Improve vocabulary retention and attempt multi-chapter comprehension quizzes.'}</p>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="insight-card recommendation-card">
+                          <div className="insight-card-header">
+                            <h5>Teacher Assessment & Next Steps</h5>
+                          </div>
+                          <div className="insight-card-body">
+                            <div className="assessment-callout success-box">
+                              <div className="callout-icon">✓</div>
+                              <div>
+                                <h6>Observed Strengths</h6>
+                                <p>Demonstrates excellent story retention, context understanding, and consistent reading habits.</p>
+                              </div>
+                            </div>
+
+                            <div className="assessment-callout action-box">
+                              <div className="callout-icon">⚡</div>
+                              <div>
+                                <h6>Recommended Focus</h6>
+                                <p>Assign multi-chapter adventure stories with enriched vocabulary quizzes to promote deep comprehension.</p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     </div>
+                  )}
 
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginBottom: '1.5rem' }}>
-                      <div style={{ background: '#F8FAFC', padding: '1.25rem', borderRadius: '16px', border: '1px solid #E2E8F0' }}>
-                        <h5 style={{ margin: '0 0 0.5rem 0', fontWeight: '800', color: '#0F172A' }}>Reading & Learning Profile</h5>
-                        <p style={{ margin: '0 0 0.4rem 0', fontSize: '0.88rem', color: '#334155' }}>
-                          <strong>Reading Level:</strong> {studentDetails.reading_level || 'Grade 2 Advanced'}
-                        </p>
-                        <p style={{ margin: '0 0 0.4rem 0', fontSize: '0.88rem', color: '#334155' }}>
-                          <strong>Interests:</strong> {studentDetails.interests || 'Animals, Space, Magic'}
-                        </p>
-                        <p style={{ margin: 0, fontSize: '0.88rem', color: '#334155' }}>
-                          <strong>Learning Goals:</strong> {studentDetails.learning_goals}
-                        </p>
+                  {/* TAB 2: STORIES READ */}
+                  {detailTab === 'stories' && (
+                    <div className="tab-section">
+                      <div className="section-title-row">
+                        <h5>Reading Log Library ({studentDetails.reading_logs?.length || 0} Stories)</h5>
                       </div>
-
-                      <div style={{ background: '#F8FAFC', padding: '1.25rem', borderRadius: '16px', border: '1px solid #E2E8F0' }}>
-                        <h5 style={{ margin: '0 0 0.5rem 0', fontWeight: '800', color: '#0F172A' }}>Teacher Assessment Summary</h5>
-                        <p style={{ margin: '0 0 0.4rem 0', fontSize: '0.88rem', color: '#16A34A', fontWeight: '600' }}>
-                          ✓ Demonstrates excellent story retention & Hindi word recall.
-                        </p>
-                        <p style={{ margin: 0, fontSize: '0.88rem', color: '#D97706', fontWeight: '600' }}>
-                          ⚡ Recommended Next Step: Assign multi-chapter adventure stories with vocabulary quizzes.
-                        </p>
+                      <div className="report-table-wrapper">
+                        <table className="report-custom-table">
+                          <thead>
+                            <tr>
+                              <th>Story Title</th>
+                              <th>Date Read</th>
+                              <th>Duration</th>
+                              <th>Pages</th>
+                              <th>Rating</th>
+                              <th>Teacher Remarks</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {studentDetails.reading_logs?.map((log, i) => (
+                              <tr key={i}>
+                                <td className="font-bold text-dark">{log.title}</td>
+                                <td>{log.date}</td>
+                                <td><span className="time-chip"><FaClock style={{ fontSize: '0.75rem' }} /> {log.minutes} mins</span></td>
+                                <td>{log.pages_read} pages</td>
+                                <td>
+                                  <span className="rating-stars">
+                                    {log.rating} <FaStar style={{ color: '#F59E0B', fontSize: '0.85rem' }} />
+                                  </span>
+                                </td>
+                                <td className="text-muted text-sm">{log.notes || 'Completed smoothly'}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
                       </div>
                     </div>
-                  </div>
-                )}
+                  )}
 
-                {/* TAB 2: STORIES READ LIBRARY */}
-                {detailTab === 'stories' && (
-                  <div>
-                    <h5 style={{ fontWeight: '800', marginBottom: '1rem', color: '#0F172A' }}>
-                      Complete Reading Log History ({studentDetails.reading_logs?.length || 0})
-                    </h5>
-                    <table className="stories-read-table">
-                      <thead>
-                        <tr>
-                          <th>Story Title</th>
-                          <th>Read Date</th>
-                          <th>Duration</th>
-                          <th>Pages</th>
-                          <th>Rating</th>
-                          <th>Notes / Remarks</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {studentDetails.reading_logs?.map((log, i) => (
-                          <tr key={i}>
-                            <td style={{ fontWeight: '700', color: '#0F172A' }}>{log.title}</td>
-                            <td>{log.date}</td>
-                            <td>{log.minutes} mins</td>
-                            <td>{log.pages_read} pages</td>
-                            <td style={{ color: '#F59E0B', fontWeight: '700' }}>{log.rating} ★</td>
-                            <td style={{ fontSize: '0.82rem', color: '#64748B' }}>{log.notes}</td>
-                          </tr>
+                  {/* TAB 3: QUIZZES */}
+                  {detailTab === 'quizzes' && (
+                    <div className="tab-section">
+                      <div className="section-title-row">
+                        <h5>Comprehension Quiz Evaluations</h5>
+                      </div>
+                      <div className="quiz-cards-grid">
+                        {studentDetails.quizzes?.map((q, i) => (
+                          <div key={i} className="quiz-eval-card">
+                            <div className="quiz-eval-header">
+                              <h6>{q.quiz_title}</h6>
+                              <span 
+                                className="score-percentage-pill"
+                                style={{
+                                  backgroundColor: q.percentage >= 80 ? '#DCFCE7' : '#FEF3C7',
+                                  color: q.percentage >= 80 ? '#16A34A' : '#D97706'
+                                }}
+                              >
+                                {q.percentage}%
+                              </span>
+                            </div>
+                            <div className="quiz-eval-sub">
+                              Story: <strong>{q.story_title}</strong> • {q.date}
+                            </div>
+                            <div className="quiz-score-bar-wrapper">
+                              <div className="quiz-score-meta">
+                                <span>Score</span>
+                                <span>{q.score} / {q.total} Questions</span>
+                              </div>
+                              <div className="quiz-progress-track">
+                                <div 
+                                  className="quiz-progress-fill" 
+                                  style={{ 
+                                    width: `${q.percentage}%`,
+                                    background: q.percentage >= 80 ? 'linear-gradient(90deg, #10B981, #059669)' : 'linear-gradient(90deg, #F59E0B, #D97706)'
+                                  }} 
+                                />
+                              </div>
+                            </div>
+                          </div>
                         ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
+                      </div>
+                    </div>
+                  )}
 
-                {/* TAB 3: QUIZZES & ASSESSMENTS */}
-                {detailTab === 'quizzes' && (
-                  <div>
-                    <h5 style={{ fontWeight: '800', marginBottom: '1rem', color: '#0F172A' }}>
-                      Quiz & Comprehension Assessment History
-                    </h5>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '1rem' }}>
-                      {studentDetails.quizzes?.map((q, i) => (
-                        <div key={i} style={{ background: '#FFFFFF', border: '1.5px solid #E2E8F0', borderRadius: '14px', padding: '1.15rem' }}>
-                          <div style={{ fontWeight: '800', fontSize: '0.95rem', color: '#0F172A', marginBottom: '0.25rem' }}>
-                            {q.quiz_title}
+                  {/* TAB 4: CERTIFICATES & BADGES */}
+                  {detailTab === 'certs' && (
+                    <div className="tab-section">
+                      <div className="section-title-row flex-between">
+                        <h5>Awarded Certificates</h5>
+                        <button 
+                          className="report-btn primary-btn btn-sm"
+                          onClick={() => setShowCertModal(true)}
+                        >
+                          <FaPlus /> Issue New Certificate
+                        </button>
+                      </div>
+
+                      <div className="cert-card-grid mb-6">
+                        {studentDetails.certificates?.map((cert, i) => (
+                          <div key={i} className="cert-card-item">
+                            <div className="cert-card-header">
+                              <div className="cert-icon-wrapper">📜</div>
+                              <span className="cert-issued-tag">Issued {cert.issued_date}</span>
+                            </div>
+                            <h6 className="cert-item-title">{cert.title}</h6>
+                            <p className="cert-item-desc">{cert.description}</p>
                           </div>
-                          <div style={{ fontSize: '0.8rem', color: '#64748B', marginBottom: '0.75rem' }}>
-                            Story: {q.story_title} · {q.date}
+                        ))}
+                      </div>
+
+                      <div className="section-title-row">
+                        <h5>Unlocked Skill Badges & Accomplishments</h5>
+                      </div>
+                      <div className="badge-chip-grid">
+                        {studentDetails.achievements?.map((badge, i) => (
+                          <div key={i} className="badge-card-item">
+                            <div className="badge-icon-box">{badge.emoji}</div>
+                            <div>
+                              <div className="badge-name">{badge.name}</div>
+                              <div className="badge-date">Unlocked {badge.earned_at}</div>
+                            </div>
                           </div>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <span style={{ fontSize: '0.85rem', fontWeight: '600', color: '#475569' }}>
-                              Score: {q.score}/{q.total}
-                            </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* TAB 5: LESSON SUBMISSIONS */}
+                  {detailTab === 'lessons' && (
+                    <div className="tab-section">
+                      <div className="section-title-row">
+                        <h5>Assigned Lessons & Submission Progress</h5>
+                      </div>
+                      <div className="lesson-submissions-list">
+                        {studentDetails.lesson_submissions?.map((sub, i) => (
+                          <div key={i} className="lesson-sub-card">
+                            <div className="lesson-sub-main">
+                              <h6>{sub.lesson_title}</h6>
+                              <div className="lesson-sub-meta">
+                                <span>Completion Score: <strong>{sub.score}%</strong></span>
+                                <span className="meta-divider">•</span>
+                                <span>Progress: <strong>{sub.completion}%</strong></span>
+                              </div>
+                            </div>
                             <span 
-                              style={{ 
-                                padding: '0.25rem 0.65rem', 
-                                borderRadius: '999px', 
-                                fontWeight: '800', 
-                                fontSize: '0.8rem',
-                                backgroundColor: q.percentage >= 80 ? '#DCFCE7' : '#FEF3C7',
-                                color: q.percentage >= 80 ? '#16A34A' : '#D97706'
+                              className="lesson-status-pill"
+                              style={{
+                                backgroundColor: sub.status === 'completed' ? '#DCFCE7' : sub.status === 'in_progress' ? '#FEF3C7' : '#F1F5F9',
+                                color: sub.status === 'completed' ? '#16A34A' : sub.status === 'in_progress' ? '#D97706' : '#64748B'
                               }}
                             >
-                              {q.percentage}%
+                              {sub.status.replace('_', ' ').toUpperCase()}
                             </span>
                           </div>
-                        </div>
-                      ))}
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
 
-                {/* TAB 4: CERTIFICATES & BADGES */}
-                {detailTab === 'certs' && (
-                  <div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
-                      <h5 style={{ margin: 0, fontWeight: '800', color: '#0F172A' }}>Earned Certificates</h5>
-                      <button 
-                        className="btn" 
-                        style={{ background: '#7C3AED', color: '#FFF', padding: '0.45rem 0.9rem', borderRadius: '8px', border: 'none', fontWeight: '700', fontSize: '0.82rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.3rem' }}
-                        onClick={() => setShowCertModal(true)}
-                      >
-                        <FaPlus /> Issue New Certificate
-                      </button>
-                    </div>
+                </div>
+              ) : null}
+            </div>
 
-                    <div className="cert-card-grid" style={{ marginBottom: '2rem' }}>
-                      {studentDetails.certificates?.map((cert, i) => (
-                        <div key={i} className="cert-card">
-                          <div className="cert-badge-icon">📜</div>
-                          <div className="cert-title">{cert.title}</div>
-                          <div className="cert-desc">{cert.description}</div>
-                          <div className="cert-date">Issued on: {cert.issued_date}</div>
-                        </div>
-                      ))}
-                    </div>
-
-                    <h5 style={{ fontWeight: '800', marginBottom: '1rem', color: '#0F172A' }}>Unlocked Badges & Achievements</h5>
-                    <div className="badge-chip-grid">
-                      {studentDetails.achievements?.map((badge, i) => (
-                        <div key={i} className="badge-chip">
-                          <span className="badge-emoji">{badge.emoji}</span>
-                          <div>
-                            <div className="badge-info-name">{badge.name}</div>
-                            <div className="badge-info-date">Unlocked {badge.earned_at}</div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* TAB 5: LESSON SUBMISSIONS */}
-                {detailTab === 'lessons' && (
-                  <div>
-                    <h5 style={{ fontWeight: '800', marginBottom: '1rem', color: '#0F172A' }}>
-                      Assigned Lesson Submissions & Completion
-                    </h5>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                      {studentDetails.lesson_submissions?.map((sub, i) => (
-                        <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.85rem 1.15rem', background: '#F8FAFC', borderRadius: '12px', border: '1px solid #E2E8F0' }}>
-                          <div>
-                            <strong style={{ fontSize: '0.95rem', color: '#0F172A', display: 'block' }}>{sub.lesson_title}</strong>
-                            <span style={{ fontSize: '0.8rem', color: '#64748B' }}>
-                              Score: {sub.score}% · Completion: {sub.completion}%
-                            </span>
-                          </div>
-                          <span 
-                            style={{ 
-                              padding: '0.25rem 0.65rem', 
-                              borderRadius: '999px', 
-                              fontSize: '0.78rem', 
-                              fontWeight: '800',
-                              backgroundColor: sub.status === 'completed' ? '#DCFCE7' : sub.status === 'in_progress' ? '#FEF3C7' : '#F1F5F9',
-                              color: sub.status === 'completed' ? '#16A34A' : sub.status === 'in_progress' ? '#D97706' : '#64748B'
-                            }}
-                          >
-                            {sub.status.toUpperCase()}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            ) : null}
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* ISSUE CERTIFICATE MODAL OVERLAY */}
-      {showCertModal && selectedStudent && (
-        <div className="modal-overlay" style={{ zIndex: 1100 }}>
+      {showCertModal && selectedStudent && createPortal(
+        <div className="modal-overlay" style={{ zIndex: 1300 }}>
           <div className="modal-content animate-fade-in" style={{ maxWidth: '520px' }}>
             <div className="modal-header">
               <h4>Issue Certificate to {selectedStudent.name}</h4>
@@ -542,7 +636,8 @@ export default function TeacherStudents() {
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
