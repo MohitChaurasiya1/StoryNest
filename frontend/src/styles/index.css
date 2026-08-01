@@ -1,6 +1,9 @@
 @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&family=Fredoka:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
 
+/* Override Tailwind v4 dark mode: use .dark class instead of OS preference */
+@custom-variant dark (&:where(.dark, .dark *));
+
 /* StoryNest — Global CSS Design System (Playful & Vibrant) */
 
 /* Core Design Tokens */
@@ -84,6 +87,50 @@
   --transition-smooth: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
   --transition-fast: all 0.2s ease;
   --transition-bounce: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+/* ── Dark Mode Overrides ── */
+html.dark {
+  --bg-color: #0F172A;
+  --bg-warm: #1E293B;
+  --surface-color: #1E293B;
+  --text-primary: #F1F5F9;
+  --text-secondary: #CBD5E1;
+  --text-muted: #64748B;
+
+  --coral-light: #4C1D1D;
+  --sky-light: #1A3A4A;
+  --mint-light: #1A3A2A;
+  --sunshine-light: #3A3520;
+  --purple-light: #2D2550;
+  --pink-light: #3D1A30;
+  --orange-light: #3A2A1A;
+
+  --primary-soft: #4C1D1D;
+  --soft-accent-bg: #4C1D1D;
+
+  --sidebar-bg: #0B1120;
+  --sidebar-text: #94A3B8;
+  --sidebar-text-hover: #F1F5F9;
+
+  --danger-light: #4C1D1D;
+
+  --border-color: #334155;
+
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.5);
+  --shadow-glow-coral: 0 8px 30px rgba(255, 107, 107, 0.15);
+  --shadow-glow-sky: 0 8px 30px rgba(107, 203, 245, 0.15);
+  --shadow-glow-mint: 0 8px 30px rgba(107, 203, 119, 0.15);
+  --shadow-glow-purple: 0 8px 30px rgba(167, 139, 250, 0.15);
+
+  color-scheme: dark;
+}
+
+/* Smooth transition when switching themes */
+html {
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 /* Reset and Base Styles */
@@ -438,3 +485,72 @@ button {
   background-color: var(--coral-light);
   color: var(--coral);
 }
+
+/* ── Dark Mode Component Overrides ── */
+html.dark .card:hover {
+  border-color: #475569;
+}
+
+html.dark .btn-secondary {
+  background: linear-gradient(135deg, #1A3A4A, #2D2550);
+  color: var(--text-primary);
+}
+
+html.dark .btn-secondary:hover {
+  background: linear-gradient(135deg, #1E4A5A, #3D3560);
+}
+
+html.dark .btn-outline {
+  border-color: #475569;
+  background-color: var(--surface-color);
+}
+
+html.dark .btn-outline:hover {
+  background-color: #1E293B;
+}
+
+html.dark .pill-gold {
+  background: #3A3520;
+  color: #FBBF24;
+}
+
+html.dark .form-control {
+  background-color: #0F172A;
+  border-color: #334155;
+}
+
+html.dark .form-control:focus {
+  border-color: var(--coral);
+  box-shadow: 0 0 0 4px rgba(255, 107, 107, 0.15);
+}
+
+/* Ensure dark mode initializes before first paint */
+html.dark body {
+  background-color: #0F172A;
+  color: #F1F5F9;
+}
+
+/* Theme Toggle Button */
+.theme-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: var(--radius-full);
+  background-color: var(--surface-color);
+  border: 1.5px solid var(--border-color);
+  color: var(--orange);
+  font-size: 1.15rem;
+  cursor: pointer;
+  transition: var(--transition-bounce);
+  box-shadow: var(--shadow-sm);
+}
+
+.theme-toggle-btn:hover {
+  transform: scale(1.1) rotate(15deg);
+  border-color: var(--coral);
+  color: var(--coral);
+  box-shadow: var(--shadow-md);
+}
+

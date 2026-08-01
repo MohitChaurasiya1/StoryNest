@@ -1,6 +1,6 @@
 .sidebar-container {
   width: 280px;
-  background-color: #FFFFFF;
+  background-color: var(--surface-color);
   color: var(--text-primary);
   display: flex;
   flex-direction: column;

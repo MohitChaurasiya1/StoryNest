@@ -14,7 +14,9 @@ import {
   FaPlay,
   FaShieldAlt,
   FaBookOpen,
-  FaChild
+  FaChild,
+  FaSun,
+  FaMoon
 } from 'react-icons/fa';
 import StoryBookPreview from '../../components/StoryBookPreview';
 import './LandingPage.css';
@@ -23,6 +25,23 @@ export default function LandingPage() {
   const [showRoleModal, setShowRoleModal] = useState(false);
   const navigate = useNavigate();
   const [activeFeature, setActiveFeature] = useState(0);
+  const [isDark, setIsDark] = useState(() => {
+    const saved = localStorage.getItem('storynest-parent-theme');
+    if (saved === 'dark') return true;
+    if (saved === 'light') return false;
+    return document.documentElement.classList.contains('dark');
+  });
+
+  useEffect(() => {
+    const root = document.documentElement;
+    if (isDark) {
+      root.classList.add('dark');
+      localStorage.setItem('storynest-parent-theme', 'dark');
+    } else {
+      root.classList.remove('dark');
+      localStorage.setItem('storynest-parent-theme', 'light');
+    }
+  }, [isDark]);
 
   // Cycle through features
   useEffect(() => {
@@ -82,6 +101,15 @@ export default function LandingPage() {
         </nav>
 
         <div className="header-actions">
+          <button
+            type="button"
+            onClick={() => setIsDark(prev => !prev)}
+            className="theme-toggle-btn"
+            aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+            title={isDark ? 'Light Mode' : 'Dark Mode'}
+          >
+            {isDark ? <FaSun /> : <FaMoon />}
+          </button>
           <button 
             className="btn btn-ghost"
             onClick={() => setShowRoleModal(true)}

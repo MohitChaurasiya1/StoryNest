@@ -56,6 +56,7 @@ const navigationItems = [
 
 
 function ParentSidebar({ isOpen = false, onClose = () => {} }) {
+
   const getLinkClasses = ({ isActive }) =>
     [
       "flex items-center gap-3.5 rounded-2xl px-4 py-3 text-sm font-bold",
