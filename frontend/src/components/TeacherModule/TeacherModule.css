@@ -449,10 +449,7 @@
 
 .modal-content {
   background: var(--surface-color);
-<<<<<<< HEAD
   color: var(--text-primary);
-=======
->>>>>>> 46cc902dcc87df4e0ab32b3e8c1b8da7ddc67a20
   border-radius: 20px;
   padding: 2rem;
   width: 90%;
