@@ -554,11 +554,11 @@ function ChildrenList() {
           <section className="rounded-3xl border border-rose-100/80 dark:border-slate-800 bg-white/90 dark:bg-slate-900/90 p-6 shadow-xl shadow-rose-500/5 backdrop-blur-xl space-y-6">
             <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
               <div>
-                <h2 className="text-2xl font-black tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
+                <h2 className="text-2xl font-black tracking-tight text-black dark:text-white flex items-center gap-2">
                   Child Profiles <span>🎈</span>
                 </h2>
 
-                <p className="mt-1 text-sm font-semibold text-slate-500 dark:text-slate-400">
+                <p className="mt-1 text-sm font-semibold text-black/80 dark:text-white">
                   Select a child to view detailed stories, quiz reports, achievements, and reading progress.
                 </p>
               </div>
@@ -575,7 +575,7 @@ function ChildrenList() {
                       setCurrentPage(1);
                     }}
                     placeholder="Search by child name or interests..."
-                    className="w-full bg-transparent text-sm font-bold text-slate-800 dark:text-white placeholder:text-slate-400 outline-none"
+                    className="w-full bg-transparent text-sm font-bold text-black dark:text-white placeholder:text-black/60 dark:placeholder:text-white/60 outline-none"
                   />
                 </div>
 
@@ -585,7 +585,7 @@ function ChildrenList() {
                     setLevelFilter(event.target.value);
                     setCurrentPage(1);
                   }}
-                  className="rounded-2xl border border-rose-200/70 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2.5 text-sm font-bold text-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-rose-500"
+                  className="rounded-2xl border border-rose-200/70 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2.5 text-sm font-bold text-black dark:text-white outline-none focus:ring-2 focus:ring-rose-500"
                 >
                   <option value="all">All Reading Levels</option>
                   {readingLevels.map((level) => (
@@ -604,7 +604,7 @@ function ChildrenList() {
               <div className="flex min-h-80 items-center justify-center rounded-3xl border border-rose-100 dark:border-slate-800 bg-white/90 dark:bg-slate-900/90 shadow-xl">
                 <div className="text-center">
                   <FaSpinner className="mx-auto animate-spin text-4xl text-rose-500" />
-                  <p className="mt-4 font-bold text-slate-600 dark:text-slate-300">
+                  <p className="mt-4 font-bold text-black dark:text-white">
                     Loading child profiles...
                   </p>
                 </div>
@@ -615,11 +615,11 @@ function ChildrenList() {
                   🦁
                 </div>
 
-                <h3 className="mt-5 text-2xl font-black text-slate-900 dark:text-white">
+                <h3 className="mt-5 text-2xl font-black text-black dark:text-white">
                   No child profiles found
                 </h3>
 
-                <p className="mx-auto mt-2 max-w-md text-sm font-medium leading-relaxed text-slate-500 dark:text-slate-400">
+                <p className="mx-auto mt-2 max-w-md text-sm font-medium leading-relaxed text-black/80 dark:text-white">
                   Create a child profile to start generating custom AI stories, tracking quiz history, and issuing certificates.
                 </p>
 
@@ -647,8 +647,8 @@ function ChildrenList() {
 
 
                 {totalPages > 1 && (
-                  <div className="mt-8 flex flex-col items-center justify-between gap-4 rounded-2xl border border-slate-200 bg-white p-4 sm:flex-row">
-                    <p className="text-sm text-slate-500">
+                  <div className="mt-8 flex flex-col items-center justify-between gap-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 sm:flex-row">
+                    <p className="text-sm font-semibold text-black dark:text-white">
                       Showing{" "}
                       {(currentPage - 1) * itemsPerPage + 1} to{" "}
                       {Math.min(
@@ -665,12 +665,12 @@ function ChildrenList() {
                         onClick={() =>
                           setCurrentPage((previous) => previous - 1)
                         }
-                        className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-50"
+                        className="rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2 text-sm font-semibold text-black dark:text-white disabled:cursor-not-allowed disabled:opacity-50"
                       >
                         Previous
                       </button>
 
-                      <span className="rounded-lg bg-rose-50 px-4 py-2 text-sm font-bold text-rose-600">
+                      <span className="rounded-lg bg-rose-50 dark:bg-rose-950/60 px-4 py-2 text-sm font-bold text-rose-600 dark:text-rose-300">
                         {currentPage} / {totalPages}
                       </span>
 
@@ -680,7 +680,7 @@ function ChildrenList() {
                         onClick={() =>
                           setCurrentPage((previous) => previous + 1)
                         }
-                        className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-50"
+                        className="rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2 text-sm font-semibold text-black dark:text-white disabled:cursor-not-allowed disabled:opacity-50"
                       >
                         Next
                       </button>
@@ -695,14 +695,14 @@ function ChildrenList() {
 
       {formModalOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/50 p-4 backdrop-blur-sm">
-          <div className="max-h-[92vh] w-full max-w-2xl overflow-y-auto rounded-3xl bg-white shadow-2xl">
-            <div className="sticky top-0 z-10 flex items-center justify-between border-b border-slate-200 bg-white px-6 py-5">
+          <div className="max-h-[92vh] w-full max-w-2xl overflow-y-auto rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl">
+            <div className="sticky top-0 z-10 flex items-center justify-between border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-6 py-5">
               <div>
-                <h2 className="text-2xl font-bold text-slate-900">
+                <h2 className="text-2xl font-bold text-black dark:text-white">
                   {editingChild ? "Edit Child" : "Add Child"}
                 </h2>
 
-                <p className="mt-1 text-sm text-slate-500">
+                <p className="mt-1 text-sm font-semibold text-black/80 dark:text-white">
                   Enter the child's profile and learning details.
                 </p>
               </div>
@@ -711,7 +711,7 @@ function ChildrenList() {
                 type="button"
                 onClick={closeFormModal}
                 disabled={saving}
-                className="flex h-10 w-10 items-center justify-center rounded-xl text-slate-500 hover:bg-slate-100"
+                className="flex h-10 w-10 items-center justify-center rounded-xl text-black dark:text-white hover:bg-slate-100 dark:hover:bg-slate-800"
               >
                 <FaTimes />
               </button>
@@ -740,7 +740,7 @@ function ChildrenList() {
                 />
 
                 <div>
-                  <label className="mb-2 block text-sm font-semibold text-slate-700">
+                  <label className="mb-2 block text-sm font-bold text-black dark:text-white">
                     Reading Level
                   </label>
 
@@ -861,22 +861,12 @@ function ChildrenList() {
                 </div>
               </div>
 
-              <div style={{ display: "flex", gap: "12px", marginTop: "32px", justifyContent: "flex-end" }}>
+              <div className="flex gap-3 mt-8 justify-end">
                 <button
                   type="button"
                   onClick={closeFormModal}
                   disabled={saving}
-                  style={{
-                    padding: "12px 24px",
-                    borderRadius: "12px",
-                    border: "1px solid #cbd5e1",
-                    backgroundColor: "white",
-                    fontWeight: "600",
-                    color: "#334155",
-                    cursor: saving ? "not-allowed" : "pointer",
-                    opacity: saving ? 0.5 : 1,
-                    fontSize: "14px",
-                  }}
+                  className="px-6 py-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 font-semibold text-black dark:text-white text-sm hover:bg-slate-100 dark:hover:bg-slate-700 transition disabled:opacity-50"
                 >
                   Cancel
                 </button>
@@ -884,21 +874,7 @@ function ChildrenList() {
                 <button
                   type="submit"
                   disabled={saving}
-                  style={{
-                    padding: "12px 24px",
-                    borderRadius: "12px",
-                    border: "none",
-                    backgroundColor: "#f43f5e",
-                    fontWeight: "600",
-                    color: "white",
-                    cursor: saving ? "not-allowed" : "pointer",
-                    opacity: saving ? 0.6 : 1,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    gap: "8px",
-                    fontSize: "14px",
-                  }}
+                  className="px-6 py-3 rounded-xl bg-rose-500 hover:bg-rose-600 font-semibold text-white text-sm flex items-center justify-center gap-2 transition disabled:opacity-60"
                 >
                   {saving && <FaSpinner className="animate-spin" />}
 
@@ -939,7 +915,7 @@ function FormField({
 }) {
   return (
     <div>
-      <label className="mb-2 block text-sm font-semibold text-slate-700">
+      <label className="mb-2 block text-sm font-bold text-black dark:text-white">
         {label}
 
         {required && <span className="ml-1 text-red-500">*</span>}
@@ -951,15 +927,15 @@ function FormField({
         value={value}
         onChange={onChange}
         placeholder={placeholder}
-        className={`w-full rounded-xl border px-4 py-3 outline-none ${
+        className={`w-full rounded-xl border px-4 py-3 outline-none bg-white dark:bg-slate-800 text-black dark:text-white placeholder:text-black/50 dark:placeholder:text-white/50 ${
           error
             ? "border-red-400"
-            : "border-slate-300 focus:border-rose-500"
+            : "border-slate-300 dark:border-slate-700 focus:border-rose-500"
         }`}
       />
 
       {error && (
-        <p className="mt-1 text-xs text-red-600">
+        <p className="mt-1 text-xs font-semibold text-red-600 dark:text-red-400">
           {error}
         </p>
       )}

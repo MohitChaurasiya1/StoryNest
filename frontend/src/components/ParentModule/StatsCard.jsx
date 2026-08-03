@@ -27,14 +27,14 @@ function StatsCard({
   const selectedColor = colorClasses[color] || colorClasses.rose;
 
   return (
-    <div className="group rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+    <div className="group rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
       <div className="flex items-start justify-between">
         <div>
-          <p className="text-sm font-medium text-slate-500">
+          <p className="text-sm font-semibold text-black/80 dark:text-white/90">
             {title}
           </p>
 
-          <h2 className="mt-2 text-3xl font-bold text-slate-900">
+          <h2 className="mt-2 text-3xl font-extrabold text-black dark:text-white">
             {value}
           </h2>
         </div>
@@ -52,8 +52,8 @@ function StatsCard({
             <div
               className={`flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold ${
                 changeType === "increase"
-                  ? "bg-emerald-50 text-emerald-700"
-                  : "bg-red-50 text-red-600"
+                  ? "bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300"
+                  : "bg-red-50 dark:bg-red-950/60 text-red-600 dark:text-red-300"
               }`}
             >
               {changeType === "increase" ? (
@@ -69,7 +69,7 @@ function StatsCard({
           )}
 
           {description && (
-            <p className="text-xs text-slate-500">
+            <p className="text-xs font-medium text-black/80 dark:text-white/80">
               {description}
             </p>
           )}

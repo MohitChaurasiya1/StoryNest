@@ -502,26 +502,33 @@ export default function ParentDashboard() {
   };
 
   return (
-    <div className="dashboard-layout animate-fade-in">
-      <Sidebar role="parent" />
+    <div className="min-h-screen bg-gradient-to-b from-rose-50/40 via-purple-50/20 to-white dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 relative overflow-hidden">
+      <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden opacity-30 dark:opacity-10">
+        <div className="absolute -top-32 -right-32 h-96 w-96 rounded-full bg-rose-400 blur-3xl" />
+        <div className="absolute top-1/3 -left-32 h-96 w-96 rounded-full bg-amber-300 blur-3xl" />
+        <div className="absolute -bottom-32 right-1/4 h-96 w-96 rounded-full bg-purple-400 blur-3xl" />
+      </div>
 
-      <main className="dashboard-content">
-        {/* Top Header */}
-        <header className="parent-header">
-          <div className="parent-header-left">
-            <h2 className="serif-heading">{activeChild ? `${activeChild.name}'s Reading Hub` : "Parent Dashboard"}</h2>
-            <p className="text-muted" style={{ fontSize: '0.85rem' }}>
-              Track streaks, celebrate achievements, and create new stories together.
-            </p>
-          </div>
+      <div className="dashboard-layout animate-fade-in relative z-10">
+        <Sidebar role="parent" />
 
-          <div className="parent-header-right">
-            <ChildSelector
-              childrenList={childrenList}
-              activeChildId={activeChildId}
-              onSelectChild={setActiveChildId}
-              onOpenAddModal={handleOpenAddChild}
-            />
+        <main className="dashboard-content">
+          {/* Top Header */}
+          <header className="parent-header parent-hero-card">
+            <div className="parent-header-left">
+              <h2 className="serif-heading text-white">{activeChild ? `${activeChild.name}'s Reading Hub` : "Parent Dashboard"}</h2>
+              <p className="text-white/85" style={{ fontSize: '0.95rem' }}>
+                Track streaks, celebrate achievements, and create new stories together.
+              </p>
+            </div>
+
+            <div className="parent-header-right">
+              <ChildSelector
+                childrenList={childrenList}
+                activeChildId={activeChildId}
+                onSelectChild={setActiveChildId}
+                onOpenAddModal={handleOpenAddChild}
+              />
 
             <Link to="/create" className="btn btn-primary btn-header-create">
               <FaMagic /> Create a Story
@@ -582,5 +589,6 @@ export default function ParentDashboard() {
         stories={childStories}
       />
     </div>
+  </div>
   );
 }

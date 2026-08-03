@@ -72,7 +72,7 @@ function ChildCard({
                         </h2>
                     </div>
 
-                    <p className="text-xs font-semibold text-slate-400">
+                    <p className="text-xs font-semibold text-black/70 dark:text-white/80">
                         {child?.age ? `${child.age} Years Old` : "Young Reader"}
                     </p>
 
@@ -92,7 +92,7 @@ function ChildCard({
                         </span>
                     </div>
 
-                    <p className="mt-1 text-2xl font-black text-slate-900 dark:text-white">
+                    <p className="mt-1 text-2xl font-black text-black dark:text-white">
                         {storiesRead}
                     </p>
                 </div>
@@ -105,7 +105,7 @@ function ChildCard({
                         </span>
                     </div>
 
-                    <p className="mt-1 text-2xl font-black text-slate-900 dark:text-white">
+                    <p className="mt-1 text-2xl font-black text-black dark:text-white">
                         {quizAverage}%
                     </p>
                 </div>
@@ -114,7 +114,7 @@ function ChildCard({
             {/* Overall Progress */}
             <div className="mt-5 relative z-10">
                 <div className="mb-1.5 flex items-center justify-between">
-                    <span className="flex items-center gap-1.5 text-xs font-bold text-slate-600 dark:text-slate-300">
+                    <span className="flex items-center gap-1.5 text-xs font-bold text-black dark:text-white">
                         <FaChartLine className="text-purple-500" />
                         Reading Progress
                     </span>
@@ -135,11 +135,11 @@ function ChildCard({
             </div>
 
             {/* Extra Details */}
-            <div className="mt-4 space-y-1.5 text-xs text-slate-600 dark:text-slate-400 relative z-10">
+            <div className="mt-4 space-y-1.5 text-xs text-black/80 dark:text-white relative z-10">
                 {child?.favourite_animal && (
                     <div className="flex justify-between items-center py-0.5">
-                        <span className="text-slate-400">Favorite Animal</span>
-                        <span className="font-bold text-slate-800 dark:text-slate-200">
+                        <span className="text-black/70 dark:text-white/80">Favorite Animal</span>
+                        <span className="font-bold text-black dark:text-white">
                             {child.favourite_animal}
                         </span>
                     </div>
@@ -147,8 +147,8 @@ function ChildCard({
 
                 {child?.learning_goals && (
                     <div className="flex justify-between items-center py-0.5">
-                        <span className="text-slate-400">Learning Goal</span>
-                        <span className="max-w-[170px] truncate font-bold text-slate-800 dark:text-slate-200" title={child.learning_goals}>
+                        <span className="text-black/70 dark:text-white/80">Learning Goal</span>
+                        <span className="max-w-[170px] truncate font-bold text-black dark:text-white" title={child.learning_goals}>
                             {child.learning_goals}
                         </span>
                     </div>

@@ -143,6 +143,8 @@
   font-size: 0.95rem;
   outline: none;
   transition: var(--transition-fast);
+  color: var(--text-primary);
+  background-color: var(--surface-color);
 }
 
 .form-input:focus {
