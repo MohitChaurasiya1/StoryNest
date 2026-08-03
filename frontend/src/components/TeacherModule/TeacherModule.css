@@ -447,7 +447,8 @@
 }
 
 .modal-content {
-  background: #FFFFFF;
+  background: var(--surface-color);
+  color: var(--text-primary);
   border-radius: 20px;
   padding: 2rem;
   width: 90%;
@@ -455,6 +456,7 @@
   max-height: 90vh;
   overflow-y: auto;
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+  border: 1px solid var(--border-color);
 }
 
 .modal-header {
@@ -468,10 +470,11 @@
   font-size: 1.35rem;
   font-weight: 800;
   margin: 0;
+  color: var(--text-primary);
 }
 
 .close-modal-btn {
-  background: #F1F5F9;
+  background: var(--bg-warm);
   border: none;
   border-radius: 50%;
   width: 36px;
@@ -481,7 +484,7 @@
   justify-content: center;
   cursor: pointer;
   font-weight: 800;
-  color: #64748B;
+  color: var(--text-secondary);
 }
 
 /* Elaborated Executive Student Report Modal Styling */

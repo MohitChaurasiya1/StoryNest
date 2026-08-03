@@ -76,6 +76,11 @@
   z-index: 100;
 }
 
+html.dark .landing-header {
+  background-color: rgba(15, 23, 42, 0.85);
+  border-bottom-color: rgba(51, 65, 85, 0.6);
+}
+
 .header-logo {
   display: flex;
   align-items: center;
@@ -695,8 +700,9 @@
   z-index: 1000;
 }
 
-.modal-content {
+.landing-container .modal-content {
   background-color: var(--surface-color);
+  color: var(--text-primary);
   border: 1.5px solid var(--border-color);
   border-radius: var(--radius-lg);
   padding: 2.5rem;
@@ -717,6 +723,7 @@
   font-size: 1.5rem;
   text-align: center;
   font-weight: 800;
+  color: var(--text-primary);
 }
 
 .modal-subtitle {
