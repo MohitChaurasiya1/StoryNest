@@ -80,14 +80,26 @@ WSGI_APPLICATION = 'core.wsgi.application'
 
 
 if os.getenv('DB_HOST'):
+    db_host = os.getenv('DB_HOST', 'db')
+    db_port = os.getenv('DB_PORT', '5432')
+
+    if db_host == 'db':
+        import socket
+        try:
+            socket.gethostbyname('db')
+        except socket.gaierror:
+            db_host = 'localhost'
+            if db_port == '5432':
+                db_port = '5433'
+
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql',
             'NAME': os.getenv('DB_NAME', 'smart_learning'),
             'USER': os.getenv('DB_USER', 'postgres'),
             'PASSWORD': os.getenv('DB_PASSWORD', 'postgrespassword'),
-            'HOST': os.getenv('DB_HOST', 'db'),
-            'PORT': os.getenv('DB_PORT', '5432'),
+            'HOST': db_host,
+            'PORT': db_port,
         }
     }
 else:

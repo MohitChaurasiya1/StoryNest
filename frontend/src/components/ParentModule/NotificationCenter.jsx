@@ -67,16 +67,16 @@ export default function NotificationCenter() {
         <main className="p-6 max-w-7xl mx-auto space-y-8">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
-              <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+              <h1 className="text-2xl font-extrabold text-black dark:text-white flex items-center gap-2">
                 <FaBell className="text-rose-500" /> Notifications
               </h1>
-              <p className="text-sm text-slate-500">Stay updated on your child's milestones, quizzes, and assigned stories.</p>
+              <p className="text-sm font-medium text-black/80 dark:text-white">Stay updated on your child's milestones, quizzes, and assigned stories.</p>
             </div>
 
             {notifications.some((n) => !n.is_read) && (
               <button
                 onClick={handleMarkAllRead}
-                className="px-4 py-2.5 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold text-xs flex items-center gap-2 transition"
+                className="px-4 py-2.5 rounded-xl bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-black dark:text-white font-bold text-xs flex items-center gap-2 transition"
               >
                 <FaCheckDouble /> Mark All Read
               </button>
@@ -97,17 +97,17 @@ export default function NotificationCenter() {
                 <div
                   key={n.id}
                   className={`rounded-2xl border p-5 transition flex items-start justify-between gap-4 ${
-                    n.is_read ? 'bg-white border-slate-200' : 'bg-rose-50/50 border-rose-200 shadow-sm'
+                    n.is_read ? 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800' : 'bg-rose-50/50 dark:bg-rose-950/40 border-rose-200 dark:border-rose-900 shadow-sm'
                   }`}
                 >
                   <div className="flex items-start gap-4">
-                    <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-rose-100 text-rose-500">
+                    <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-rose-100 dark:bg-rose-950/70 text-rose-500">
                       <FaInfoCircle />
                     </div>
                     <div>
-                      <h4 className="text-sm font-bold text-slate-900">{n.title}</h4>
-                      <p className="text-xs text-slate-600 mt-1">{n.message}</p>
-                      <span className="text-[10px] text-slate-400 font-semibold mt-2 block">
+                      <h4 className="text-sm font-bold text-black dark:text-white">{n.title}</h4>
+                      <p className="text-xs font-medium text-black/80 dark:text-white mt-1">{n.message}</p>
+                      <span className="text-[10px] text-black/60 dark:text-white/80 font-semibold mt-2 block">
                         {new Date(n.created_at).toLocaleString()}
                       </span>
                     </div>

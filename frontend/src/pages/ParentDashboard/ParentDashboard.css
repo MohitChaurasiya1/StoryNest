@@ -2,15 +2,44 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 2.5rem;
-  padding-bottom: 1.5rem;
-  border-bottom: 2px solid var(--border-color);
+  margin-bottom: 2rem;
   gap: 1.5rem;
   flex-wrap: wrap;
 }
 
+.parent-hero-card {
+  position: relative;
+  overflow: hidden;
+  padding: 2rem;
+  border-radius: var(--radius-md);
+  background: linear-gradient(135deg, #EF4444 0%, #F97316 45%, #F59E0B 100%);
+  box-shadow: 0 30px 80px rgba(251, 113, 133, 0.18);
+}
+
+.parent-hero-card::before {
+  content: '';
+  position: absolute;
+  right: -5rem;
+  top: -4rem;
+  width: 18rem;
+  height: 18rem;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.18);
+}
+
+.parent-hero-card::after {
+  content: '';
+  position: absolute;
+  left: -6rem;
+  bottom: -3rem;
+  width: 16rem;
+  height: 16rem;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.14);
+}
+
 .parent-header .serif-heading {
-  font-size: 1.8rem;
+  font-size: 2.2rem;
   font-weight: 800;
 }
 

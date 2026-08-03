@@ -23,7 +23,8 @@ import {
   FaSearch,
   FaFileDownload,
 } from "react-icons/fa";
-import { NavLink } from "react-router-dom";
+import { useRef, useLayoutEffect } from "react";
+import { useLocation, NavLink } from "react-router-dom";
 
 const navigationItems = [
   { name: "Dashboard", path: "/parent", icon: FaHome },
@@ -56,6 +57,26 @@ const navigationItems = [
 
 
 function ParentSidebar({ isOpen = false, onClose = () => {} }) {
+  const location = useLocation();
+  const navRef = useRef(null);
+
+  useLayoutEffect(() => {
+    const savedScroll = sessionStorage.getItem("parent_sidebar_scroll");
+    if (navRef.current) {
+      if (savedScroll !== null) {
+        navRef.current.scrollTop = Number(savedScroll);
+      } else {
+        const activeEl = navRef.current.querySelector('[aria-current="page"]');
+        if (activeEl) {
+          activeEl.scrollIntoView({ block: "nearest" });
+        }
+      }
+    }
+  }, [location.pathname]);
+
+  const handleNavScroll = (e) => {
+    sessionStorage.setItem("parent_sidebar_scroll", e.target.scrollTop);
+  };
 
   const getLinkClasses = ({ isActive }) =>
     [
@@ -63,7 +84,7 @@ function ParentSidebar({ isOpen = false, onClose = () => {} }) {
       "transition-all duration-300",
       isActive
         ? "bg-gradient-to-r from-orange-500 via-rose-500 to-purple-600 text-white shadow-lg shadow-rose-500/20 translate-x-1"
-        : "text-slate-600 hover:bg-rose-50 hover:text-rose-600 dark:text-slate-300 dark:hover:bg-slate-800/60 dark:hover:text-rose-400",
+        : "text-black hover:bg-rose-50 hover:text-rose-600 dark:text-white dark:hover:bg-slate-800/60 dark:hover:text-rose-400",
     ].join(" ");
 
   return (
@@ -97,13 +118,13 @@ function ParentSidebar({ isOpen = false, onClose = () => {} }) {
               </div>
 
               <div>
-                <h1 className="text-xl font-extrabold tracking-tight text-slate-900 dark:text-white flex items-center gap-1">
+                <h1 className="text-xl font-extrabold tracking-tight text-black dark:text-white flex items-center gap-1">
                   StoryNest
                   <span className="inline-block text-xs px-2 py-0.5 rounded-full bg-rose-100 dark:bg-rose-950 text-rose-600 dark:text-rose-300 font-bold">
                     Parent
                   </span>
                 </h1>
-                <p className="text-xs font-semibold text-slate-400">
+                <p className="text-xs font-semibold text-black/70 dark:text-white/80">
                   AI Magical Storybook
                 </p>
               </div>
@@ -113,7 +134,7 @@ function ParentSidebar({ isOpen = false, onClose = () => {} }) {
               type="button"
               onClick={onClose}
               aria-label="Close sidebar"
-              className="flex h-10 w-10 items-center justify-center rounded-xl text-slate-500 transition hover:bg-slate-100 dark:hover:bg-slate-800 lg:hidden"
+              className="flex h-10 w-10 items-center justify-center rounded-xl text-black dark:text-white transition hover:bg-slate-100 dark:hover:bg-slate-800 lg:hidden"
             >
               <FaTimes />
             </button>
@@ -122,6 +143,8 @@ function ParentSidebar({ isOpen = false, onClose = () => {} }) {
           <div className="my-5 border-t border-slate-100 dark:border-slate-800" />
 
           <nav
+            ref={navRef}
+            onScroll={handleNavScroll}
             className="flex-1 space-y-1.5 overflow-y-auto pr-1"
             aria-label="Parent navigation"
           >
@@ -134,10 +157,7 @@ function ParentSidebar({ isOpen = false, onClose = () => {} }) {
                   to={item.path}
                   end={item.path === "/parent"}
                   className={getLinkClasses}
-                  onClick={() => {
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                    onClose();
-                  }}
+                  onClick={onClose}
                 >
                   <Icon className="text-lg flex-shrink-0" />
                   <span>{item.name}</span>
@@ -152,11 +172,11 @@ function ParentSidebar({ isOpen = false, onClose = () => {} }) {
               <FaBookOpen className="text-sm" />
             </div>
 
-            <h2 className="font-extrabold text-slate-900 dark:text-white text-sm">
+            <h2 className="font-extrabold text-black dark:text-white text-sm">
               Magic Reading Nest ✨
             </h2>
 
-            <p className="mt-1 text-xs leading-relaxed text-slate-500 dark:text-slate-400">
+            <p className="mt-1 text-xs leading-relaxed text-black/80 dark:text-white">
               Track stories, quizzes, reading progress and achievements for your kids.
             </p>
           </div>

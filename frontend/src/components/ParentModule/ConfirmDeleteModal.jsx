@@ -22,57 +22,44 @@ function ConfirmDeleteModal({
 
   return createPortal(
     <div
-      className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm"
-      style={{ padding: "16px" }}
+      className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
       onClick={onCancel}
     >
       <div
-        className="w-full rounded-2xl bg-white shadow-2xl"
-        style={{ maxWidth: "380px", maxHeight: "90vh", overflowY: "auto" }}
+        className="w-full max-w-sm rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
 
         {/* Icon + Title */}
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", padding: "32px 24px 16px" }}>
-          <div style={{ width: "56px", height: "56px", borderRadius: "50%", backgroundColor: "#fee2e2", display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <FaExclamationTriangle style={{ fontSize: "24px", color: "#dc2626" }} />
+        <div className="flex flex-col items-center p-6 pb-4">
+          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-rose-100 dark:bg-rose-950/60">
+            <FaExclamationTriangle className="text-2xl text-rose-600 dark:text-rose-400" />
           </div>
-          <h2 style={{ marginTop: "12px", fontSize: "20px", fontWeight: "700", color: "#0f172a", textAlign: "center" }}>
+          <h2 className="mt-3 text-xl font-bold text-black dark:text-white text-center">
             {title}
           </h2>
         </div>
 
         {/* Body */}
-        <div style={{ padding: "0 24px 16px", textAlign: "center" }}>
-          <p style={{ fontSize: "14px", color: "#475569" }}>{message}</p>
+        <div className="px-6 pb-4 text-center">
+          <p className="text-sm text-black/80 dark:text-white/90">{message}</p>
           {itemName && (
-            <div style={{ marginTop: "12px", borderRadius: "12px", backgroundColor: "#f1f5f9", padding: "8px 16px" }}>
-              <p style={{ fontWeight: "600", color: "#0f172a", wordBreak: "break-word" }}>{itemName}</p>
+            <div className="mt-3 rounded-xl bg-slate-100 dark:bg-slate-800 px-4 py-2">
+              <p className="font-semibold text-black dark:text-white break-words">{itemName}</p>
             </div>
           )}
-          <p style={{ marginTop: "12px", fontSize: "12px", color: "#ef4444", fontWeight: "500" }}>
+          <p className="mt-3 text-xs font-semibold text-rose-500">
             This action cannot be undone.
           </p>
         </div>
 
         {/* Buttons - ALWAYS visible side by side */}
-        <div style={{ display: "flex", gap: "12px", padding: "16px 24px 24px", borderTop: "1px solid #e2e8f0" }}>
+        <div className="flex gap-3 p-4 pt-3 border-t border-slate-200 dark:border-slate-800">
           <button
             type="button"
             onClick={onCancel}
             disabled={loading}
-            style={{
-              flex: 1,
-              padding: "10px 16px",
-              borderRadius: "12px",
-              border: "1px solid #cbd5e1",
-              backgroundColor: "white",
-              fontWeight: "600",
-              color: "#334155",
-              cursor: loading ? "not-allowed" : "pointer",
-              opacity: loading ? 0.5 : 1,
-              fontSize: "14px",
-            }}
+            className="flex-1 py-2.5 px-4 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 font-semibold text-black dark:text-white text-sm hover:bg-slate-100 dark:hover:bg-slate-700 transition disabled:opacity-50"
           >
             {cancelText}
           </button>
@@ -81,22 +68,7 @@ function ConfirmDeleteModal({
             type="button"
             onClick={onConfirm}
             disabled={loading}
-            style={{
-              flex: 1,
-              padding: "10px 16px",
-              borderRadius: "12px",
-              border: "none",
-              backgroundColor: "#dc2626",
-              fontWeight: "600",
-              color: "white",
-              cursor: loading ? "not-allowed" : "pointer",
-              opacity: loading ? 0.6 : 1,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: "8px",
-              fontSize: "14px",
-            }}
+            className="flex-1 py-2.5 px-4 rounded-xl bg-rose-600 hover:bg-rose-700 font-semibold text-white text-sm flex items-center justify-center gap-2 transition disabled:opacity-60"
           >
             {loading ? (
               <>

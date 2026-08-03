@@ -124,7 +124,7 @@ export default function ChildGoals() {
               />
               <button
                 onClick={handleOpenCreate}
-                className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-rose-500 to-amber-500 text-white font-bold text-sm shadow-md hover:scale-105 transition flex items-center gap-2"
+                className="px-4 py-2.5 rounded-xl bg-white text-black dark:bg-slate-900 dark:text-white border border-slate-200 dark:border-slate-700 font-bold text-sm shadow-sm hover:shadow-md transition flex items-center gap-2"
               >
                 <FaPlus /> Create Goal
               </button>

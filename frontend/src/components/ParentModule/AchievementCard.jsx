@@ -40,10 +40,10 @@ function AchievementCard({ achievement, onClick }) {
   return (
     <div
       onClick={() => onClick?.(achievement)}
-      className={`group rounded-2xl border bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl ${
+      className={`group rounded-2xl border bg-white dark:bg-slate-900 p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl ${
         unlocked
-          ? "border-rose-200"
-          : "border-slate-200 opacity-90"
+          ? "border-rose-200 dark:border-rose-900/60"
+          : "border-slate-200 dark:border-slate-800 opacity-90"
       }`}
     >
       <div className="flex items-start justify-between">
@@ -54,12 +54,12 @@ function AchievementCard({ achievement, onClick }) {
         </div>
 
         {unlocked ? (
-          <div className="flex items-center gap-2 rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700">
+          <div className="flex items-center gap-2 rounded-full bg-emerald-100 dark:bg-emerald-950/60 px-3 py-1 text-xs font-semibold text-emerald-700 dark:text-emerald-300">
             <FaCheckCircle />
             Unlocked
           </div>
         ) : (
-          <div className="flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
+          <div className="flex items-center gap-2 rounded-full bg-slate-100 dark:bg-slate-800 px-3 py-1 text-xs font-semibold text-black/70 dark:text-white/80">
             <FaLock />
             Locked
           </div>
@@ -67,11 +67,11 @@ function AchievementCard({ achievement, onClick }) {
       </div>
 
       <div className="mt-6">
-        <h2 className="text-xl font-bold text-slate-900">
+        <h2 className="text-xl font-bold text-black dark:text-white">
           {achievement?.title || achievement?.name || "Achievement"}
         </h2>
 
-        <p className="mt-2 text-sm leading-6 text-slate-600">
+        <p className="mt-2 text-sm leading-6 font-medium text-black/80 dark:text-white">
           {achievement?.description || "No description available."}
         </p>
       </div>
@@ -79,13 +79,13 @@ function AchievementCard({ achievement, onClick }) {
       {!unlocked && (
         <div className="mt-6">
           <div className="mb-2 flex items-center justify-between text-sm">
-            <span className="font-medium text-slate-600">Progress</span>
+            <span className="font-bold text-black dark:text-white">Progress</span>
             <span className="font-bold text-rose-500">
               {achievement?.progress || 0}%
             </span>
           </div>
 
-          <div className="h-3 overflow-hidden rounded-full bg-slate-200">
+          <div className="h-3 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-800">
             <div
               className="h-full rounded-full bg-gradient-to-r from-rose-500 to-amber-500 transition-all"
               style={{
@@ -96,18 +96,18 @@ function AchievementCard({ achievement, onClick }) {
         </div>
       )}
 
-      <div className="mt-6 border-t border-slate-100 pt-4">
+      <div className="mt-6 border-t border-slate-100 dark:border-slate-800 pt-4">
         {unlocked ? (
           <div className="flex justify-between text-sm">
-            <span className="text-slate-500">Earned On</span>
-            <span className="font-semibold text-slate-900">
+            <span className="font-medium text-black/70 dark:text-white/80">Earned On</span>
+            <span className="font-bold text-black dark:text-white">
               {achievement?.earned_date || achievement?.date_awarded || "-"}
             </span>
           </div>
         ) : (
           <div className="flex justify-between text-sm">
-            <span className="text-slate-500">Target</span>
-            <span className="font-semibold text-rose-500">
+            <span className="font-medium text-black/70 dark:text-white/80">Target</span>
+            <span className="font-bold text-rose-500">
               {achievement?.target || "-"}
             </span>
           </div>

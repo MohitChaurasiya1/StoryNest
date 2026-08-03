@@ -23,6 +23,10 @@ export default function TeacherSettings() {
     loadSettings();
   }, []);
 
+  useEffect(() => {
+    applyTheme(settings.theme_preference || 'light');
+  }, [settings.theme_preference]);
+
   const loadSettings = async () => {
     try {
       setLoading(true);
@@ -35,6 +39,26 @@ export default function TeacherSettings() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const applyTheme = (theme) => {
+    const root = document.documentElement;
+
+    if (theme === 'dark') {
+      root.classList.add('dark');
+    } else if (theme === 'light') {
+      root.classList.remove('dark');
+    } else {
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      root.classList.toggle('dark', prefersDark);
+    }
+
+    localStorage.setItem('storynest-parent-theme', theme);
+  };
+
+  const handleThemeChange = (theme) => {
+    setSettings(prev => ({ ...prev, theme_preference: theme }));
+    applyTheme(theme);
   };
 
   const handleSubmit = async (e) => {
@@ -140,20 +164,20 @@ export default function TeacherSettings() {
             <h4 style={{ margin: '0 0 1.25rem 0', fontWeight: '800', color: '#0F172A' }}>Notifications & Preferences</h4>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '2rem' }}>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer', fontWeight: '600', color: '#334155' }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer', fontWeight: '600', color: 'var(--text-secondary, #334155)' }}>
                 <input
                   type="checkbox"
-                  style={{ width: '18px', height: '18px', accentColor: '#7C3AED' }}
+                  style={{ width: '18px', height: '18px', accentColor: 'var(--purple)' }}
                   checked={settings.email_notifications}
                   onChange={e => setSettings({ ...settings, email_notifications: e.target.checked })}
                 />
                 Receive email alerts for parent messages and unread assignments
               </label>
 
-              <label style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer', fontWeight: '600', color: '#334155' }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer', fontWeight: '600', color: 'var(--text-secondary, #334155)' }}>
                 <input
                   type="checkbox"
-                  style={{ width: '18px', height: '18px', accentColor: '#7C3AED' }}
+                  style={{ width: '18px', height: '18px', accentColor: 'var(--purple)' }}
                   checked={settings.weekly_reports}
                   onChange={e => setSettings({ ...settings, weekly_reports: e.target.checked })}
                 />
@@ -161,10 +185,29 @@ export default function TeacherSettings() {
               </label>
             </div>
 
+            <div style={{ marginBottom: '1.5rem' }}>
+              <h4 style={{ margin: '0 0 1rem 0', fontWeight: '800', color: 'var(--text-primary, #0F172A)' }}>Theme Preference</h4>
+              <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+                {['light', 'dark', 'system'].map(option => (
+                  <label key={option} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontWeight: '600', color: 'var(--text-secondary, #334155)' }}>
+                    <input
+                      type="radio"
+                      name="theme_preference"
+                      value={option}
+                      checked={settings.theme_preference === option}
+                      onChange={() => handleThemeChange(option)}
+                      style={{ accentColor: 'var(--purple)' }}
+                    />
+                    {option.charAt(0).toUpperCase() + option.slice(1)}
+                  </label>
+                ))}
+              </div>
+            </div>
+
             <button 
               type="submit" 
               className="btn"
-              style={{ background: '#7C3AED', color: '#FFF', padding: '0.75rem 1.75rem', borderRadius: '12px', border: 'none', fontWeight: '700', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}
+              style={{ background: 'var(--purple)', color: '#FFF', padding: '0.75rem 1.75rem', borderRadius: '12px', border: 'none', fontWeight: '700', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}
             >
               <FaSave /> Save Settings
             </button>
