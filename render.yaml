@@ -2,10 +2,9 @@ services:
   # Django API Backend
   - type: web
     name: storynest-backend
-    env: python
-    buildCommand: "./build.sh"
-    startCommand: "gunicorn core.wsgi:application --bind 0.0.0.0:$PORT"
-    rootDir: backend
+    env: docker
+    dockerContext: backend
+    dockerfilePath: Dockerfile.prod
     envVars:
       - key: DEBUG
         value: "False"
@@ -33,6 +32,16 @@ services:
           property: port
       - key: ALLOWED_HOSTS
         value: "*"
+
+  # React Frontend (Nginx Docker Service)
+  - type: web
+    name: storynest-frontend
+    env: docker
+    dockerContext: frontend
+    dockerfilePath: Dockerfile.prod
+    envVars:
+      - key: VITE_API_URL
+        value: https://storynest-backend.onrender.com # Adjust if custom domain is used
 
 databases:
   - name: storynest-db
