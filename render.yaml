@@ -1,0 +1,39 @@
+services:
+  # Django API Backend
+  - type: web
+    name: storynest-backend
+    env: python
+    buildCommand: "./build.sh"
+    startCommand: "gunicorn core.wsgi:application --bind 0.0.0.0:$PORT"
+    rootDir: backend
+    envVars:
+      - key: DEBUG
+        value: "False"
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DB_HOST
+        fromDatabase:
+          name: storynest-db
+          property: host
+      - key: DB_NAME
+        fromDatabase:
+          name: storynest-db
+          property: database
+      - key: DB_USER
+        fromDatabase:
+          name: storynest-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: storynest-db
+          property: password
+      - key: DB_PORT
+        fromDatabase:
+          name: storynest-db
+          property: port
+      - key: ALLOWED_HOSTS
+        value: "*"
+
+databases:
+  - name: storynest-db
+    plan: free
