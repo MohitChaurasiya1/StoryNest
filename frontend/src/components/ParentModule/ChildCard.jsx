@@ -169,7 +169,7 @@ function ChildCard({
                     <button
                         type="button"
                         onClick={(e) => { e.stopPropagation(); onEdit(child); }}
-                        className="flex h-9 w-9 items-center justify-center rounded-2xl border border-slate-200 dark:border-slate-700 text-rose-600 dark:text-rose-400 transition hover:bg-rose-50 dark:hover:bg-slate-800"
+                        className="flex h-9 w-9 items-center justify-center rounded-2xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-200 transition hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-slate-700"
                         title="Edit Child Profile"
                     >
                         <FaEdit className="text-xs" />
@@ -178,7 +178,7 @@ function ChildCard({
                     <button
                         type="button"
                         onClick={(e) => { e.stopPropagation(); onDelete(child); }}
-                        className="flex h-9 w-9 items-center justify-center rounded-2xl border border-slate-200 dark:border-slate-700 text-red-500 transition hover:bg-red-50 dark:hover:bg-slate-800"
+                        className="flex h-9 w-9 items-center justify-center rounded-2xl border border-red-200 dark:border-red-900/60 bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-400 transition hover:bg-red-100 dark:hover:bg-red-900/80 shadow-sm"
                         title="Delete Child Profile"
                     >
                         <FaTrash className="text-xs" />

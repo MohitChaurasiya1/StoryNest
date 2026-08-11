@@ -694,15 +694,28 @@ function ChildrenList() {
       </div>
 
       {formModalOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/50 p-4 backdrop-blur-sm">
-          <div className="max-h-[92vh] w-full max-w-2xl overflow-y-auto rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl">
-            <div className="sticky top-0 z-10 flex items-center justify-between border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-6 py-5">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 backdrop-blur-sm" style={{ backgroundColor: 'rgba(15,23,42,0.7)' }}>
+          <div
+            className="flex flex-col w-full max-w-2xl rounded-3xl shadow-2xl"
+            style={{
+              maxHeight: '90vh',
+              backgroundColor: 'var(--modal-bg, #ffffff)',
+              border: '1px solid var(--modal-border, #e2e8f0)',
+            }}
+          >
+            {/* Modal Header */}
+            <div
+              className="flex items-center justify-between px-6 py-5 shrink-0"
+              style={{
+                borderBottom: '1px solid var(--modal-border, #e2e8f0)',
+                backgroundColor: 'var(--modal-bg, #ffffff)',
+              }}
+            >
               <div>
-                <h2 className="text-2xl font-bold text-black dark:text-white">
+                <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--modal-title, #0f172a)', margin: 0 }}>
                   {editingChild ? "Edit Child" : "Add Child"}
                 </h2>
-
-                <p className="mt-1 text-sm font-semibold text-black/80 dark:text-white">
+                <p style={{ marginTop: '0.25rem', fontSize: '0.875rem', color: 'var(--modal-text, #64748b)', fontWeight: 600 }}>
                   Enter the child's profile and learning details.
                 </p>
               </div>
@@ -711,120 +724,132 @@ function ChildrenList() {
                 type="button"
                 onClick={closeFormModal}
                 disabled={saving}
-                className="flex h-10 w-10 items-center justify-center rounded-xl text-black dark:text-white hover:bg-slate-100 dark:hover:bg-slate-800"
+                style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  width: '2.5rem', height: '2.5rem',
+                  borderRadius: '0.75rem',
+                  border: 'none',
+                  backgroundColor: 'transparent',
+                  color: 'var(--modal-text, #64748b)',
+                  cursor: saving ? 'not-allowed' : 'pointer',
+                  fontSize: '1rem',
+                }}
               >
                 <FaTimes />
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="p-6">
-              <div className="grid gap-5 md:grid-cols-2">
-                <FormField
-                  label="Child Name"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleInputChange}
-                  error={formErrors.name || formErrors.child_name}
-                  placeholder="Enter child name"
-                  required
-                />
-
-                <FormField
-                  label="Date of Birth"
-                  name="dob"
-                  type="date"
-                  value={formData.dob}
-                  onChange={handleInputChange}
-                  error={formErrors.dob}
-                  required
-                />
-
-                <div>
-                  <label className="mb-2 block text-sm font-bold text-black dark:text-white">
-                    Reading Level
-                  </label>
-
-                  <select
-                    name="reading_level"
-                    value={formData.reading_level}
+            {/* Scrollable Form Content */}
+            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden' }}>
+              <div style={{ flex: 1, overflowY: 'auto', padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                <div className="grid gap-5 md:grid-cols-2">
+                  <FormField
+                    label="Child Name"
+                    name="name"
+                    value={formData.name}
                     onChange={handleInputChange}
-                    className={`w-full rounded-xl border px-4 py-3 outline-none ${
-                      formErrors.reading_level
-                        ? "border-red-400"
-                        : "border-slate-300 focus:border-rose-500"
-                    }`}
-                  >
-                    {readingLevels.map((level) => (
-                      <option key={level} value={level}>
-                        {level}
-                      </option>
-                    ))}
-                  </select>
+                    error={formErrors.name || formErrors.child_name}
+                    placeholder="Enter child name"
+                    required
+                  />
 
-                  {formErrors.reading_level && (
-                    <p className="mt-1 text-xs text-red-600">
-                      {formErrors.reading_level}
-                    </p>
-                  )}
+                  <FormField
+                    label="Date of Birth"
+                    name="dob"
+                    type="date"
+                    value={formData.dob}
+                    onChange={handleInputChange}
+                    error={formErrors.dob}
+                    required
+                  />
+
+                  <div>
+                    <label className="mb-2 block text-sm font-bold text-black dark:text-white">
+                      Reading Level
+                    </label>
+
+                    <select
+                      name="reading_level"
+                      value={formData.reading_level}
+                      onChange={handleInputChange}
+                      className={`w-full rounded-xl border px-4 py-3 outline-none bg-white dark:bg-slate-800 text-black dark:text-white ${
+                        formErrors.reading_level
+                          ? "border-red-400"
+                          : "border-slate-300 dark:border-slate-700 focus:border-rose-500"
+                      }`}
+                    >
+                      {readingLevels.map((level) => (
+                        <option key={level} value={level}>
+                          {level}
+                        </option>
+                      ))}
+                    </select>
+
+                    {formErrors.reading_level && (
+                      <p className="mt-1 text-xs text-red-600">
+                        {formErrors.reading_level}
+                      </p>
+                    )}
+                  </div>
+
+                  <FormField
+                    label="Favourite Colour"
+                    name="favourite_colour"
+                    value={formData.favourite_colour}
+                    onChange={handleInputChange}
+                    error={formErrors.favourite_colour}
+                    placeholder="Example: Blue"
+                  />
+
+                  <FormField
+                    label="Favourite Animal"
+                    name="favourite_animal"
+                    value={formData.favourite_animal}
+                    onChange={handleInputChange}
+                    error={formErrors.favourite_animal}
+                    placeholder="Example: Lion"
+                  />
+
+                  <div>
+                    <label className="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-200">
+                      Avatar
+                    </label>
+
+                    <input
+                      type="file"
+                      name="avatar"
+                      accept="image/jpeg,image/png,image/webp"
+                      onChange={handleInputChange}
+                      className={`w-full rounded-xl border bg-white dark:bg-slate-800 px-4 py-3 text-sm text-black dark:text-white ${
+                        formErrors.avatar
+                          ? "border-red-400"
+                          : "border-slate-300 dark:border-slate-700 focus:border-rose-500"
+                      }`}
+                    />
+
+                    {formErrors.avatar && (
+                      <p className="mt-1 text-xs text-red-600">
+                        {formErrors.avatar}
+                      </p>
+                    )}
+                  </div>
                 </div>
 
-                <FormField
-                  label="Favourite Colour"
-                  name="favourite_colour"
-                  value={formData.favourite_colour}
-                  onChange={handleInputChange}
-                  error={formErrors.favourite_colour}
-                  placeholder="Example: Blue"
-                />
-
-                <FormField
-                  label="Favourite Animal"
-                  name="favourite_animal"
-                  value={formData.favourite_animal}
-                  onChange={handleInputChange}
-                  error={formErrors.favourite_animal}
-                  placeholder="Example: Lion"
-                />
-
                 <div>
-                  <label className="mb-2 block text-sm font-semibold text-slate-700">
-                    Avatar
+                  <label className="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-200">
+                    Interests (comma separated)
                   </label>
 
                   <input
-                    type="file"
-                    name="avatar"
-                    accept="image/jpeg,image/png,image/webp"
-                    onChange={handleInputChange}
-                    className={`w-full rounded-xl border bg-white px-4 py-3 text-sm ${
-                      formErrors.avatar
-                        ? "border-red-400"
-                        : "border-slate-300"
-                    }`}
-                  />
-
-                  {formErrors.avatar && (
-                    <p className="mt-1 text-xs text-red-600">
-                      {formErrors.avatar}
-                    </p>
-                  )}
-                </div>
-
-                <div className="md:col-span-2">
-                  <label className="mb-2 block text-sm font-semibold text-slate-700">
-                    Interests
-                  </label>
-
-                  <textarea
+                    type="text"
                     name="interests"
                     value={formData.interests}
                     onChange={handleInputChange}
-                    rows={3}
-                    placeholder="Example: Space, animals, magic and adventure"
-                    className={`w-full resize-none rounded-xl border px-4 py-3 outline-none ${
+                    placeholder="Example: Animals, Space, Magic"
+                    className={`w-full rounded-xl border px-4 py-3 outline-none bg-white dark:bg-slate-800 text-black dark:text-white placeholder:text-black/50 dark:placeholder:text-white/50 ${
                       formErrors.interests
                         ? "border-red-400"
-                        : "border-slate-300 focus:border-rose-500"
+                        : "border-slate-300 dark:border-slate-700 focus:border-rose-500"
                     }`}
                   />
 
@@ -835,8 +860,8 @@ function ChildrenList() {
                   )}
                 </div>
 
-                <div className="md:col-span-2">
-                  <label className="mb-2 block text-sm font-semibold text-slate-700">
+                <div>
+                  <label className="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-200">
                     Learning Goals
                   </label>
 
@@ -844,12 +869,12 @@ function ChildrenList() {
                     name="learning_goals"
                     value={formData.learning_goals}
                     onChange={handleInputChange}
-                    rows={4}
+                    rows={3}
                     placeholder="Describe reading, language or learning goals"
-                    className={`w-full resize-none rounded-xl border px-4 py-3 outline-none ${
+                    className={`w-full resize-none rounded-xl border px-4 py-3 outline-none bg-white dark:bg-slate-800 text-black dark:text-white placeholder:text-black/50 dark:placeholder:text-white/50 ${
                       formErrors.learning_goals
                         ? "border-red-400"
-                        : "border-slate-300 focus:border-rose-500"
+                        : "border-slate-300 dark:border-slate-700 focus:border-rose-500"
                     }`}
                   />
 
@@ -861,28 +886,59 @@ function ChildrenList() {
                 </div>
               </div>
 
-              <div className="flex gap-3 mt-8 justify-end">
+              {/* ── Sticky Footer — always visible, immune to CSS overrides ── */}
+              <div
+                className="shrink-0 flex items-center justify-end gap-3 px-6 py-4"
+                style={{
+                  borderTop: '1px solid var(--modal-border, #e2e8f0)',
+                  backgroundColor: 'var(--modal-footer, #f8fafc)',
+                }}
+              >
+                {/* Cancel */}
                 <button
                   type="button"
                   onClick={closeFormModal}
                   disabled={saving}
-                  className="px-6 py-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 font-semibold text-black dark:text-white text-sm hover:bg-slate-100 dark:hover:bg-slate-700 transition disabled:opacity-50"
+                  style={{
+                    padding: '0.625rem 1.5rem',
+                    borderRadius: '0.75rem',
+                    border: '2px solid var(--modal-border, #cbd5e1)',
+                    backgroundColor: 'var(--modal-bg, #ffffff)',
+                    color: 'var(--modal-title, #334155)',
+                    fontWeight: 700,
+                    fontSize: '0.875rem',
+                    cursor: saving ? 'not-allowed' : 'pointer',
+                    opacity: saving ? 0.5 : 1,
+                    transition: 'background-color 0.15s',
+                  }}
                 >
                   Cancel
                 </button>
 
+                {/* Update / Create */}
                 <button
                   type="submit"
                   disabled={saving}
-                  className="px-6 py-3 rounded-xl bg-rose-500 hover:bg-rose-600 font-semibold text-white text-sm flex items-center justify-center gap-2 transition disabled:opacity-60"
+                  style={{
+                    padding: '0.625rem 1.5rem',
+                    borderRadius: '0.75rem',
+                    border: 'none',
+                    background: 'linear-gradient(135deg, #f43f5e, #e11d48)',
+                    color: '#ffffff',
+                    fontWeight: 700,
+                    fontSize: '0.875rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '0.5rem',
+                    cursor: saving ? 'not-allowed' : 'pointer',
+                    opacity: saving ? 0.6 : 1,
+                    boxShadow: '0 4px 12px rgba(244,63,94,0.35)',
+                    transition: 'opacity 0.15s',
+                  }}
                 >
-                  {saving && <FaSpinner className="animate-spin" />}
-
-                  {saving
-                    ? "Saving..."
-                    : editingChild
-                    ? "Update Child"
-                    : "Create Child"}
+                  {saving && <FaSpinner className="animate-spin" style={{ fontSize: '0.875rem' }} />}
+                  {saving ? "Saving..." : editingChild ? "Update Child" : "Create Child"}
                 </button>
               </div>
             </form>

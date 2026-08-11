@@ -87,6 +87,14 @@
   --transition-smooth: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
   --transition-fast: all 0.2s ease;
   --transition-bounce: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+
+  /* Modal variables — light mode */
+  --modal-bg: #ffffff;
+  --modal-border: #e2e8f0;
+  --modal-title: #0f172a;
+  --modal-text: #475569;
+  --modal-chip: #f1f5f9;
+  --modal-footer: #f8fafc;
 }
 
 /* ── Dark Mode Overrides ── */
@@ -126,6 +134,14 @@ html.dark {
   --shadow-glow-purple: 0 8px 30px rgba(167, 139, 250, 0.15);
 
   color-scheme: dark;
+
+  /* Modal variables — dark mode */
+  --modal-bg: #1e293b;
+  --modal-border: #334155;
+  --modal-title: #f1f5f9;
+  --modal-text: #94a3b8;
+  --modal-chip: #0f172a;
+  --modal-footer: #0f172a;
 }
 
 /* ================================================================
