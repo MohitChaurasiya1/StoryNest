@@ -1,3 +1,4 @@
+import re
 from rest_framework import serializers
 from .models import (
     User, ParentProfile, ChildProfile, Story, StoryPage,
@@ -8,7 +9,11 @@ from .models import (
     TeacherProfile, TeacherClass, ClassStudent, Lesson, LessonSubmission, TeacherMessage,
     StoryApproval, Notification, ChildGoal, ReadingStreak,
     ReadingSchedule, StoryRating, RewardShopItem, RewardPurchase,
+    PasswordResetOTP, UserActivityLog,
 )
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from django.db.models import Q
+
 
 
 
@@ -16,34 +21,129 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ["id", "username", "email", "role", "phone"]
+        fields = ["id", "username", "email", "first_name", "last_name", "role", "phone"]
         read_only_fields = ["id"]
 
 
 class UserRegisterSerializer(serializers.ModelSerializer):
-    password = serializers.CharField(write_only=True, required=True, style={'input_type': 'password'})
+    email = serializers.EmailField(required=True)
+    password = serializers.CharField(write_only=True, required=True, min_length=6, style={'input_type': 'password'})
+    first_name = serializers.CharField(required=False, allow_blank=True)
+    last_name = serializers.CharField(required=False, allow_blank=True)
 
     class Meta:
         model = User
-        fields = ["id", "username", "email", "password", "role", "phone"]
+        fields = ["id", "username", "email", "password", "role", "phone", "first_name", "last_name"]
+
+    def validate_username(self, value):
+        value = value.strip()
+        if not re.match(r'^[a-zA-Z0-9_-]+$', value):
+            raise serializers.ValidationError("Username can only contain letters, numbers, underscores (_), and hyphens (-). Special characters like %^&*() are not allowed.")
+        if len(value) < 3:
+            raise serializers.ValidationError("Username must be at least 3 characters long.")
+        if User.objects.filter(username__iexact=value).exists():
+            raise serializers.ValidationError("A user with that username already exists.")
+        return value
+
+    def validate_email(self, value):
+        value = value.strip().lower()
+        strict_email_regex = r'^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+        if not re.match(strict_email_regex, value):
+            raise serializers.ValidationError("Invalid email format. Email can only contain letters, numbers, dots, underscores, and hyphens (e.g. user@example.com). Symbols like $%^&* are not allowed.")
+        if User.objects.filter(email__iexact=value).exists():
+            raise serializers.ValidationError("A user with that email address already exists.")
+        return value
+
+    def validate_first_name(self, value):
+        if value:
+            value = value.strip()
+            if not re.match(r'^[a-zA-Z\s\'-]+$', value):
+                raise serializers.ValidationError("First name can only contain alphabetic letters.")
+        return value
+
+    def validate_last_name(self, value):
+        if value:
+            value = value.strip()
+            if not re.match(r'^[a-zA-Z\s\'-]+$', value):
+                raise serializers.ValidationError("Last name can only contain alphabetic letters.")
+        return value
+
+    def validate_phone(self, value):
+        if value:
+            value = value.strip()
+            digits = re.sub(r'\D', '', value)
+            if len(digits) < 10 or len(digits) > 15:
+                raise serializers.ValidationError("Phone number must contain between 10 and 15 digits.")
+        return value
 
     def create(self, validated_data):
         user = User.objects.create_user(
             username=validated_data['username'],
-            email=validated_data.get('email', ''),
+            email=validated_data['email'],
             password=validated_data['password'],
             role=validated_data.get('role', User.Role.PARENT),
-            phone=validated_data.get('phone', '')
+            phone=validated_data.get('phone', ''),
+            first_name=validated_data.get('first_name', ''),
+            last_name=validated_data.get('last_name', '')
         )
-        # Auto-create ParentProfile for PARENT users
         if user.role == User.Role.PARENT:
             ParentProfile.objects.get_or_create(user=user)
+        elif user.role == User.Role.TEACHER:
+            TeacherProfile.objects.get_or_create(user=user)
         return user
+
 
 
 class ChangePasswordSerializer(serializers.Serializer):
     old_password = serializers.CharField(required=True)
     new_password = serializers.CharField(required=True, min_length=6)
+
+
+class ForgotPasswordSerializer(serializers.Serializer):
+    email = serializers.EmailField(required=True)
+
+
+class ResetPasswordSerializer(serializers.Serializer):
+    email = serializers.EmailField(required=True)
+    otp = serializers.CharField(required=True, min_length=6, max_length=6)
+    new_password = serializers.CharField(required=True, min_length=6)
+
+
+class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+    """
+    Custom JWT Token Serializer that accepts username OR email as login credential.
+    """
+    def validate(self, attrs):
+        username_or_email = attrs.get(self.username_field)
+        password = attrs.get('password')
+
+        if username_or_email and password:
+            user = User.objects.filter(
+                Q(username__iexact=username_or_email) | Q(email__iexact=username_or_email)
+            ).first()
+            if user:
+                attrs[self.username_field] = user.username
+
+        data = super().validate(attrs)
+        data['user'] = UserSerializer(self.user).data
+        return data
+
+
+class UserActivityLogSerializer(serializers.ModelSerializer):
+    username = serializers.ReadOnlyField(source='user.username')
+    email = serializers.ReadOnlyField(source='user.email')
+    user_role = serializers.ReadOnlyField(source='user.role')
+    first_name = serializers.ReadOnlyField(source='user.first_name')
+    last_name = serializers.ReadOnlyField(source='user.last_name')
+
+    class Meta:
+        model = UserActivityLog
+        fields = [
+            'id', 'user', 'username', 'email', 'user_role',
+            'first_name', 'last_name', 'action', 'ip_address',
+            'user_agent', 'details', 'timestamp'
+        ]
+
 
 
 class ParentProfileSerializer(serializers.ModelSerializer):

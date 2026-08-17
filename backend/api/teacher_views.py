@@ -5,6 +5,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.decorators import action
 from django.db.models import Avg, Count, Q, Sum
 from django.utils import timezone
+from .permissions import IsTeacher
 
 from .models import (
     User, ChildProfile, Story, ReadingLog, QuizAttempt,
@@ -17,7 +18,7 @@ from .serializers import (
 
 
 class TeacherDashboardView(APIView):
-    permission_classes = [AllowAny] # Allow demo fallback or authenticated teacher
+    permission_classes = [IsTeacher]
 
     def get(self, request):
         # 1. Total Students
@@ -113,7 +114,7 @@ class TeacherDashboardView(APIView):
 
 
 class TeacherAnalysisView(APIView):
-    permission_classes = [AllowAny]
+    permission_classes = [IsTeacher]
 
     def get(self, request):
         students_count = ChildProfile.objects.count()
@@ -180,7 +181,7 @@ class TeacherAnalysisView(APIView):
 
 
 class TeacherInboxViewSet(viewsets.ModelViewSet):
-    permission_classes = [AllowAny]
+    permission_classes = [IsTeacher]
     queryset = TeacherMessage.objects.all()
     serializer_class = TeacherMessageSerializer
 
@@ -210,7 +211,7 @@ class TeacherInboxViewSet(viewsets.ModelViewSet):
 
 
 class TeacherLessonViewSet(viewsets.ModelViewSet):
-    permission_classes = [AllowAny]
+    permission_classes = [IsTeacher]
     queryset = Lesson.objects.all()
     serializer_class = LessonSerializer
 
@@ -234,7 +235,7 @@ class TeacherLessonViewSet(viewsets.ModelViewSet):
 
 
 class TeacherStudentViewSet(viewsets.ModelViewSet):
-    permission_classes = [AllowAny]
+    permission_classes = [IsTeacher]
     queryset = ChildProfile.objects.all()
     serializer_class = ChildProfileSerializer
 
@@ -443,7 +444,7 @@ class TeacherStudentViewSet(viewsets.ModelViewSet):
 
 
 class TeacherSettingsView(APIView):
-    permission_classes = [AllowAny]
+    permission_classes = [IsTeacher]
 
     def get(self, request):
         teacher_user = request.user if request.user.is_authenticated and request.user.role == User.Role.TEACHER else User.objects.filter(role=User.Role.TEACHER).first()

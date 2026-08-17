@@ -1,5 +1,5 @@
 import React, { useRef, useLayoutEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { 
   FaMagic, 
   FaChartLine, 
@@ -11,16 +11,23 @@ import {
   FaCog, 
   FaUser, 
   FaArrowLeft,
-  FaHome
+  FaHome,
+  FaSignOutAlt
 } from 'react-icons/fa';
 import { useAuth } from '../../context/AuthContext';
 import './Sidebar.css';
 
 export default function Sidebar({ role }) {
   const location = useLocation();
+  const navigate = useNavigate();
   const navRef = useRef(null);
-  const { activeChild } = useAuth();
+  const { activeChild, logout, user } = useAuth();
   const childName = activeChild?.name || 'Child';
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
 
   useLayoutEffect(() => {
     const savedScroll = sessionStorage.getItem("sidebar_scroll_pos");
@@ -114,6 +121,13 @@ export default function Sidebar({ role }) {
           <FaHome className="nav-item-icon" />
           <span>Back to Landing</span>
         </Link>
+        <button 
+          onClick={handleLogout} 
+          className="sidebar-nav-item logout-btn text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30 w-full text-left cursor-pointer border-none bg-transparent"
+        >
+          <FaSignOutAlt className="nav-item-icon text-rose-500" />
+          <span>Sign Out</span>
+        </button>
       </div>
     </aside>
   );

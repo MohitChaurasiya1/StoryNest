@@ -717,3 +717,68 @@ class RewardPurchase(models.Model):
     def __str__(self):
         return f"{self.child.name} bought {self.item.name}"
 
+
+class PasswordResetOTP(models.Model):
+    """Stores a 6-digit OTP for password reset requests."""
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='password_reset_otps'
+    )
+    otp = models.CharField(max_length=6)
+    created_at = models.DateTimeField(auto_now_add=True)
+    is_used = models.BooleanField(default=False)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"OTP for {self.user.username} - {'Used' if self.is_used else 'Active'}"
+
+    def is_valid(self):
+        """Check if OTP is still valid (not used and within 10 minutes)."""
+        if self.is_used:
+            return False
+        expiry_time = self.created_at + timezone.timedelta(minutes=10)
+        return timezone.now() <= expiry_time
+
+    @classmethod
+    def generate_otp(cls, user):
+        """Generate a new 6-digit OTP for the given user, invalidating old ones."""
+        import random
+        # Invalidate all previous OTPs for this user
+        cls.objects.filter(user=user, is_used=False).update(is_used=True)
+        # Generate new 6-digit OTP
+        otp_code = f"{random.randint(100000, 999999)}"
+        otp_instance = cls.objects.create(user=user, otp=otp_code)
+        return otp_instance
+
+
+class UserActivityLog(models.Model):
+    """Logs user authentication and activity events (LOGIN, SIGNUP, PASSWORD_RESET, etc.)."""
+    ACTION_CHOICES = [
+        ('LOGIN', 'User Logged In'),
+        ('SIGNUP', 'New User Registered'),
+        ('PASSWORD_RESET_REQUEST', 'Password Reset Requested'),
+        ('PASSWORD_RESET_SUCCESS', 'Password Reset Successful'),
+        ('LOGOUT', 'User Logged Out'),
+    ]
+
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='activity_logs'
+    )
+    action = models.CharField(max_length=50, choices=ACTION_CHOICES)
+    ip_address = models.CharField(max_length=45, blank=True, null=True)
+    user_agent = models.TextField(blank=True, null=True)
+    details = models.CharField(max_length=255, blank=True, default='')
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-timestamp']
+
+    def __str__(self):
+        return f"{self.user.username} - {self.action} at {self.timestamp.strftime('%Y-%m-%d %H:%M:%S')}"
+
+

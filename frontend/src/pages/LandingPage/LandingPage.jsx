@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { 
-  FaMagic, 
-  FaChalkboardTeacher, 
-  FaUserShield, 
-  FaBook, 
-  FaArrowRight, 
+import {
+  FaMagic,
+  FaChalkboardTeacher,
+  FaUserShield,
+  FaBook,
+  FaArrowRight,
   FaHeart,
   FaStar,
   FaRocket,
@@ -16,14 +16,18 @@ import {
   FaBookOpen,
   FaChild,
   FaSun,
-  FaMoon
+  FaMoon,
+  FaSignOutAlt,
+  FaUser
 } from 'react-icons/fa';
+import { useAuth } from '../../context/AuthContext';
 import StoryBookPreview from '../../components/StoryBookPreview';
 import './LandingPage.css';
 
 export default function LandingPage() {
   const [showRoleModal, setShowRoleModal] = useState(false);
   const navigate = useNavigate();
+  const { user, isAuthenticated, logout } = useAuth();
   const [activeFeature, setActiveFeature] = useState(0);
   const [isDark, setIsDark] = useState(() => {
     const saved = localStorage.getItem('storynest-parent-theme');
@@ -51,9 +55,20 @@ export default function LandingPage() {
     return () => clearInterval(interval);
   }, []);
 
-  const handleRoleSelect = (rolePath) => {
+  const handleRoleSelect = (roleKey, targetPath) => {
     setShowRoleModal(false);
-    navigate(rolePath);
+    if (isAuthenticated) {
+      navigate(targetPath);
+    } else {
+      navigate(`/login?role=${roleKey}`, { state: { selectedRole: roleKey } });
+    }
+  };
+
+  const getDashboardPath = () => {
+    if (!user) return '/login';
+    if (user.role === 'TEACHER') return '/teacher';
+    if (user.role === 'ADMIN') return '/admin';
+    return '/parent';
   };
 
   const features = [
@@ -92,7 +107,7 @@ export default function LandingPage() {
           </div>
           <span>StoryNest</span>
         </div>
-        
+
         <nav className="header-nav">
           <a href="#features" className="nav-link">Features</a>
           <a href="#roles" className="nav-link">For Schools</a>
@@ -110,18 +125,30 @@ export default function LandingPage() {
           >
             {isDark ? <FaSun /> : <FaMoon />}
           </button>
-          <button 
-            className="btn btn-ghost"
-            onClick={() => setShowRoleModal(true)}
-          >
-            Sign in
-          </button>
-          <button 
-            className="btn btn-primary"
-            onClick={() => setShowRoleModal(true)}
-          >
-            Start free 🚀
-          </button>
+
+          {isAuthenticated ? (
+            <div className="flex items-center gap-3">
+              <Link to={getDashboardPath()} className="btn btn-primary">
+                Dashboard ({user.username})
+              </Link>
+              <button
+                onClick={logout}
+                className="btn btn-ghost"
+                title="Sign Out"
+              >
+                Sign out
+              </button>
+            </div>
+          ) : (
+            <>
+              <Link to="/login" className="btn btn-ghost">
+                Sign in
+              </Link>
+              <Link to="/register" className="btn btn-primary">
+                Sign up 🚀
+              </Link>
+            </>
+          )}
         </div>
       </header>
 
@@ -202,16 +229,16 @@ export default function LandingPage() {
         <div className="features-showcase">
           <div className="features-list">
             {features.map((feat, idx) => (
-              <div 
+              <div
                 key={idx}
                 className={`feature-item ${activeFeature === idx ? 'active' : ''}`}
                 onClick={() => setActiveFeature(idx)}
               >
-                <div 
+                <div
                   className="feature-indicator"
                   style={{ backgroundColor: feat.color }}
                 ></div>
-                <div 
+                <div
                   className="feature-icon-circle"
                   style={{ backgroundColor: feat.bg, color: feat.color }}
                 >
@@ -227,11 +254,11 @@ export default function LandingPage() {
 
           <div className="features-visual">
             <div className="feature-visual-card">
-              <div 
+              <div
                 className="visual-icon-big animate-float"
-                style={{ 
-                  backgroundColor: features[activeFeature].bg, 
-                  color: features[activeFeature].color 
+                style={{
+                  backgroundColor: features[activeFeature].bg,
+                  color: features[activeFeature].color
                 }}
               >
                 {features[activeFeature].icon}
@@ -329,7 +356,7 @@ export default function LandingPage() {
           </div>
           <h2 className="cta-title">Ready to Start Your Storytelling Journey?</h2>
           <p className="cta-subtitle">Join thousands of educators and parents creating magical learning experiences today.</p>
-          <button 
+          <button
             className="btn btn-primary cta-main-btn"
             onClick={() => setShowRoleModal(true)}
           >
@@ -345,9 +372,9 @@ export default function LandingPage() {
             <div className="modal-header-emoji">🐣</div>
             <h3 className="modal-title">Welcome to StoryNest</h3>
             <p className="modal-subtitle">Choose your portal to continue</p>
-            
+
             <div className="modal-buttons">
-              <button className="modal-role-btn modal-btn-coral" onClick={() => handleRoleSelect('/admin')}>
+              <button className="modal-role-btn modal-btn-coral" onClick={() => handleRoleSelect('ADMIN', '/admin')}>
                 <span className="modal-btn-emoji">🛡️</span>
                 <div className="role-btn-text">
                   <span className="role-btn-name">Administrator</span>
@@ -356,7 +383,7 @@ export default function LandingPage() {
                 <FaArrowRight className="modal-arrow" />
               </button>
 
-              <button className="modal-role-btn modal-btn-sky" onClick={() => handleRoleSelect('/teacher')}>
+              <button className="modal-role-btn modal-btn-sky" onClick={() => handleRoleSelect('TEACHER', '/teacher')}>
                 <span className="modal-btn-emoji">👩‍🏫</span>
                 <div className="role-btn-text">
                   <span className="role-btn-name">Teacher</span>
@@ -365,7 +392,7 @@ export default function LandingPage() {
                 <FaArrowRight className="modal-arrow" />
               </button>
 
-              <button className="modal-role-btn modal-btn-mint" onClick={() => handleRoleSelect('/parent')}>
+              <button className="modal-role-btn modal-btn-mint" onClick={() => handleRoleSelect('PARENT', '/parent')}>
                 <span className="modal-btn-emoji">👨‍👩‍👧</span>
                 <div className="role-btn-text">
                   <span className="role-btn-name">Parent</span>
@@ -374,7 +401,7 @@ export default function LandingPage() {
                 <FaArrowRight className="modal-arrow" />
               </button>
 
-              <button className="modal-role-btn modal-btn-purple" onClick={() => handleRoleSelect('/create')}>
+              <button className="modal-role-btn modal-btn-purple" onClick={() => handleRoleSelect('PARENT', '/create')}>
                 <span className="modal-btn-emoji">✨</span>
                 <div className="role-btn-text">
                   <span className="role-btn-name">Create Story</span>

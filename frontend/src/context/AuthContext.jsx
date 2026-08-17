@@ -1,11 +1,11 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { authApi, parentApi } from '../services/api';
+import { authApi, parentChildrenApi, tokenService, getApiErrorMessage } from '../services/api';
 
 const AuthContext = createContext();
 
 export function AuthProvider({ children: childrenComponents }) {
   const [user, setUser] = useState(null);
-  const [token, setToken] = useState(localStorage.getItem('storynest_access_token'));
+  const [token, setToken] = useState(tokenService.getAccessToken());
   const [childrenList, setChildrenList] = useState([]);
   const [activeChildId, setActiveChildId] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -14,95 +14,13 @@ export function AuthProvider({ children: childrenComponents }) {
   // Active child object
   const activeChild = childrenList.find(c => c.id === activeChildId) || childrenList[0] || null;
 
-  const initAuth = async () => {
-    setLoading(true);
-    setError(null);
+  const fetchUserData = async () => {
     try {
-      const ensureAuthenticated = async () => {
-        let storedToken = localStorage.getItem('storynest_access_token');
-        if (!storedToken) {
-          try {
-            const tokens = await authApi.login('parent_demo', 'pass1234');
-            localStorage.setItem('storynest_access_token', tokens.access);
-            localStorage.setItem('storynest_refresh_token', tokens.refresh);
-            localStorage.setItem('access_token', tokens.access);
-            localStorage.setItem('refresh_token', tokens.refresh);
-            setToken(tokens.access);
-          } catch (loginErr) {
-            try {
-              await authApi.register({
-                username: 'parent_demo',
-                password: 'pass1234',
-                email: 'parent@storynest.com',
-                first_name: 'Parent',
-                last_name: 'Demo',
-                role: 'PARENT',
-                phone: '1234567890'
-              });
-              const tokens = await authApi.login('parent_demo', 'pass1234');
-              localStorage.setItem('storynest_access_token', tokens.access);
-              localStorage.setItem('storynest_refresh_token', tokens.refresh);
-              localStorage.setItem('access_token', tokens.access);
-              localStorage.setItem('refresh_token', tokens.refresh);
-              setToken(tokens.access);
-            } catch (regErr) {
-              console.error('Demo registration error:', regErr);
-            }
-          }
-        }
-      };
-
-      await ensureAuthenticated();
-
-      let meData;
-      try {
-        meData = await authApi.getMe();
-      } catch (getMeErr) {
-        // If 401 or invalid token, clear tokens and re-login
-        localStorage.removeItem('storynest_access_token');
-        localStorage.removeItem('storynest_refresh_token');
-        localStorage.removeItem('access_token');
-        localStorage.removeItem('refresh_token');
-        await ensureAuthenticated();
-        meData = await authApi.getMe();
-      }
-
+      const meData = await authApi.getMe();
       setUser(meData.user);
-      
-      let fetchedChildren = meData.children || [];
-
-      if (fetchedChildren.length === 0) {
-        try {
-          const newChild = await parentApi.createChild({
-            name: "Leo",
-            age: 7,
-            gender: "boy",
-            grade_level: "Grade 2",
-            preferred_language: "Bilingual (EN/HI)",
-            avatar: "🦁"
-          });
-
-          try {
-            await parentApi.createReadingLog(newChild.id, {
-              story_title: "Leo and the Golden Tree",
-              reading_time_minutes: 32,
-              pages_read: 5,
-              completed: true,
-              rating: 5,
-              notes: "Great bedtime story!"
-            });
-          } catch (logErr) {
-            console.warn("Could not create initial log", logErr);
-          }
-
-          fetchedChildren = [newChild];
-        } catch (childCreateErr) {
-          console.warn("Could not create initial child profile", childCreateErr);
-        }
-      }
-
+      const fetchedChildren = meData.children || [];
       setChildrenList(fetchedChildren);
-      
+
       const savedActiveId = localStorage.getItem('storynest_active_child_id');
       const foundChild = fetchedChildren.find(c => String(c.id) === String(savedActiveId));
       if (foundChild) {
@@ -110,14 +28,33 @@ export function AuthProvider({ children: childrenComponents }) {
       } else if (fetchedChildren.length > 0) {
         setActiveChildId(fetchedChildren[0].id);
         localStorage.setItem('storynest_active_child_id', fetchedChildren[0].id);
+      } else {
+        setActiveChildId(null);
       }
 
+      setToken(tokenService.getAccessToken());
+      return meData;
     } catch (err) {
-      console.error('Auth initialization error:', err);
-      setError('Unable to authenticate. Please log in.');
-    } finally {
-      setLoading(false);
+      console.warn('Session verification failed:', err);
+      logout();
+      throw err;
     }
+  };
+
+  const initAuth = async () => {
+    setLoading(true);
+    setError(null);
+    if (tokenService.hasAccessToken()) {
+      try {
+        await fetchUserData();
+      } catch (err) {
+        // Token invalid or expired
+        setUser(null);
+      }
+    } else {
+      setUser(null);
+    }
+    setLoading(false);
   };
 
   useEffect(() => {
@@ -129,21 +66,59 @@ export function AuthProvider({ children: childrenComponents }) {
     localStorage.setItem('storynest_active_child_id', id);
   };
 
+  const login = async (username, password) => {
+    setError(null);
+    try {
+      const tokens = await authApi.login(username, password);
+      tokenService.setTokens(tokens);
+      setToken(tokens.access);
+      const meData = await fetchUserData();
+      return meData.user;
+    } catch (err) {
+      const msg = getApiErrorMessage(err, 'Invalid username or password.');
+      setError(msg);
+      throw new Error(msg);
+    }
+  };
+
+  const register = async (payload) => {
+    setError(null);
+    try {
+      const response = await authApi.register(payload);
+      return response;
+    } catch (err) {
+      const msg = getApiErrorMessage(err, 'Registration failed. Please check your details.');
+      setError(msg);
+      throw new Error(msg);
+    }
+  };
+
+  const logout = () => {
+    authApi.logout();
+    tokenService.clearTokens();
+    localStorage.removeItem('storynest_active_child_id');
+    setUser(null);
+    setToken(null);
+    setChildrenList([]);
+    setActiveChildId(null);
+    setError(null);
+  };
+
   const handleCreateChild = async (childData) => {
-    const newChild = await parentApi.createChild(childData);
+    const newChild = await parentChildrenApi.createChild(childData);
     setChildrenList(prev => [...prev, newChild]);
     changeActiveChild(newChild.id);
     return newChild;
   };
 
   const handleUpdateChild = async (id, childData) => {
-    const updated = await parentApi.updateChild(id, childData);
+    const updated = await parentChildrenApi.updateChild(id, childData);
     setChildrenList(prev => prev.map(c => c.id === id ? updated : c));
     return updated;
   };
 
   const handleDeleteChild = async (id) => {
-    await parentApi.deleteChild(id);
+    await parentChildrenApi.deleteChild(id);
     const remaining = childrenList.filter(c => c.id !== id);
     setChildrenList(remaining);
     if (activeChildId === id && remaining.length > 0) {
@@ -153,31 +128,37 @@ export function AuthProvider({ children: childrenComponents }) {
     }
   };
 
-  const logout = () => {
-    localStorage.removeItem('storynest_access_token');
-    localStorage.removeItem('storynest_refresh_token');
-    localStorage.removeItem('storynest_active_child_id');
-    setUser(null);
-    setToken(null);
-    setChildrenList([]);
-    setActiveChildId(null);
+  const handleUpdateProfile = async (payload) => {
+    const updatedUser = await authApi.updateProfile(payload);
+    setUser(prev => ({ ...prev, ...updatedUser }));
+    return updatedUser;
+  };
+
+  const handleChangePassword = async (payload) => {
+    const result = await authApi.changePassword(payload);
+    return result;
   };
 
   return (
     <AuthContext.Provider value={{
       user,
       token,
+      isAuthenticated: Boolean(user),
       loading,
       error,
       childrenList,
       activeChild,
       activeChildId,
       setActiveChildId: changeActiveChild,
+      login,
+      register,
+      logout,
+      updateProfile: handleUpdateProfile,
+      changePassword: handleChangePassword,
       createChild: handleCreateChild,
       updateChild: handleUpdateChild,
       deleteChild: handleDeleteChild,
-      refreshChildren: initAuth,
-      logout
+      refreshChildren: fetchUserData
     }}>
       {childrenComponents}
     </AuthContext.Provider>
@@ -191,3 +172,4 @@ export function useAuth() {
   }
   return context;
 }
+

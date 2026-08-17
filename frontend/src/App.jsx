@@ -3,6 +3,9 @@ import { useEffect } from 'react';
 import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import LandingPage from './pages/LandingPage';
+import LoginPage from './pages/LoginPage';
+import RegisterPage from './pages/RegisterPage';
+import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import AdminDashboard from './pages/AdminDashboard';
 import TeacherDashboard from './pages/TeacherDashboard';
 import ParentDashboard from './pages/ParentDashboard';
@@ -43,14 +46,6 @@ function ScrollToTop() {
 }
 
 function App() {
-  // Auto‑reload the entire app every 5 minutes to keep data fresh
-  useEffect(() => {
-    const intervalId = setInterval(() => {
-      window.location.reload();
-    }, 300000); // 5 min
-    return () => clearInterval(intervalId);
-  }, []);
-
   return (
     <AuthProvider>
       <BrowserRouter>
@@ -58,10 +53,14 @@ function App() {
         <Routes>
 
           <Route path="/" element={<LandingPage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          
           <Route
             path="/admin"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['ADMIN']}>
                 <AdminDashboard />
               </ProtectedRoute>
             }
@@ -69,7 +68,7 @@ function App() {
           <Route
             path="/teacher"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['TEACHER', 'ADMIN']}>
                 <TeacherDashboard activeTab="dashboard" />
               </ProtectedRoute>
             }
@@ -77,7 +76,7 @@ function App() {
           <Route
             path="/teacher/analysis"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['TEACHER', 'ADMIN']}>
                 <TeacherDashboard activeTab="analysis" />
               </ProtectedRoute>
             }
@@ -85,7 +84,7 @@ function App() {
           <Route
             path="/teacher/inbox"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['TEACHER', 'ADMIN']}>
                 <TeacherDashboard activeTab="inbox" />
               </ProtectedRoute>
             }
@@ -93,7 +92,7 @@ function App() {
           <Route
             path="/teacher/lessons"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['TEACHER', 'ADMIN']}>
                 <TeacherDashboard activeTab="lessons" />
               </ProtectedRoute>
             }
@@ -101,7 +100,7 @@ function App() {
           <Route
             path="/teacher/students"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['TEACHER', 'ADMIN']}>
                 <TeacherDashboard activeTab="students" />
               </ProtectedRoute>
             }
@@ -109,7 +108,7 @@ function App() {
           <Route
             path="/teacher/settings"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['TEACHER', 'ADMIN']}>
                 <TeacherDashboard activeTab="settings" />
               </ProtectedRoute>
             }
@@ -117,7 +116,7 @@ function App() {
           <Route
             path="/parent"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['PARENT', 'ADMIN']}>
                 <ParentDashboard />
               </ProtectedRoute>
             }
@@ -326,7 +325,7 @@ function App() {
           <Route
             path="/create"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['PARENT', 'TEACHER', 'ADMIN']}>
                 <StoryCreator />
               </ProtectedRoute>
             }
@@ -334,7 +333,7 @@ function App() {
           <Route
             path="/story/:id"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['PARENT', 'TEACHER', 'ADMIN']}>
                 <StoryReader />
               </ProtectedRoute>
             }

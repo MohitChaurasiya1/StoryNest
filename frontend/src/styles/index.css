@@ -290,7 +290,7 @@ button, input, textarea, select {
 button {
   cursor: pointer;
   border: none;
-  background: none;
+  background: transparent;
 }
 
 /* Core Layouts */

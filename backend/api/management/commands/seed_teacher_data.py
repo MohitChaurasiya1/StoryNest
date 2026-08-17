@@ -1,7 +1,7 @@
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 from api.models import (
-    User, ChildProfile, TeacherProfile, TeacherClass, ClassStudent,
+    User, ParentProfile, ChildProfile, TeacherProfile, TeacherClass, ClassStudent,
     Lesson, LessonSubmission, TeacherMessage, Story, ReadingLog, QuizAttempt, Quiz
 )
 
@@ -22,10 +22,41 @@ class Command(BaseCommand):
                 'role': User.Role.TEACHER,
             }
         )
+        teacher_user.set_password('pass1234')
+        teacher_user.save()
         if created:
-            teacher_user.set_password('teacher123')
-            teacher_user.save()
             self.stdout.write('Created teacher user: teacher_rivera')
+
+        # 1b. Teacher Demo User (for quick fill)
+        teacher_demo, _ = User.objects.get_or_create(
+            username='teacher_demo',
+            defaults={
+                'email': 'teacher@storynest.com',
+                'first_name': 'Maria',
+                'last_name': 'Rivera',
+                'role': User.Role.TEACHER,
+            }
+        )
+        teacher_demo.set_password('pass1234')
+        teacher_demo.save()
+
+        # 1c. Admin Demo User
+        admin_user, _ = User.objects.get_or_create(
+            username='admin_demo',
+            defaults={
+                'email': 'mohitkumar339900@gmail.com',
+                'first_name': 'Admin',
+                'last_name': 'Demo',
+                'role': User.Role.ADMIN,
+                'is_staff': True,
+                'is_superuser': True,
+            }
+        )
+        admin_user.email = 'mohitkumar339900@gmail.com'
+        admin_user.set_password('pass1234')
+        admin_user.is_staff = True
+        admin_user.is_superuser = True
+        admin_user.save()
 
         # 2. Teacher Profile
         profile, _ = TeacherProfile.objects.get_or_create(
@@ -35,6 +66,18 @@ class Command(BaseCommand):
                 'grade_level': 'Grade 2 & Grade 3',
                 'subject': 'Primary Reading & Literature',
                 'bio': 'Passionate 2nd grade lead teacher specializing in story-driven language arts.',
+                'avatar': 'MR',
+                'email_notifications': True,
+                'theme_preference': 'light'
+            }
+        )
+        TeacherProfile.objects.get_or_create(
+            user=teacher_demo,
+            defaults={
+                'school_name': 'Oakridge Elementary School',
+                'grade_level': 'Grade 2 & Grade 3',
+                'subject': 'Primary Reading & Literature',
+                'bio': 'Lead demo teacher specializing in story-driven language arts.',
                 'avatar': 'MR',
                 'email_notifications': True,
                 'theme_preference': 'light'
@@ -50,15 +93,38 @@ class Command(BaseCommand):
                 'academic_year': '2025-2026'
             }
         )
+        TeacherClass.objects.get_or_create(
+            teacher=teacher_demo,
+            name='Grade 2 - Owls',
+            defaults={
+                'grade_level': 'Grade 2',
+                'academic_year': '2025-2026'
+            }
+        )
 
         # 4. Default Parent User for Students
         parent_user, _ = User.objects.get_or_create(
             username='parent_demo',
             defaults={
-                'email': 'parent@example.com',
+                'email': 'parent@storynest.com',
                 'role': User.Role.PARENT,
             }
         )
+        parent_user.set_password('pass1234')
+        parent_user.save()
+        ParentProfile.objects.get_or_create(user=parent_user, defaults={'theme_preference': 'light', 'preferred_language': 'en'})
+
+        # Alias parents_demo user
+        parent_alias, _ = User.objects.get_or_create(
+            username='parents_demo',
+            defaults={
+                'email': 'parents@storynest.com',
+                'role': User.Role.PARENT,
+            }
+        )
+        parent_alias.set_password('pass1234')
+        parent_alias.save()
+        ParentProfile.objects.get_or_create(user=parent_alias, defaults={'theme_preference': 'light', 'preferred_language': 'en'})
 
         # 5. Students
         sample_students = [

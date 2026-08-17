@@ -12,6 +12,8 @@ from .parent_views import (
     ChangePasswordView,
     UpdateProfileView,
     DeleteAccountView,
+    ForgotPasswordView,
+    ResetPasswordView,
     ParentProfileView,
     ChildProfileViewSet,
     ParentDashboardView,
@@ -48,6 +50,13 @@ from .parent_views_extended import (
     MultiChildComparisonView, AIInsightsView, AIStoryRecommendationView,
     GlobalSearchView, ReportExportView,
 )
+from .admin_views import (
+    CustomTokenObtainPairView,
+    AdminDashboardStatsView,
+    AdminActivityLogListView,
+    AdminUserListView,
+    AdminUserToggleActiveView,
+)
 
 router = DefaultRouter()
 router.register(r'stories', StoryViewSet, basename='story')
@@ -67,6 +76,12 @@ urlpatterns = [
     # Story endpoints
     path('stories/generate/', generate_story_api, name='generate_story'),
 
+    # Admin Module Endpoints
+    path('admin/stats/', AdminDashboardStatsView.as_view(), name='admin_stats'),
+    path('admin/logs/', AdminActivityLogListView.as_view(), name='admin_activity_logs'),
+    path('admin/users/', AdminUserListView.as_view(), name='admin_users'),
+    path('admin/users/<int:user_id>/toggle/', AdminUserToggleActiveView.as_view(), name='admin_user_toggle'),
+
     # Teacher Module Endpoints
     path('teacher/dashboard/', TeacherDashboardView.as_view(), name='teacher_dashboard'),
     path('teacher/analysis/', TeacherAnalysisView.as_view(), name='teacher_analysis'),
@@ -75,12 +90,20 @@ urlpatterns = [
     # Auth JWT & Profile endpoints
     path('auth/register/', RegisterView.as_view(), name='auth_register'),
     path('auth/me/', MeView.as_view(), name='auth_me'),
-    path('auth/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('auth/token/', CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('auth/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('auth/change-password/', ChangePasswordView.as_view(), name='auth_change_password'),
+    path('auth/update-profile/', UpdateProfileView.as_view(), name='auth_update_profile'),
+    path('auth/delete-account/', DeleteAccountView.as_view(), name='auth_delete_account'),
+
     path('parent/auth/change-password/', ChangePasswordView.as_view(), name='parent_change_password'),
     path('parent/auth/update-profile/', UpdateProfileView.as_view(), name='parent_update_profile'),
     path('parent/auth/delete-account/', DeleteAccountView.as_view(), name='parent_delete_account'),
     path('parent/profile/', ParentProfileView.as_view(), name='parent_profile'),
+
+    # Forgot/Reset Password (public, no auth required)
+    path('auth/forgot-password/', ForgotPasswordView.as_view(), name='forgot_password'),
+    path('auth/reset-password/', ResetPasswordView.as_view(), name='reset_password'),
 
     # Parent Dashboard & Library
     path('parent/dashboard/', ParentDashboardView.as_view(), name='parent_dashboard'),

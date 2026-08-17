@@ -37,31 +37,49 @@ const api = axios.create({
 
 export const tokenService = {
   getAccessToken() {
-    return localStorage.getItem(AUTH_TOKEN_KEY);
+    return (
+      localStorage.getItem(AUTH_TOKEN_KEY) ||
+      localStorage.getItem("storynest_access_token") ||
+      localStorage.getItem("access_token")
+    );
   },
 
   getRefreshToken() {
-    return localStorage.getItem(REFRESH_TOKEN_KEY);
+    return (
+      localStorage.getItem(REFRESH_TOKEN_KEY) ||
+      localStorage.getItem("storynest_refresh_token") ||
+      localStorage.getItem("refresh_token")
+    );
   },
 
   setTokens({ access, refresh }) {
     if (access) {
       localStorage.setItem(AUTH_TOKEN_KEY, access);
+      localStorage.setItem("storynest_access_token", access);
+      localStorage.setItem("access_token", access);
     }
     if (refresh) {
       localStorage.setItem(REFRESH_TOKEN_KEY, refresh);
+      localStorage.setItem("storynest_refresh_token", refresh);
+      localStorage.setItem("refresh_token", refresh);
     }
   },
 
   setAccessToken(accessToken) {
     if (accessToken) {
       localStorage.setItem(AUTH_TOKEN_KEY, accessToken);
+      localStorage.setItem("storynest_access_token", accessToken);
+      localStorage.setItem("access_token", accessToken);
     }
   },
 
   clearTokens() {
     localStorage.removeItem(AUTH_TOKEN_KEY);
     localStorage.removeItem(REFRESH_TOKEN_KEY);
+    localStorage.removeItem("storynest_access_token");
+    localStorage.removeItem("storynest_refresh_token");
+    localStorage.removeItem("access_token");
+    localStorage.removeItem("refresh_token");
   },
 
   hasAccessToken() {
@@ -386,6 +404,32 @@ export const authApi = {
     return {
       access: accessToken,
     };
+  },
+
+  async forgotPassword(email) {
+    const response = await api.post("/auth/forgot-password/", { email });
+    return unwrapResponse(response);
+  },
+
+  async resetPassword(payload) {
+    const response = await api.post("/auth/reset-password/", payload);
+    return unwrapResponse(response);
+  },
+
+  async changePassword(payload) {
+    const response = await api.post("/auth/change-password/", payload);
+    return unwrapResponse(response);
+  },
+
+  async updateProfile(payload) {
+    const response = await api.patch("/auth/update-profile/", payload);
+    return unwrapResponse(response);
+  },
+
+  async deleteAccount(payload = {}) {
+    const response = await api.delete("/auth/delete-account/", { data: payload });
+    tokenService.clearTokens();
+    return unwrapResponse(response);
   },
 
   logout() {
@@ -1052,6 +1096,23 @@ export const parentFamilyLogsApi = {
 
     return unwrapResponse(response);
   },
+
+  async updateChildReadingLog(childId, logId, payload) {
+    const response = await api.patch(
+      `/parent/children/${childId}/reading-logs/${logId}/`,
+      payload
+    );
+
+    return unwrapResponse(response);
+  },
+
+  async deleteChildReadingLog(childId, logId) {
+    const response = await api.delete(
+      `/parent/children/${childId}/reading-logs/${logId}/`
+    );
+
+    return unwrapResponse(response);
+  },
 };
 
 /*
@@ -1067,7 +1128,7 @@ export const parentFamilyLogsApi = {
 |
 | parentChildrenApi.getChildren()
 |
-*/
+| */
 
 export const parentApi = {
   auth: parentAuthApi,
@@ -1095,12 +1156,14 @@ export const parentApi = {
   getInsights: (childId, params) =>
     parentDashboardApi.getChildInsights(childId, params),
 
-  // Compatibility helpers for AuthContext
+  // Compatibility helpers for AuthContext & Dashboard
   createChild: (data) => parentChildrenApi.createChild(data),
   updateChild: (id, data) => parentChildrenApi.updateChild(id, data),
   deleteChild: (id) => parentChildrenApi.deleteChild(id),
   createReadingLog: (childId, data) =>
     parentFamilyLogsApi.createChildReadingLog(childId, data),
+  deleteReadingLog: (childId, logId) =>
+    parentFamilyLogsApi.deleteChildReadingLog(childId, logId),
 };
 
 /*
@@ -1231,6 +1294,19 @@ export const teacherAPI = {
   issueCertificate: (id, data) => http.post(`/teacher/students/${id}/issue_certificate/`, data),
   getSettings: () => http.get("/teacher/settings/"),
   updateSettings: (data) => http.put("/teacher/settings/", data),
+};
+
+/*
+|--------------------------------------------------------------------------
+| Admin Module API
+|--------------------------------------------------------------------------
+*/
+
+export const adminAPI = {
+  getStats: () => http.get("/admin/stats/"),
+  getActivityLogs: (params) => http.get("/admin/logs/", { params }),
+  getUsers: (params) => http.get("/admin/users/", { params }),
+  toggleUserActive: (userId) => http.patch(`/admin/users/${userId}/toggle/`),
 };
 
 export default api;

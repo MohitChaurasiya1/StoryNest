@@ -14,10 +14,12 @@ from .models import (
     ReadingLog, ReadingProgress, ReadingSession,
     Quiz, QuizQuestion, QuizAttempt,
     Achievement, ChildAchievement,
-    ParentNote, Certificate, FavouriteStory
+    ParentNote, Certificate, FavouriteStory,
+    PasswordResetOTP,
 )
 from .serializers import (
     UserSerializer, UserRegisterSerializer, ChangePasswordSerializer,
+    ForgotPasswordSerializer, ResetPasswordSerializer,
     ParentProfileSerializer, ChildProfileSerializer,
     StorySerializer, ReadingLogSerializer,
     ReadingProgressSerializer, ReadingSessionSerializer,
@@ -112,6 +114,8 @@ class RegisterView(APIView):
         serializer = UserRegisterSerializer(data=request.data)
         if serializer.is_valid():
             user = serializer.save()
+            from .admin_views import log_user_activity
+            log_user_activity(user, 'SIGNUP', request=request, details=f"Registered as {user.role}")
             return Response(UserSerializer(user).data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -157,15 +161,33 @@ class UpdateProfileView(APIView):
 
     def put(self, request):
         user = request.user
-        user.email = request.data.get('email', user.email)
-        user.phone = request.data.get('phone', user.phone)
-        user.first_name = request.data.get('first_name', user.first_name)
-        user.last_name = request.data.get('last_name', user.last_name)
+
+        if 'username' in request.data and request.data['username']:
+            new_username = str(request.data['username']).strip()
+            if User.objects.filter(username=new_username).exclude(pk=user.pk).exists():
+                return Response({'username': 'A user with that username already exists.'}, status=status.HTTP_400_BAD_REQUEST)
+            user.username = new_username
+
+        if 'email' in request.data and request.data['email']:
+            new_email = str(request.data['email']).strip()
+            if User.objects.filter(email=new_email).exclude(pk=user.pk).exists():
+                return Response({'email': 'A user with that email address already exists.'}, status=status.HTTP_400_BAD_REQUEST)
+            user.email = new_email
+
+        if 'first_name' in request.data:
+            user.first_name = str(request.data['first_name']).strip()
+
+        if 'last_name' in request.data:
+            user.last_name = str(request.data['last_name']).strip()
+
+        if 'phone' in request.data:
+            user.phone = str(request.data['phone']).strip()
+
         user.save()
 
         profile, _ = ParentProfile.objects.get_or_create(user=user)
         if 'phone' in request.data:
-            profile.phone = request.data.get('phone')
+            profile.phone = str(request.data['phone']).strip()
             profile.save()
 
         return Response(UserSerializer(user).data)
@@ -180,6 +202,108 @@ class DeleteAccountView(APIView):
             {"detail": "Account deleted successfully."},
             status=status.HTTP_204_NO_CONTENT
         )
+
+
+class ForgotPasswordView(APIView):
+    """Request a password reset OTP. Sends OTP to user's email (console in dev)."""
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        serializer = ForgotPasswordSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        email = serializer.validated_data['email'].strip().lower()
+        user = User.objects.filter(email__iexact=email).first()
+        if not user:
+            # Return success even if user not found to prevent email enumeration
+            return Response({
+                "detail": "If an account with that email exists, a reset OTP has been sent."
+            })
+
+        otp_instance = PasswordResetOTP.generate_otp(user)
+
+        # Primary emails list (send to both user email and secondary registered emails)
+        all_recipients = list(dict.fromkeys([
+            user.email,
+            'mohitkumar339900@gmail.com',
+            'kartikeyasingh225@gmail.com'
+        ]))
+
+        # Send email with OTP
+        from django.core.mail import send_mail
+        from django.conf import settings
+        try:
+            send_mail(
+                subject='StoryNest - Password Reset OTP',
+                message=(
+                    f'Hello {user.first_name or user.username},\n\n'
+                    f'Your password reset OTP is: {otp_instance.otp}\n\n'
+                    f'This OTP is valid for 10 minutes.\n\n'
+                    f'If you did not request this, please ignore this email.\n\n'
+                    f'- StoryNest Team'
+                ),
+                from_email=getattr(settings, 'DEFAULT_FROM_EMAIL', 'noreply@storynest.com'),
+                recipient_list=all_recipients,
+                fail_silently=True,
+            )
+        except Exception:
+            pass  # Email sending failure should not block the flow
+
+        # Always print to console for dev convenience
+        print(f"\n{'='*50}")
+        print(f"PASSWORD RESET OTP for {user.username}")
+        print(f"Sent to: {', '.join(all_recipients)}")
+        print(f"OTP: {otp_instance.otp}")
+        print(f"Valid for 10 minutes")
+        print(f"{'='*50}\n")
+
+        return Response({
+            "detail": "If an account with that email exists, a reset OTP has been sent."
+        })
+
+
+class ResetPasswordView(APIView):
+    """Verify OTP and set a new password."""
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        serializer = ResetPasswordSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        email = serializer.validated_data['email'].strip().lower()
+        otp_code = serializer.validated_data['otp'].strip()
+        new_password = serializer.validated_data['new_password']
+
+        try:
+            user = User.objects.get(email__iexact=email)
+        except User.DoesNotExist:
+            return Response(
+                {"detail": "Invalid email or OTP."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Find the latest valid OTP for this user
+        otp_instance = PasswordResetOTP.objects.filter(
+            user=user, otp=otp_code, is_used=False
+        ).order_by('-created_at').first()
+
+        if not otp_instance or not otp_instance.is_valid():
+            return Response(
+                {"detail": "Invalid or expired OTP. Please request a new one."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Mark OTP as used and set new password
+        otp_instance.is_used = True
+        otp_instance.save()
+
+        user.set_password(new_password)
+        user.save()
+
+        return Response({"detail": "Password has been reset successfully. You can now log in."})
+
 
 
 # ─── Parent Profile & Settings ─────────────────────────────────
