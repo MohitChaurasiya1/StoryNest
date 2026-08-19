@@ -7,7 +7,26 @@ import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import AdminDashboard from './pages/AdminDashboard';
-import TeacherDashboard from './pages/TeacherDashboard';
+import TeacherDashboard from './pages/TeacherDashboard/TeacherDashboard';
+import TeacherLayout from './components/TeacherModule/TeacherLayout';
+import TeacherClassrooms from './components/TeacherModule/TeacherClassrooms';
+import TeacherClassroomDetails from './components/TeacherModule/TeacherClassroomDetails';
+import TeacherStoryLibrary from './components/TeacherModule/TeacherStoryLibrary';
+import TeacherReadingProgress from './components/TeacherModule/TeacherReadingProgress';
+import TeacherQuizReports from './components/TeacherModule/TeacherQuizReports';
+import TeacherLearningGoals from './components/TeacherModule/TeacherLearningGoals';
+import TeacherAchievements from './components/TeacherModule/TeacherAchievements';
+import TeacherCertificates from './components/TeacherModule/TeacherCertificates';
+import TeacherAnalytics from './components/TeacherModule/TeacherAnalytics';
+import TeacherAIInsights from './components/TeacherModule/TeacherAIInsights';
+import TeacherRecommendations from './components/TeacherModule/TeacherRecommendations';
+import TeacherComparison from './components/TeacherModule/TeacherComparison';
+import TeacherReports from './components/TeacherModule/TeacherReports';
+import TeacherResources from './components/TeacherModule/TeacherResources';
+import TeacherNotifications from './components/TeacherModule/TeacherNotifications';
+import TeacherAssignments from './components/TeacherModule/TeacherAssignments';
+import TeacherSchedule from './components/TeacherModule/TeacherSchedule';
+import TeacherLessons from './components/TeacherModule/TeacherLessons';
 import ParentDashboard from './pages/ParentDashboard';
 import ChildrenList from './components/ParentModule/ChildrenList';
 import ChildDetails from './components/ParentModule/ChildDetails';
@@ -69,50 +88,37 @@ function App() {
             path="/teacher"
             element={
               <ProtectedRoute allowedRoles={['TEACHER', 'ADMIN']}>
-                <TeacherDashboard activeTab="dashboard" />
+                <TeacherLayout />
               </ProtectedRoute>
             }
-          />
-          <Route
-            path="/teacher/analysis"
-            element={
-              <ProtectedRoute allowedRoles={['TEACHER', 'ADMIN']}>
-                <TeacherDashboard activeTab="analysis" />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/teacher/inbox"
-            element={
-              <ProtectedRoute allowedRoles={['TEACHER', 'ADMIN']}>
-                <TeacherDashboard activeTab="inbox" />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/teacher/lessons"
-            element={
-              <ProtectedRoute allowedRoles={['TEACHER', 'ADMIN']}>
-                <TeacherDashboard activeTab="lessons" />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/teacher/students"
-            element={
-              <ProtectedRoute allowedRoles={['TEACHER', 'ADMIN']}>
-                <TeacherDashboard activeTab="students" />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/teacher/settings"
-            element={
-              <ProtectedRoute allowedRoles={['TEACHER', 'ADMIN']}>
-                <TeacherDashboard activeTab="settings" />
-              </ProtectedRoute>
-            }
-          />
+          >
+            {/* Phase 1: Keep existing dashboard logic for now by mapping everything into the layout */}
+            <Route index element={<TeacherDashboard activeTab="dashboard" />} />
+            <Route path="classrooms" element={<TeacherClassrooms />} />
+            <Route path="classrooms/:id" element={<TeacherClassroomDetails />} />
+            <Route path="library" element={<TeacherStoryLibrary />} />
+            <Route path="progress" element={<TeacherReadingProgress />} />
+            <Route path="quizzes" element={<TeacherQuizReports />} />
+            <Route path="goals" element={<TeacherLearningGoals />} />
+            <Route path="achievements" element={<TeacherAchievements />} />
+            <Route path="certificates" element={<TeacherCertificates />} />
+            <Route path="analytics" element={<TeacherAnalytics />} />
+            <Route path="insights" element={<TeacherAIInsights />} />
+            <Route path="recommendations" element={<TeacherRecommendations />} />
+            <Route path="comparison" element={<TeacherComparison />} />
+            <Route path="reports" element={<TeacherReports />} />
+            <Route path="resources" element={<TeacherResources />} />
+            <Route path="notifications" element={<TeacherNotifications />} />
+            <Route path="inbox" element={<TeacherDashboard activeTab="inbox" />} />
+            <Route path="messages" element={<TeacherDashboard activeTab="inbox" />} />
+            <Route path="lessons" element={<TeacherLessons />} />
+            <Route path="assignments" element={<TeacherAssignments />} />
+            <Route path="schedule" element={<TeacherSchedule />} />
+            <Route path="students" element={<TeacherDashboard activeTab="students" />} />
+            <Route path="settings" element={<TeacherDashboard activeTab="settings" />} />
+            {/* Future nested routes will replace these mapped activeTab components */}
+            <Route path="*" element={<TeacherDashboard activeTab="dashboard" />} />
+          </Route>
           <Route
             path="/parent"
             element={

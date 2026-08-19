@@ -261,40 +261,11 @@ export default function TeacherDashboard({ activeTab: tabProp }) {
   };
 
   return (
-    <div className="dashboard-layout animate-fade-in">
-      <Sidebar role="teacher" />
-
-      <main className="dashboard-content">
-        {/* Top Navigation Header */}
-        <header className="dashboard-top-nav">
-          <div className="top-nav-left">
-            <h2 className="serif-heading dashboard-welcome">Good morning, {profile.name}</h2>
-            <p className="text-muted" style={{ fontSize: '0.85rem' }}>
-              {profile.school} · {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
-            </p>
-          </div>
-          <div className="top-nav-right">
-            <div className="search-bar">
-              <FaSearch className="search-icon" />
-              <input type="text" placeholder="Search..." onClick={() => navigate('/teacher/students')} />
-            </div>
-            <button 
-              className="top-nav-btn bell-btn" 
-              title="Notifications / Inbox"
-              onClick={() => navigate('/teacher/inbox')}
-            >
-              <FaBell />
-              {profile.unread_messages > 0 && <span className="bell-badge"></span>}
-            </button>
-            <div className="teacher-profile-avatar" onClick={() => navigate('/teacher/settings')} style={{ cursor: 'pointer' }}>
-              {profile.avatar || 'MR'}
-            </div>
-          </div>
-        </header>
-
+    <div className="dashboard-layout animate-fade-in" style={{ padding: 0, background: 'transparent' }}>
+      <div className="dashboard-content" style={{ marginLeft: 0, marginTop: 0, padding: 0 }}>
         {/* Dynamic Content */}
         {renderActiveContent()}
-      </main>
+      </div>
     </div>
   );
 }

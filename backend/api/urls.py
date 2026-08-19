@@ -40,6 +40,7 @@ from .teacher_views import (
     TeacherLessonViewSet,
     TeacherStudentViewSet,
     TeacherSettingsView,
+    TeacherClassroomViewSet,
 )
 
 from .parent_views_extended import (
@@ -71,6 +72,7 @@ router.register(r'parent/rewards/shop', RewardShopItemViewSet, basename='reward-
 router.register(r'teacher/inbox', TeacherInboxViewSet, basename='teacher-inbox')
 router.register(r'teacher/lessons', TeacherLessonViewSet, basename='teacher-lessons')
 router.register(r'teacher/students', TeacherStudentViewSet, basename='teacher-students')
+router.register(r'teacher/classrooms', TeacherClassroomViewSet, basename='teacher-classrooms')
 
 urlpatterns = [
     # Story endpoints

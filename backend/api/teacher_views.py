@@ -234,6 +234,36 @@ class TeacherLessonViewSet(viewsets.ModelViewSet):
         })
 
 
+class TeacherClassroomViewSet(viewsets.ModelViewSet):
+    permission_classes = [IsTeacher]
+    queryset = TeacherClass.objects.all()
+    serializer_class = TeacherClassSerializer
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.is_authenticated and user.role == User.Role.TEACHER:
+            return TeacherClass.objects.filter(teacher=user)
+        return TeacherClass.objects.all()
+
+    def perform_create(self, serializer):
+        teacher_user = self.request.user if self.request.user.is_authenticated else User.objects.filter(role=User.Role.TEACHER).first()
+        if not teacher_user:
+            teacher_user = User.objects.first()
+        serializer.save(teacher=teacher_user)
+
+    @action(detail=True, methods=['get'])
+    def students(self, request, pk=None):
+        classroom = self.get_object()
+        enrollments = ClassStudent.objects.filter(classroom=classroom)
+        children = [e.child for e in enrollments]
+        serializer = ChildProfileSerializer(children, many=True)
+        return Response({
+            'classroom_id': classroom.id,
+            'classroom_name': classroom.name,
+            'students': serializer.data
+        })
+
+
 class TeacherStudentViewSet(viewsets.ModelViewSet):
     permission_classes = [IsTeacher]
     queryset = ChildProfile.objects.all()
