@@ -25,7 +25,10 @@ import TeacherReports from './components/TeacherModule/TeacherReports';
 import TeacherResources from './components/TeacherModule/TeacherResources';
 import TeacherNotifications from './components/TeacherModule/TeacherNotifications';
 import TeacherAssignments from './components/TeacherModule/TeacherAssignments';
+import TeacherAssignmentDetails from './components/TeacherModule/TeacherAssignmentDetails';
 import TeacherSchedule from './components/TeacherModule/TeacherSchedule';
+import TeacherStudents from './components/TeacherModule/TeacherStudents';
+import TeacherStudentProfile from './components/TeacherModule/TeacherStudentProfile';
 import TeacherLessons from './components/TeacherModule/TeacherLessons';
 import ParentDashboard from './pages/ParentDashboard';
 import ChildrenList from './components/ParentModule/ChildrenList';
@@ -113,8 +116,10 @@ function App() {
             <Route path="messages" element={<TeacherDashboard activeTab="inbox" />} />
             <Route path="lessons" element={<TeacherLessons />} />
             <Route path="assignments" element={<TeacherAssignments />} />
+            <Route path="assignments/:assignmentId" element={<TeacherAssignmentDetails />} />
             <Route path="schedule" element={<TeacherSchedule />} />
-            <Route path="students" element={<TeacherDashboard activeTab="students" />} />
+            <Route path="students" element={<TeacherStudents />} />
+            <Route path="students/:id" element={<TeacherStudentProfile />} />
             <Route path="settings" element={<TeacherDashboard activeTab="settings" />} />
             {/* Future nested routes will replace these mapped activeTab components */}
             <Route path="*" element={<TeacherDashboard activeTab="dashboard" />} />
