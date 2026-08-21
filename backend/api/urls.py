@@ -55,6 +55,7 @@ from .admin_views import (
     AdminDashboardStatsView,
     AdminActivityLogListView,
     AdminUserListView,
+    AdminUserDetailView,
     AdminUserToggleActiveView,
 )
 
@@ -80,6 +81,7 @@ urlpatterns = [
     path('admin/stats/', AdminDashboardStatsView.as_view(), name='admin_stats'),
     path('admin/logs/', AdminActivityLogListView.as_view(), name='admin_activity_logs'),
     path('admin/users/', AdminUserListView.as_view(), name='admin_users'),
+    path('admin/users/<int:user_id>/', AdminUserDetailView.as_view(), name='admin_user_detail'),
     path('admin/users/<int:user_id>/toggle/', AdminUserToggleActiveView.as_view(), name='admin_user_toggle'),
 
     # Teacher Module Endpoints

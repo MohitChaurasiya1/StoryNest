@@ -12,7 +12,9 @@ import {
   FaUser, 
   FaArrowLeft,
   FaHome,
-  FaSignOutAlt
+  FaSignOutAlt,
+  FaUsers,
+  FaHistory,
 } from 'react-icons/fa';
 import { useAuth } from '../../context/AuthContext';
 import './Sidebar.css';
@@ -52,12 +54,9 @@ export default function Sidebar({ role }) {
       case 'admin':
         return [
           { type: 'link', label: 'Dashboard', path: '/admin', icon: FaChartLine },
-          { type: 'link', label: 'Analytics', path: '/admin#analytics', icon: FaChartLine },
-          { type: 'link', label: 'Calendar', path: '/admin#calendar', icon: FaCalendarAlt },
-          { type: 'header', label: 'Management' },
-          { type: 'link', label: 'Students', path: '/admin#students', icon: FaUserGraduate },
-          { type: 'link', label: 'Stories Library', path: '/admin#stories', icon: FaBook },
-          { type: 'link', label: 'Teachers', path: '/admin#teachers', icon: FaChalkboardTeacher },
+          { type: 'link', label: 'User Directory', path: '/admin/users', icon: FaUsers },
+          { type: 'link', label: 'Audit Logs', path: '/admin/audit', icon: FaHistory },
+          { type: 'link', label: 'Analytics', path: '/admin/overview', icon: FaChartLine },
         ];
       case 'teacher':
         return [
@@ -101,7 +100,7 @@ export default function Sidebar({ role }) {
           }
           
           const Icon = item.icon;
-          const isActive = location.pathname === item.path && !location.hash || location.pathname + location.hash === item.path;
+          const isActive = location.pathname === item.path || (location.hash && location.pathname + location.hash === item.path);
           
           return (
             <Link 

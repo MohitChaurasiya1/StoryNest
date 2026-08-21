@@ -21,8 +21,8 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ["id", "username", "email", "first_name", "last_name", "role", "phone"]
-        read_only_fields = ["id"]
+        fields = ["id", "username", "email", "first_name", "last_name", "role", "phone", "is_active", "date_joined", "last_login"]
+        read_only_fields = ["id", "date_joined", "last_login"]
 
 
 class UserRegisterSerializer(serializers.ModelSerializer):
@@ -34,6 +34,11 @@ class UserRegisterSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ["id", "username", "email", "password", "role", "phone", "first_name", "last_name"]
+
+    def validate_role(self, value):
+        if value == User.Role.ADMIN or str(value).upper() == 'ADMIN':
+            raise serializers.ValidationError("Public registration as Admin is not allowed.")
+        return value
 
     def validate_username(self, value):
         value = value.strip()

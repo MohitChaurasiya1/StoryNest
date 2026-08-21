@@ -1306,6 +1306,7 @@ export const adminAPI = {
   getStats: () => http.get("/admin/stats/"),
   getActivityLogs: (params) => http.get("/admin/logs/", { params }),
   getUsers: (params) => http.get("/admin/users/", { params }),
+  getUserDetail: (userId) => http.get(`/admin/users/${userId}/`),
   toggleUserActive: (userId) => http.patch(`/admin/users/${userId}/toggle/`),
 };
 

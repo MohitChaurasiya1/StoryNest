@@ -66,6 +66,14 @@ function App() {
             }
           />
           <Route
+            path="/admin/:tab"
+            element={
+              <ProtectedRoute allowedRoles={['ADMIN']}>
+                <AdminDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
             path="/teacher"
             element={
               <ProtectedRoute allowedRoles={['TEACHER', 'ADMIN']}>
