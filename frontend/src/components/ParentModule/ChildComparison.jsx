@@ -8,6 +8,7 @@ import { parentComparisonApi } from '../../services/api';
 import { FaUsers, FaBookOpen, FaClock, FaTrophy, FaCertificate, FaBullseye, FaCheckCircle } from 'react-icons/fa';
 
 export default function ChildComparison() {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [toast, setToast] = useState(null);
@@ -30,9 +31,12 @@ export default function ChildComparison() {
 
   return (
     <div className="flex min-h-screen bg-slate-50 dark:bg-slate-950">
-      <ParentSidebar />
+      <ParentSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <div className="flex-1 lg:pl-72">
-        <ParentNavbar title="Child Comparison" />
+        <ParentNavbar
+          title="Child Comparison"
+          onMenuClick={() => setSidebarOpen(true)}
+        />
 
         <main className="p-6 max-w-7xl mx-auto space-y-8">
           <div>

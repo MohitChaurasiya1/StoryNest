@@ -153,14 +153,7 @@ export default function ParentDashboard() {
     ];
     const recentStories = dashboardData?.recent_stories || [];
     const storyIdeas = dashboardData?.story_ideas || [];
-    const badgeList = achievements.length > 0 ? achievements : [
-      { name: 'Bookworm', emoji: '📚', desc: 'Read 10+ stories', earned: false },
-      { name: 'Explorer', emoji: '🧭', desc: 'Tried 3 genres', earned: false },
-      { name: 'Bilingual', emoji: '🌍', desc: 'Read in 2 languages', earned: false },
-      { name: 'Night Owl', emoji: '🦉', desc: '5 bedtime reads', earned: false },
-      { name: 'Storyteller', emoji: '✍️', desc: 'Co-created a story', earned: false },
-      { name: 'Champion', emoji: '🏆', desc: '7-day streak', earned: false },
-    ];
+    const badgeList = achievements.length > 0 ? achievements : [];
     const earnedCount = badgeList.filter(b => b.earned).length;
 
     return (
@@ -252,16 +245,23 @@ export default function ParentDashboard() {
               </span>
             </div>
             <div className="badges-grid">
-              {badgeList.map((badge, idx) => (
-                <div key={idx} className={`badge-item ${badge.earned ? 'earned' : 'locked'}`}>
-                  <div className="badge-emoji">{badge.emoji}</div>
-                  <div className="badge-info">
-                    <span className="badge-name">{badge.name}</span>
-                    <span className="badge-desc text-muted">{badge.desc}</span>
-                  </div>
-                  {!badge.earned && <span className="badge-lock">🔒</span>}
+              {badgeList.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '1.5rem 1rem', color: 'var(--muted)' }}>
+                  <span style={{ fontSize: '2rem' }}>🏅</span>
+                  <p style={{ marginTop: '0.5rem', fontSize: '0.85rem' }}>No badges yet. Start reading to earn achievements!</p>
                 </div>
-              ))}
+              ) : (
+                badgeList.map((badge, idx) => (
+                  <div key={idx} className={`badge-item ${badge.earned ? 'earned' : 'locked'}`}>
+                    <div className="badge-emoji">{badge.emoji}</div>
+                    <div className="badge-info">
+                      <span className="badge-name">{badge.name}</span>
+                      <span className="badge-desc text-muted">{badge.desc}</span>
+                    </div>
+                    {!badge.earned && <span className="badge-lock">🔒</span>}
+                  </div>
+                ))
+              )}
             </div>
           </div>
         </section>

@@ -12,6 +12,7 @@ import { FaMagic, FaArrowRight, FaTag, FaClock } from 'react-icons/fa';
 
 export default function StoryRecommendations() {
   const { childrenList, activeChild, activeChildId, setActiveChildId } = useAuth();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [recommendations, setRecommendations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [toast, setToast] = useState(null);
@@ -35,9 +36,12 @@ export default function StoryRecommendations() {
 
   return (
     <div className="flex min-h-screen bg-slate-50 dark:bg-slate-950">
-      <ParentSidebar />
+      <ParentSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <div className="flex-1 lg:pl-72">
-        <ParentNavbar title="AI Story Recommendations" />
+        <ParentNavbar
+          title="AI Story Recommendations"
+          onMenuClick={() => setSidebarOpen(true)}
+        />
 
         <main className="p-6 max-w-7xl mx-auto space-y-8">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">

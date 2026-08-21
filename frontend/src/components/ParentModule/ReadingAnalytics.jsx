@@ -11,6 +11,7 @@ import { FaClock, FaBookOpen, FaTrophy, FaBolt, FaStar, FaChartLine, FaChartPie,
 
 export default function ReadingAnalytics() {
   const { childrenList, activeChild, activeChildId, setActiveChildId } = useAuth();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [toast, setToast] = useState(null);
@@ -34,9 +35,12 @@ export default function ReadingAnalytics() {
 
   return (
     <div className="flex min-h-screen bg-slate-50 dark:bg-slate-950">
-      <ParentSidebar />
+      <ParentSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <div className="flex-1 lg:pl-72">
-        <ParentNavbar title="Reading Analytics" />
+        <ParentNavbar
+          title="Reading Analytics"
+          onMenuClick={() => setSidebarOpen(true)}
+        />
 
         <main className="p-6 max-w-7xl mx-auto space-y-8">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">

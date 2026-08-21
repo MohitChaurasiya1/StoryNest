@@ -9,6 +9,7 @@ import { parentSearchApi } from '../../services/api';
 import { FaSearch, FaFilter, FaBook, FaCertificate, FaBullseye } from 'react-icons/fa';
 
 export default function GlobalSearch() {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [results, setResults] = useState({ stories: [], certificates: [], goals: [] });
   const [loading, setLoading] = useState(false);
@@ -31,9 +32,12 @@ export default function GlobalSearch() {
 
   return (
     <div className="flex min-h-screen bg-slate-50 dark:bg-slate-950">
-      <ParentSidebar />
+      <ParentSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <div className="flex-1 lg:pl-72">
-        <ParentNavbar title="Search Everywhere" />
+        <ParentNavbar
+          title="Search Everywhere"
+          onMenuClick={() => setSidebarOpen(true)}
+        />
 
         <main className="p-6 max-w-7xl mx-auto space-y-8">
           <div>

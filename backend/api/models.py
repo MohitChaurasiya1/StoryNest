@@ -176,7 +176,7 @@ class ReadingLog(models.Model):
         related_name='reading_logs'
     )
     story_title = models.CharField(max_length=255, blank=True)
-    read_date = models.DateField(default=timezone.now)
+    read_date = models.DateField(default=timezone.localdate)
     reading_time_minutes = models.IntegerField(default=15)
     pages_read = models.IntegerField(default=5)
     completed = models.BooleanField(default=True)

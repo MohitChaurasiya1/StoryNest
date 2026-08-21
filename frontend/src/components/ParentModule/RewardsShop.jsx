@@ -11,6 +11,7 @@ import { FaStore, FaStar, FaShoppingBag, FaCheck, FaLock } from 'react-icons/fa'
 
 export default function RewardsShop() {
   const { childrenList, activeChild, activeChildId, setActiveChildId } = useAuth();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [shopItems, setShopItems] = useState([]);
   const [purchases, setPurchases] = useState([]);
   const [stars, setStars] = useState(0);
@@ -58,9 +59,12 @@ export default function RewardsShop() {
 
   return (
     <div className="flex min-h-screen bg-slate-50 dark:bg-slate-950">
-      <ParentSidebar />
+      <ParentSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <div className="flex-1 lg:pl-72">
-        <ParentNavbar title="Rewards Shop" />
+        <ParentNavbar
+          title="Rewards Shop"
+          onMenuClick={() => setSidebarOpen(true)}
+        />
 
         <main className="p-6 max-w-7xl mx-auto space-y-8">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">

@@ -6,6 +6,7 @@ import { parentReportsApi } from '../../services/api';
 import { FaFileDownload, FaFilePdf, FaFileCsv, FaCheckSquare } from 'react-icons/fa';
 
 export default function ReportExport() {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [format, setFormat] = useState('csv'); // 'csv' | 'pdf'
   const [sections, setSections] = useState({
     reading: true,
@@ -56,9 +57,12 @@ export default function ReportExport() {
 
   return (
     <div className="flex min-h-screen bg-slate-50 dark:bg-slate-950">
-      <ParentSidebar />
+      <ParentSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <div className="flex-1 lg:pl-72">
-        <ParentNavbar title="Report Export" />
+        <ParentNavbar
+          title="Report Export"
+          onMenuClick={() => setSidebarOpen(true)}
+        />
 
         <main className="p-6 max-w-4xl mx-auto space-y-8">
           <div>

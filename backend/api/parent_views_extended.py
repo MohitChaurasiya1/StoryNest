@@ -226,7 +226,8 @@ class StoryRatingViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         story_id = self.request.query_params.get('story_id')
-        qs = StoryRating.objects.all()
+        # Only return ratings that belong to the currently authenticated parent
+        qs = StoryRating.objects.filter(parent=self.request.user)
         if story_id:
             qs = qs.filter(story_id=story_id)
         return qs

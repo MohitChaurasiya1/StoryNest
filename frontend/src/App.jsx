@@ -143,7 +143,7 @@ function App() {
           <Route
             path="/parent/children"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['PARENT', 'ADMIN']}>
                 <ChildrenList />
               </ProtectedRoute>
             }
@@ -151,7 +151,7 @@ function App() {
           <Route
             path="/parent/children/:id"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['PARENT', 'ADMIN']}>
                 <ChildDetails />
               </ProtectedRoute>
             }
@@ -159,7 +159,7 @@ function App() {
           <Route
             path="/parent/library"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['PARENT', 'ADMIN']}>
                 <ParentStoryLibrary />
               </ProtectedRoute>
             }
@@ -167,7 +167,7 @@ function App() {
           <Route
             path="/parent/progress"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['PARENT', 'ADMIN']}>
                 <ChildProgress />
               </ProtectedRoute>
             }
@@ -175,7 +175,7 @@ function App() {
           <Route
             path="/parent/quizzes"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['PARENT', 'ADMIN']}>
                 <QuizReports />
               </ProtectedRoute>
             }
@@ -183,7 +183,7 @@ function App() {
           <Route
             path="/parent/achievements"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['PARENT', 'ADMIN']}>
                 <Achievements />
               </ProtectedRoute>
             }
@@ -191,7 +191,7 @@ function App() {
           <Route
             path="/parent/certificates"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['PARENT', 'ADMIN']}>
                 <Certificates />
               </ProtectedRoute>
             }
@@ -199,7 +199,7 @@ function App() {
           <Route
             path="/parent/profile"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['PARENT', 'ADMIN']}>
                 <ParentProfile />
               </ProtectedRoute>
             }
@@ -207,7 +207,7 @@ function App() {
           <Route
             path="/parent/settings"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['PARENT', 'ADMIN']}>
                 <ParentSettings />
               </ProtectedRoute>
             }
@@ -215,7 +215,7 @@ function App() {
           <Route
             path="/parent/notes"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['PARENT', 'ADMIN']}>
                 <ParentNotes />
               </ProtectedRoute>
             }
@@ -223,7 +223,7 @@ function App() {
           <Route
             path="/parent/approvals"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['PARENT', 'ADMIN']}>
                 <StoryApprovals />
               </ProtectedRoute>
             }
@@ -231,7 +231,7 @@ function App() {
           <Route
             path="/parent/analytics"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['PARENT', 'ADMIN']}>
                 <ReadingAnalytics />
               </ProtectedRoute>
             }
@@ -239,7 +239,7 @@ function App() {
           <Route
             path="/parent/goals"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['PARENT', 'ADMIN']}>
                 <ChildGoals />
               </ProtectedRoute>
             }
@@ -247,7 +247,7 @@ function App() {
           <Route
             path="/parent/notifications"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['PARENT', 'ADMIN']}>
                 <NotificationCenter />
               </ProtectedRoute>
             }
@@ -255,7 +255,7 @@ function App() {
           <Route
             path="/parent/timeline"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['PARENT', 'ADMIN']}>
                 <ActivityTimeline />
               </ProtectedRoute>
             }
@@ -263,7 +263,7 @@ function App() {
           <Route
             path="/parent/favorites"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['PARENT', 'ADMIN']}>
                 <FavoriteStories />
               </ProtectedRoute>
             }
@@ -271,7 +271,7 @@ function App() {
           <Route
             path="/parent/streak"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['PARENT', 'ADMIN']}>
                 <ReadingStreak />
               </ProtectedRoute>
             }
@@ -279,7 +279,7 @@ function App() {
           <Route
             path="/parent/growth"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['PARENT', 'ADMIN']}>
                 <ChildGrowthDashboard />
               </ProtectedRoute>
             }
@@ -287,7 +287,7 @@ function App() {
           <Route
             path="/parent/comparison"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['PARENT', 'ADMIN']}>
                 <ChildComparison />
               </ProtectedRoute>
             }
@@ -295,7 +295,7 @@ function App() {
           <Route
             path="/parent/ai-insights"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['PARENT', 'ADMIN']}>
                 <AIInsights />
               </ProtectedRoute>
             }
@@ -303,7 +303,7 @@ function App() {
           <Route
             path="/parent/recommendations"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['PARENT', 'ADMIN']}>
                 <StoryRecommendations />
               </ProtectedRoute>
             }
@@ -311,7 +311,7 @@ function App() {
           <Route
             path="/parent/schedule"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['PARENT', 'ADMIN']}>
                 <ReadingSchedule />
               </ProtectedRoute>
             }
@@ -319,7 +319,7 @@ function App() {
           <Route
             path="/parent/rewards"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['PARENT', 'ADMIN']}>
                 <RewardsShop />
               </ProtectedRoute>
             }
@@ -327,7 +327,7 @@ function App() {
           <Route
             path="/parent/search"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['PARENT', 'ADMIN']}>
                 <GlobalSearch />
               </ProtectedRoute>
             }
@@ -335,7 +335,7 @@ function App() {
           <Route
             path="/parent/reports"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['PARENT', 'ADMIN']}>
                 <ReportExport />
               </ProtectedRoute>
             }

@@ -4,6 +4,7 @@ from django.db import models
 from django.db.models import Sum, Count, Avg, Q
 from django.utils import timezone
 from rest_framework import status, viewsets, permissions
+from rest_framework.exceptions import NotFound
 from rest_framework.decorators import api_view, permission_classes, action
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
@@ -657,11 +658,16 @@ class ReadingLogViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         child_id = self.kwargs.get('child_id')
-        return ReadingLog.objects.filter(
-            child__id=child_id, child__parent=self.request.user
-        )
+        if child_id is not None:
+            if not ChildProfile.objects.filter(id=child_id, parent=self.request.user).exists():
+                raise NotFound(detail="Child profile not found or access denied.")
+            return ReadingLog.objects.filter(
+                child__id=child_id, child__parent=self.request.user
+            )
+        return ReadingLog.objects.none()
 
     def create(self, request, child_id=None):
+        child_id = child_id or self.kwargs.get('child_id')
         try:
             child = ChildProfile.objects.get(id=child_id, parent=request.user)
         except ChildProfile.DoesNotExist:
@@ -788,6 +794,14 @@ class ToggleFavouriteView(APIView):
             fav.delete()
             return Response({"status": "unfavourited"})
         return Response({"status": "favourited"}, status=status.HTTP_201_CREATED)
+
+    def delete(self, request, story_id):
+        """Explicit DELETE to remove a favourite (called by removeFavourite in api.js)."""
+        FavouriteStory.objects.filter(
+            parent=request.user, story_id=story_id
+        ).delete()
+        return Response({"status": "unfavourited"})
+
 
 
 # ─── Child Stories ──────────────────────────────────────────────

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import ParentSidebar from './ParentSidebar';
 import ParentNavbar from './ParentNavbar';
 import StoryCard from './StoryCard';
@@ -9,6 +10,8 @@ import { parentLibraryApi } from '../../services/api';
 import { FaHeart, FaSearch, FaSortAmountDown } from 'react-icons/fa';
 
 export default function FavoriteStories() {
+  const navigate = useNavigate();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [stories, setStories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -31,9 +34,9 @@ export default function FavoriteStories() {
     fetchFavorites();
   }, [search, sort]);
 
-  const handleToggleFav = async (storyId) => {
+  const handleToggleFav = async (story) => {
     try {
-      await parentLibraryApi.toggleFavourite(storyId);
+      await parentLibraryApi.toggleFavourite(story.id);
       setToast({ type: 'info', message: 'Favorites updated' });
       fetchFavorites();
     } catch (err) {
@@ -41,11 +44,32 @@ export default function FavoriteStories() {
     }
   };
 
+  const handleReadStory = (story) => {
+    navigate(`/story/${story.id}`);
+  };
+
+  const handleQuiz = (story) => {
+    navigate(`/parent/quizzes`, { state: { storyId: story.id } });
+  };
+
+  const handleDownload = (story) => {
+    if (story.pdf_url) {
+      window.open(story.pdf_url, "_blank", "noopener,noreferrer");
+      return;
+    }
+    navigate(`/story/${story.id}`, {
+      state: { downloadPdf: true },
+    });
+  };
+
   return (
     <div className="flex min-h-screen bg-slate-50 dark:bg-slate-950">
-      <ParentSidebar />
+      <ParentSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <div className="flex-1 lg:pl-72">
-        <ParentNavbar title="Favorite Stories" />
+        <ParentNavbar
+          title="Favorite Stories"
+          onMenuClick={() => setSidebarOpen(true)}
+        />
 
         <main className="p-6 max-w-7xl mx-auto space-y-8">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -94,7 +118,10 @@ export default function FavoriteStories() {
                 <StoryCard
                   key={story.id}
                   story={story}
-                  onToggleFavourite={() => handleToggleFav(story.id)}
+                  onFavourite={handleToggleFav}
+                  onRead={handleReadStory}
+                  onDownload={handleDownload}
+                  onQuiz={handleQuiz}
                 />
               ))}
             </div>

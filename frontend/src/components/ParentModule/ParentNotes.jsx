@@ -12,6 +12,7 @@ import { FaStickyNote, FaPlus, FaEdit, FaTrash, FaSave, FaClock, FaTimes } from 
 
 export default function ParentNotes() {
   const { childrenList, activeChild, activeChildId, setActiveChildId } = useAuth();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [notes, setNotes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [toast, setToast] = useState(null);
@@ -83,9 +84,12 @@ export default function ParentNotes() {
 
   return (
     <div className="flex min-h-screen bg-slate-50 dark:bg-slate-950">
-      <ParentSidebar />
+      <ParentSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <div className="flex-1 lg:pl-72">
-        <ParentNavbar title="Parent Notes Management" />
+        <ParentNavbar
+          title="Parent Notes Management"
+          onMenuClick={() => setSidebarOpen(true)}
+        />
 
         <main className="p-6 max-w-7xl mx-auto space-y-8">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
