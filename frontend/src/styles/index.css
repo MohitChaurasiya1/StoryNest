@@ -151,33 +151,17 @@ html.dark {
      - Pure BLACK text in light mode
    ================================================================ */
 
-/* ── Dark Mode: Force white text on all slate/gray utility classes ── */
-html.dark .text-slate-900,
-html.dark .text-slate-800,
-html.dark .text-slate-700,
-html.dark .text-slate-600,
-html.dark .text-slate-500,
-html.dark .text-slate-400,
-html.dark .text-slate-300,
-html.dark .text-gray-900,
-html.dark .text-gray-800,
-html.dark .text-gray-700,
-html.dark .text-gray-600,
-html.dark .text-gray-500,
-html.dark .text-gray-400,
-html.dark .text-muted {
+/* ── Dark Mode: Force white text on text elements (excluding buttons & badges) ── */
+html.dark p:is(.text-slate-900, .text-slate-800, .text-slate-700, .text-slate-600, .text-slate-500, .text-slate-400, .text-gray-900, .text-gray-800, .text-gray-700, .text-gray-600, .text-gray-500, .text-muted),
+html.dark span:is(.text-slate-900, .text-slate-800, .text-slate-700, .text-slate-600, .text-slate-500, .text-slate-400, .text-gray-900, .text-gray-800, .text-gray-700, .text-gray-600, .text-gray-500, .text-muted):not(button *):not(.sn-badge-*),
+html.dark div:is(.text-slate-900, .text-slate-800, .text-slate-700, .text-slate-600, .text-slate-500, .text-slate-400, .text-gray-900, .text-gray-800, .text-gray-700, .text-gray-600, .text-gray-500, .text-muted):not(button *) {
   color: #FFFFFF !important;
 }
 
-/* ── Light Mode: Force black text on muted/secondary utility classes ── */
-html:not(.dark) .text-slate-500,
-html:not(.dark) .text-slate-600,
-html:not(.dark) .text-slate-400,
-html:not(.dark) .text-gray-500,
-html:not(.dark) .text-gray-600,
-html:not(.dark) .text-gray-400,
-html:not(.dark) .text-muted {
-  color: #000000 !important;
+/* ── Light Mode: Ensure secondary body text is dark slate (not overriding colored buttons/badges) ── */
+html:not(.dark) p:is(.text-slate-500, .text-slate-600, .text-slate-400, .text-gray-500, .text-gray-600, .text-gray-400),
+html:not(.dark) span:is(.text-slate-500, .text-slate-600, .text-slate-400, .text-gray-500, .text-gray-600, .text-gray-400):not(button *):not([class*="bg-"]):not([class*="sn-"]) {
+  color: #334155 !important;
 }
 
 /* ── Dark Mode: Container backgrounds ── */

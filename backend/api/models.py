@@ -62,7 +62,9 @@ class ChildProfile(models.Model):
     parent = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        related_name='children'
+        related_name='children',
+        null=True,
+        blank=True
     )
     name = models.CharField(max_length=100)
     age = models.IntegerField(default=7)
@@ -308,13 +310,67 @@ class ParentNote(models.Model):
 
 
 class Certificate(models.Model):
+    CERT_TYPE_CHOICES = [
+        ('reading_excellence', 'Reading Excellence'),
+        ('story_explorer', 'Story Explorer'),
+        ('quiz_champion', 'Quiz Champion'),
+        ('reading_streak', 'Reading Streak Milestone'),
+        ('learning_achievement', 'Learning Achievement'),
+    ]
+    STATUS_CHOICES = [
+        ('active', 'Active'),
+        ('revoked', 'Revoked'),
+    ]
+
+    certificate_number = models.CharField(max_length=50, unique=True, blank=True, null=True)
     child = models.ForeignKey(ChildProfile, on_delete=models.CASCADE, related_name='certificates')
+    issuer = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='issued_certificates')
+    classroom = models.ForeignKey('TeacherClass', on_delete=models.SET_NULL, null=True, blank=True, related_name='certificates')
+    certificate_type = models.CharField(max_length=50, choices=CERT_TYPE_CHOICES, default='reading_excellence')
     title = models.CharField(max_length=255, default="Super Reader Certificate")
     description = models.TextField()
     issued_date = models.DateField(default=timezone.now)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='active')
+    revoked_reason = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        ordering = ['-issued_date', '-created_at']
 
     def __str__(self):
-        return f"Certificate: {self.title} for {self.child.name}"
+        return f"Certificate {self.certificate_number or self.id}: {self.title} for {self.child.name}"
+
+
+class StudentReport(models.Model):
+    REPORT_TYPE_CHOICES = [
+        ('progress_report', 'Student Progress Report'),
+        ('reading_report', 'Reading Activity Report'),
+        ('quiz_report', 'Quiz Assessment Report'),
+        ('assignment_report', 'Assignment Performance Report'),
+    ]
+    PERIOD_CHOICES = [
+        ('last_7_days', 'Last 7 Days'),
+        ('last_30_days', 'Last 30 Days'),
+        ('last_3_months', 'Last 3 Months'),
+        ('academic_year', 'Academic Year'),
+    ]
+
+    report_number = models.CharField(max_length=50, unique=True, blank=True, null=True)
+    child = models.ForeignKey(ChildProfile, on_delete=models.CASCADE, related_name='academic_reports')
+    teacher = models.ForeignKey(User, on_delete=models.CASCADE, related_name='generated_reports')
+    classroom = models.ForeignKey('TeacherClass', on_delete=models.SET_NULL, null=True, blank=True, related_name='reports')
+    report_type = models.CharField(max_length=50, choices=REPORT_TYPE_CHOICES, default='progress_report')
+    period = models.CharField(max_length=30, choices=PERIOD_CHOICES, default='last_30_days')
+    data_snapshot = models.JSONField(default=dict, blank=True)
+    teacher_notes = models.TextField(blank=True, default='')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"Report {self.report_number or self.id}: {self.get_report_type_display()} for {self.child.name}"
+
 
 
 class FavouriteStory(models.Model):
@@ -350,18 +406,34 @@ class TeacherProfile(models.Model):
 
 
 class TeacherClass(models.Model):
+    STATUS_CHOICES = [
+        ('active', 'Active'),
+        ('archived', 'Archived'),
+    ]
+
     teacher = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
         related_name='classes'
     )
-    name = models.CharField(max_length=100, default='Grade 2 - Owls')
-    grade_level = models.CharField(max_length=50, default='Grade 2')
-    academic_year = models.CharField(max_length=20, default='2025-2026')
+    name = models.CharField(max_length=100, default='Grade 3 — Section A')
+    grade_level = models.CharField(max_length=50, default='Grade 3')
+    section = models.CharField(max_length=20, default='A')
+    school_name = models.CharField(max_length=255, default='Oakridge Elementary')
+    description = models.TextField(blank=True, default='')
+    subject = models.CharField(max_length=100, default='Reading & Literature')
+    academic_year = models.CharField(max_length=20, default='2026-2027')
+    max_students = models.IntegerField(default=30)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='active')
+    join_code = models.CharField(max_length=20, blank=True, null=True, unique=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at']
 
     def __str__(self):
-        return f"{self.name} ({self.teacher.username})"
+        return f"{self.name} - {self.grade_level} ({self.teacher.username})"
 
 
 class ClassStudent(models.Model):
@@ -383,6 +455,77 @@ class ClassStudent(models.Model):
 
     def __str__(self):
         return f"{self.child.name} in {self.classroom.name}"
+
+
+class ClassAssignment(models.Model):
+    ASSIGNMENT_TYPE_CHOICES = [
+        ('story', 'Story Reading'),
+        ('quiz', 'Quiz Assessment'),
+        ('reading_task', 'Reading Task'),
+        ('lesson', 'Lesson'),
+        ('activity', 'Learning Activity'),
+    ]
+    STATUS_CHOICES = [
+        ('draft', 'Draft'),
+        ('scheduled', 'Scheduled'),
+        ('active', 'Active'),
+        ('completed', 'Completed'),
+        ('archived', 'Archived'),
+    ]
+
+    teacher = models.ForeignKey(User, on_delete=models.CASCADE, related_name='created_assignments')
+    classroom = models.ForeignKey(TeacherClass, on_delete=models.CASCADE, related_name='assignments')
+    title = models.CharField(max_length=255)
+    assignment_type = models.CharField(max_length=30, choices=ASSIGNMENT_TYPE_CHOICES, default='story')
+    description = models.TextField(blank=True, default='')
+    instructions = models.TextField(blank=True, default='')
+    teacher_note = models.TextField(blank=True, default='')
+    story = models.ForeignKey(Story, on_delete=models.SET_NULL, null=True, blank=True, related_name='class_assignments')
+    quiz = models.ForeignKey(Quiz, on_delete=models.SET_NULL, null=True, blank=True, related_name='class_assignments')
+    lesson = models.ForeignKey('Lesson', on_delete=models.SET_NULL, null=True, blank=True, related_name='class_assignments')
+    start_date = models.DateField(blank=True, null=True)
+    due_date = models.DateField(blank=True, null=True)
+    allow_late_submission = models.BooleanField(default=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='active')
+    reading_level = models.CharField(max_length=50, default='All Levels')
+    target_all_students = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.title} ({self.classroom.name})"
+
+
+class ClassAssignmentStudent(models.Model):
+    STUDENT_STATUS_CHOICES = [
+        ('assigned', 'Not Started'),
+        ('in_progress', 'In Progress'),
+        ('submitted', 'Submitted'),
+        ('reviewed', 'Reviewed'),
+        ('late', 'Late'),
+        ('missing', 'Missing'),
+    ]
+
+    assignment = models.ForeignKey(ClassAssignment, on_delete=models.CASCADE, related_name='target_students')
+    child = models.ForeignKey(ChildProfile, on_delete=models.CASCADE, related_name='assigned_tasks')
+    status = models.CharField(max_length=20, choices=STUDENT_STATUS_CHOICES, default='assigned')
+    completion_percentage = models.IntegerField(default=0)
+    score = models.IntegerField(null=True, blank=True)
+    feedback = models.TextField(blank=True, default='')
+    started_at = models.DateTimeField(null=True, blank=True)
+    submitted_at = models.DateTimeField(null=True, blank=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
+    reviewed_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        unique_together = ('assignment', 'child')
+
+    def __str__(self):
+        return f"{self.child.name} - {self.assignment.title} ({self.status})"
+
 
 
 class Lesson(models.Model):
@@ -780,5 +923,57 @@ class UserActivityLog(models.Model):
 
     def __str__(self):
         return f"{self.user.username} - {self.action} at {self.timestamp.strftime('%Y-%m-%d %H:%M:%S')}"
+
+
+class TeacherEvent(models.Model):
+    EVENT_TYPE_CHOICES = [
+        ('class', 'Classroom Session'),
+        ('lesson', 'Lesson Activity'),
+        ('meeting', 'Meeting'),
+        ('office_hours', 'Office Hours'),
+        ('other', 'Other Teaching Event'),
+    ]
+    STATUS_CHOICES = [
+        ('upcoming', 'Upcoming'),
+        ('completed', 'Completed'),
+        ('cancelled', 'Cancelled'),
+    ]
+
+    teacher = models.ForeignKey(User, on_delete=models.CASCADE, related_name='scheduled_events')
+    event_type = models.CharField(max_length=30, choices=EVENT_TYPE_CHOICES, default='class')
+    title = models.CharField(max_length=255)
+    description = models.TextField(blank=True, default='')
+    location = models.CharField(max_length=255, blank=True, default='Room 204')
+    date = models.DateField()
+    start_time = models.TimeField()
+    end_time = models.TimeField()
+    classroom = models.ForeignKey(TeacherClass, on_delete=models.SET_NULL, null=True, blank=True, related_name='scheduled_events')
+    lesson = models.ForeignKey('Lesson', on_delete=models.SET_NULL, null=True, blank=True, related_name='scheduled_events')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='upcoming')
+    is_recurring = models.BooleanField(default=False)
+    recurrence_rule = models.CharField(max_length=50, blank=True, default='')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['date', 'start_time']
+
+    def __str__(self):
+        return f"{self.title} - {self.date} ({self.start_time} - {self.end_time})"
+
+
+class TeacherSavedStory(models.Model):
+    teacher = models.ForeignKey(User, on_delete=models.CASCADE, related_name='saved_stories')
+    story = models.ForeignKey(Story, on_delete=models.CASCADE, related_name='saved_by_teachers')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('teacher', 'story')
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.teacher.username} saved {self.story.title_en}"
+
+
 
 

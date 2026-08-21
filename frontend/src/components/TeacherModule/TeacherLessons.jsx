@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { teacherAPI } from '../../services/api';
-import { FaBookOpen, FaPlus, FaChevronRight, FaTimes, FaCheckCircle, FaClock } from 'react-icons/fa';
+import { FaBookOpen, FaPlus, FaChevronRight, FaTimes, FaCheckCircle, FaClock, FaCalendarAlt } from 'react-icons/fa';
+import AddEventModal from './AddEventModal';
 import './TeacherModule.css';
 
 export default function TeacherLessons() {
@@ -10,6 +11,7 @@ export default function TeacherLessons() {
 
   // New Lesson Modal state
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [isAddEventOpen, setIsAddEventOpen] = useState(false);
   const [newLesson, setNewLesson] = useState({
     title: '',
     grade: 'Grade 2',
@@ -175,31 +177,60 @@ export default function TeacherLessons() {
                     <div style={{ width: `${pct}%`, height: '100%', background: '#7C3AED', borderRadius: '999px' }} />
                   </div>
 
-                  <button 
-                    style={{
-                      width: '100%',
-                      padding: '0.6rem',
-                      borderRadius: '10px',
-                      border: '1.5px solid #E2E8F0',
-                      background: '#F8FAFC',
-                      fontWeight: '700',
-                      fontSize: '0.88rem',
-                      color: '#334155',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: '0.4rem'
-                    }}
-                    onClick={() => handleViewSubmissions(lesson.id)}
-                  >
-                    View Student Progress <FaChevronRight style={{ fontSize: '0.8rem' }} />
-                  </button>
+                  <div className="flex gap-2">
+                    <button 
+                      style={{
+                        flex: 1,
+                        padding: '0.6rem',
+                        borderRadius: '10px',
+                        border: '1.5px solid #E2E8F0',
+                        background: '#F8FAFC',
+                        fontWeight: '700',
+                        fontSize: '0.82rem',
+                        color: '#334155',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '0.3rem'
+                      }}
+                      onClick={() => handleViewSubmissions(lesson.id)}
+                    >
+                      Progress <FaChevronRight style={{ fontSize: '0.75rem' }} />
+                    </button>
+                    <button 
+                      style={{
+                        flex: 1,
+                        padding: '0.6rem',
+                        borderRadius: '10px',
+                        border: '1.5px solid #7C3AED',
+                        background: '#7C3AED',
+                        fontWeight: '800',
+                        fontSize: '0.82rem',
+                        color: '#FFFFFF',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '0.3rem'
+                      }}
+                      onClick={() => setIsAddEventOpen(true)}
+                    >
+                      <FaCalendarAlt /> Schedule
+                    </button>
+                  </div>
                 </div>
               </div>
             );
           })}
         </div>
+      )}
+
+      {isAddEventOpen && (
+        <AddEventModal
+          onClose={() => setIsAddEventOpen(false)}
+          onCreated={() => loadLessons()}
+        />
       )}
 
       {/* Create Lesson Modal */}

@@ -1283,3 +1283,165 @@
   }
 }
 
+/* ================================================================
+   STORYNEST TEACHER MODULE — HIGH CONTRAST & ACCESSIBILITY SYSTEM
+   ================================================================ */
+
+.sn-btn-primary {
+  background-color: #7c3aed !important;
+  color: #ffffff !important;
+  font-weight: 700 !important;
+  border-radius: 14px !important;
+  padding: 0.65rem 1.25rem !important;
+  font-size: 0.85rem !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 0.5rem !important;
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.25) !important;
+  transition: all 0.2s ease !important;
+  cursor: pointer !important;
+}
+
+.sn-btn-primary:hover {
+  background-color: #6d28d9 !important;
+  color: #ffffff !important;
+  box-shadow: 0 6px 16px rgba(124, 58, 237, 0.35) !important;
+}
+
+.sn-btn-primary:disabled {
+  opacity: 0.5 !important;
+  cursor: not-allowed !important;
+  box-shadow: none !important;
+}
+
+.sn-btn-secondary {
+  background-color: #f1f5f9 !important;
+  color: #334155 !important;
+  font-weight: 700 !important;
+  border: 1.5px solid #cbd5e1 !important;
+  border-radius: 14px !important;
+  padding: 0.65rem 1.25rem !important;
+  font-size: 0.85rem !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 0.5rem !important;
+  transition: all 0.2s ease !important;
+  cursor: pointer !important;
+}
+
+.sn-btn-secondary:hover {
+  background-color: #e2e8f0 !important;
+  color: #0f172a !important;
+}
+
+/* Modal Mode Switcher Tabs */
+.sn-tab-active {
+  background-color: #7c3aed !important;
+  color: #ffffff !important;
+  font-weight: 800 !important;
+  border-radius: 14px !important;
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.25) !important;
+}
+
+.sn-tab-inactive {
+  background-color: #f8fafc !important;
+  color: #334155 !important;
+  font-weight: 700 !important;
+  border: 1px solid #e2e8f0 !important;
+}
+
+.sn-tab-inactive:hover {
+  background-color: #f1f5f9 !important;
+  color: #0f172a !important;
+}
+
+/* Filter Controls */
+.sn-filter-select {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  border: 1.5px solid #cbd5e1 !important;
+  border-radius: 12px !important;
+  padding: 0.5rem 0.85rem !important;
+  font-size: 0.8rem !important;
+  font-weight: 700 !important;
+  outline: none !important;
+}
+
+.sn-filter-select:focus {
+  border-color: #7c3aed !important;
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.15) !important;
+}
+
+.sn-search-input {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  border: 1.5px solid #cbd5e1 !important;
+  border-radius: 12px !important;
+  font-size: 0.8rem !important;
+  font-weight: 600 !important;
+  outline: none !important;
+}
+
+.sn-search-input:focus {
+  border-color: #7c3aed !important;
+  background-color: #ffffff !important;
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.15) !important;
+}
+
+/* Status Badges */
+.sn-badge-on-track {
+  background-color: #dcfce7 !important;
+  color: #15803d !important;
+  font-weight: 800 !important;
+  padding: 0.25rem 0.7rem !important;
+  border-radius: 9999px !important;
+  font-size: 0.72rem !important;
+}
+
+.sn-badge-attention {
+  background-color: #fef3c7 !important;
+  color: #b45309 !important;
+  font-weight: 800 !important;
+  padding: 0.25rem 0.7rem !important;
+  border-radius: 9999px !important;
+  font-size: 0.72rem !important;
+}
+
+.sn-badge-behind {
+  background-color: #fee2e2 !important;
+  color: #b91c1c !important;
+  font-weight: 800 !important;
+  padding: 0.25rem 0.7rem !important;
+  border-radius: 9999px !important;
+  font-size: 0.72rem !important;
+}
+
+.sn-badge-available {
+  background-color: #d1fae5 !important;
+  color: #047857 !important;
+  font-weight: 800 !important;
+  padding: 0.25rem 0.7rem !important;
+  border-radius: 9999px !important;
+  font-size: 0.72rem !important;
+}
+
+.sn-badge-enrolled {
+  background-color: #e0e7ff !important;
+  color: #4338ca !important;
+  font-weight: 800 !important;
+  padding: 0.25rem 0.7rem !important;
+  border-radius: 9999px !important;
+  font-size: 0.72rem !important;
+}
+
+.sn-badge-already {
+  background-color: #e2e8f0 !important;
+  color: #475569 !important;
+  font-weight: 800 !important;
+  padding: 0.25rem 0.7rem !important;
+  border-radius: 9999px !important;
+  font-size: 0.72rem !important;
+}
+

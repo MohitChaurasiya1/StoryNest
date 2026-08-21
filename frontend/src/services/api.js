@@ -1294,6 +1294,55 @@ export const teacherAPI = {
   issueCertificate: (id, data) => http.post(`/teacher/students/${id}/issue_certificate/`, data),
   getSettings: () => http.get("/teacher/settings/"),
   updateSettings: (data) => http.put("/teacher/settings/", data),
+
+  // Classroom Management API
+  getClassrooms: (params) => http.get("/teacher/classrooms/", { params }),
+  getClassroomSummaryStats: () => http.get("/teacher/classrooms/summary_stats/"),
+  getClassroomDetails: (id) => http.get(`/teacher/classrooms/${id}/`),
+  createClassroom: (data) => http.post("/teacher/classrooms/", data),
+  updateClassroom: (id, data) => http.patch(`/teacher/classrooms/${id}/`, data),
+  deleteClassroom: (id) => http.delete(`/teacher/classrooms/${id}/`),
+  archiveClassroom: (id) => http.post(`/teacher/classrooms/${id}/archive/`),
+  restoreClassroom: (id) => http.post(`/teacher/classrooms/${id}/restore/`),
+  addStudentToClassroom: (id, studentId) => http.post(`/teacher/classrooms/${id}/add_student/`, { student_id: studentId }),
+  addStudentsToClassroomBulk: (id, studentIds) => http.post(`/teacher/classrooms/${id}/add_students_bulk/`, { student_ids: studentIds }),
+  createAndEnrollStudent: (id, data) => http.post(`/teacher/classrooms/${id}/create_and_enroll_student/`, data),
+  getAvailableStudentsForClassroom: (id, params) => http.get(`/teacher/classrooms/${id}/available_students/`, { params }),
+  removeStudentFromClassroom: (id, studentId) => http.post(`/teacher/classrooms/${id}/remove_student/`, { student_id: studentId }),
+  getClassroomAnalytics: (id) => http.get(`/teacher/classrooms/${id}/analytics/`),
+  getClassroomActivity: (id) => http.get(`/teacher/classrooms/${id}/activity/`),
+  getClassroomAssignments: (id) => http.get(`/teacher/classrooms/${id}/assignments/`),
+  createClassroomAssignment: (id, data) => http.post(`/teacher/classrooms/${id}/assignments/`, data),
+  getClassroomLessons: (id) => http.get(`/teacher/classrooms/${id}/lessons/`),
+  assignLessonToClassroom: (id, data) => http.post(`/teacher/classrooms/${id}/lessons/`, data),
+  getClassroomAIInsights: (id) => http.get(`/teacher/classrooms/${id}/ai_insights/`),
+  generateJoinCode: (id) => http.post(`/teacher/classrooms/${id}/generate_join_code/`),
+
+  // Student Management API
+  getStudentSummaryStats: () => http.get("/teacher/students/summary_stats/"),
+  generateStudentReport: (id, data) => http.post(`/teacher/students/${id}/generate_report/`, data),
+  revokeCertificate: (id, certId, reason) => http.post(`/teacher/students/${id}/revoke_certificate/`, { certificate_id: certId, reason }),
+
+  // Assignment Management API
+  getAssignments: (params) => http.get("/teacher/assignments/", { params }),
+  getAssignmentKPIs: () => http.get("/teacher/assignments/summary_kpis/"),
+  getAssignmentDetails: (id) => http.get(`/teacher/assignments/${id}/`),
+  createAssignment: (data) => http.post("/teacher/assignments/", data),
+  updateAssignment: (id, data) => http.patch(`/teacher/assignments/${id}/`, data),
+  deleteAssignment: (id) => http.delete(`/teacher/assignments/${id}/`),
+  duplicateAssignment: (id) => http.post(`/teacher/assignments/${id}/duplicate/`),
+  archiveAssignment: (id) => http.post(`/teacher/assignments/${id}/archive/`),
+  // Schedule & Calendar API
+  getSchedule: (params) => http.get("/teacher/schedule/consolidated/", { params }),
+  getTodaySummary: () => http.get("/teacher/schedule/today_summary/"),
+  createEvent: (data) => http.post("/teacher/schedule/", data),
+  updateEvent: (id, data) => http.patch(`/teacher/schedule/${id}/`, data),
+  deleteEvent: (id) => http.delete(`/teacher/schedule/${id}/`),
+  // Story Library API
+  getTeacherStories: (params) => http.get("/teacher/stories/", { params }),
+  getRecommendedStories: () => http.get("/teacher/stories/recommended/"),
+  toggleSaveStory: (id) => http.post(`/teacher/stories/${id}/toggle_save/`),
+  getTeacherStoryDetails: (id) => http.get(`/teacher/stories/${id}/details/`),
 };
 
 /*
@@ -1308,6 +1357,12 @@ export const adminAPI = {
   getUsers: (params) => http.get("/admin/users/", { params }),
   getUserDetail: (userId) => http.get(`/admin/users/${userId}/`),
   toggleUserActive: (userId) => http.patch(`/admin/users/${userId}/toggle/`),
+};
+
+export const storyApi = {
+  getStories: (params) => http.get("/stories/", { params }),
+  getStory: (id) => http.get(`/stories/${id}/`),
+  generateStory: (data) => http.post("/stories/generate/", data),
 };
 
 export default api;
