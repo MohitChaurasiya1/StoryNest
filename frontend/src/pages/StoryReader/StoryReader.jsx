@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useParams, useLocation } from 'react-router-dom';
-import axios from 'axios';
 import { 
   FaVolumeUp, 
   FaLanguage, 
@@ -73,7 +72,32 @@ export default function StoryReader() {
       };
       generateStoryPDF(exportData);
     }
-  }, [dbStory, location.state]);
+  }, [dbStory, location.state, location.pathname, navigate]);
+
+  const currentPageData = dbStory?.pages?.[currentPage];
+  const wordsEn = (currentPageData?.text_en || '').split(' ');
+  const wordsHi = (currentPageData?.text_hi || '').split(' ');
+  const words = lang === 'en' ? wordsEn : wordsHi;
+
+  // Text-To-Speech word highlighter simulation
+  useEffect(() => {
+    let interval = null;
+    if (isPlaying && words.length > 0) {
+      setActiveWordIdx(0);
+      interval = setInterval(() => {
+        setActiveWordIdx(prev => {
+          if (prev >= words.length - 1) {
+            setIsPlaying(false);
+            return -1;
+          }
+          return prev + 1;
+        });
+      }, 380); // speed matching a natural read
+    } else {
+      setActiveWordIdx(-1);
+    }
+    return () => clearInterval(interval);
+  }, [isPlaying, currentPage, lang, words.length]);
 
   if (loading) {
     return (
@@ -132,30 +156,6 @@ export default function StoryReader() {
     }))
   };
 
-  const wordsEn = story.pages[currentPage].en.split(" ");
-  const wordsHi = story.pages[currentPage].hi.split(" ");
-  const words = lang === 'en' ? wordsEn : wordsHi;
-
-  // Text-To-Speech word highlighter simulation
-  useEffect(() => {
-    let interval = null;
-    if (isPlaying) {
-      setActiveWordIdx(0);
-      interval = setInterval(() => {
-        setActiveWordIdx(prev => {
-          if (prev >= words.length - 1) {
-            setIsPlaying(false);
-            return -1;
-          }
-          return prev + 1;
-        });
-      }, 380); // speed matching a natural read
-    } else {
-      setActiveWordIdx(-1);
-    }
-    return () => clearInterval(interval);
-  }, [isPlaying, currentPage, lang, words.length]);
-
   const handleNextPage = () => {
     setIsPlaying(false);
     setSelectedWord(null);
@@ -177,7 +177,7 @@ export default function StoryReader() {
 
   const handleWordClick = (word) => {
     // Clean up punctuation for dict lookup
-    const cleanWord = word.toLowerCase().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()"?]/g, "");
+    const cleanWord = word.toLowerCase().replace(/[.,/#!$%^&*;:{}=\-_`~()"?]/g, "");
     const dict = story.pages[currentPage].dictionary;
     
     if (dict[cleanWord]) {

@@ -1,5 +1,6 @@
 .env
 backend/.env
+frontend/.env
 
 # Python bytecode
 **/__pycache__/
@@ -10,6 +11,13 @@ backend/.env
 venv/
 ENV/
 env/
+
+# SQLite dev database — never commit
+*.sqlite3
+
+# Static files collected
+staticfiles/
+backend/staticfiles/
 
 # Frontend
 **/node_modules/

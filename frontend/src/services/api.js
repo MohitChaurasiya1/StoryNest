@@ -13,16 +13,21 @@ import axios from "axios";
 |
 */
 
-const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL?.replace(/\/+$/, "") ||
-  "http://127.0.0.1:8000/api";
+const getBaseUrl = () => {
+  const envUrl = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL;
+  if (!envUrl) return "http://127.0.0.1:8000/api";
+  const cleaned = envUrl.trim().replace(/\/+$/, "");
+  return cleaned.endsWith("/api") ? cleaned : `${cleaned}/api`;
+};
+
+const API_BASE_URL = getBaseUrl();
 
 const AUTH_TOKEN_KEY = "authToken";
 const REFRESH_TOKEN_KEY = "refreshToken";
 
 const api = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 30000,
+  timeout: 65000, // 65s — handles Render free tier cold start (up to 60s)
   headers: {
     "Content-Type": "application/json",
     Accept: "application/json",

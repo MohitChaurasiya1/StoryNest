@@ -283,24 +283,11 @@ export default function LandingPage() {
           <span className="section-eyebrow">Choose Your Path</span>
           <h2 className="section-title">Built for Everyone in the Nest</h2>
           <p className="section-subtitle">
-            Tailored dashboards and tools for administrators, educators, parents, and young readers.
+            Tailored dashboards and tools for educators, parents, and young readers.
           </p>
         </div>
 
         <div className="roles-grid">
-          {/* Admin */}
-          <div className="role-card role-card-coral" onClick={() => navigate('/admin')}>
-            <div className="role-card-shine"></div>
-            <div className="role-emoji-badge">🛡️</div>
-            <h3 className="role-title">School Administrator</h3>
-            <p className="role-desc">Manage school accounts, track reading benchmarks across grades, and generate performance reports.</p>
-            <ul className="role-features-list">
-              <li>✓ School-wide analytics</li>
-              <li>✓ Teacher & student management</li>
-              <li>✓ Export PDF reports</li>
-            </ul>
-            <span className="role-action-link">Open Admin Dashboard <FaArrowRight /></span>
-          </div>
 
           {/* Teacher */}
           <div className="role-card role-card-sky" onClick={() => navigate('/teacher')}>
@@ -374,15 +361,6 @@ export default function LandingPage() {
             <p className="modal-subtitle">Choose your portal to continue</p>
 
             <div className="modal-buttons">
-              <button className="modal-role-btn modal-btn-coral" onClick={() => handleRoleSelect('ADMIN', '/admin')}>
-                <span className="modal-btn-emoji">🛡️</span>
-                <div className="role-btn-text">
-                  <span className="role-btn-name">Administrator</span>
-                  <span className="role-btn-desc">School analytics & management</span>
-                </div>
-                <FaArrowRight className="modal-arrow" />
-              </button>
-
               <button className="modal-role-btn modal-btn-sky" onClick={() => handleRoleSelect('TEACHER', '/teacher')}>
                 <span className="modal-btn-emoji">👩‍🏫</span>
                 <div className="role-btn-text">

@@ -17,6 +17,11 @@ class User(AbstractUser):
     )
     phone = models.CharField(max_length=15, blank=True, null=True)
 
+    def save(self, *args, **kwargs):
+        if self.is_superuser and self.role != self.Role.ADMIN:
+            self.role = self.Role.ADMIN
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return f"{self.username} ({self.role})"
 
