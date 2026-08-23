@@ -851,7 +851,7 @@ class TeacherStoryLibrarySerializer(serializers.ModelSerializer):
     class Meta:
         model = Story
         fields = [
-            "id", "child_name", "title_en", "title_hi", "theme", "moral",
+            "id", "child_name", "title_en", "title_hi", "moral",
             "vocab_theme", "language", "story_length", "encouraged_behavior",
             "grade", "num_pages", "reading_difficulty", "cover_image_url",
             "is_saved", "has_quiz", "assigned_count", "lessons_count", "created_at"

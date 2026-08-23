@@ -1953,7 +1953,7 @@ class TeacherStoryLibraryViewSet(viewsets.ModelViewSet):
         user = request.user if request.user.is_authenticated and request.user.role == User.Role.TEACHER else User.objects.filter(role=User.Role.TEACHER).first()
         active_classrooms = TeacherClass.objects.filter(teacher=user) if user else []
 
-        grades = [c.grade for c in active_classrooms if c.grade]
+        grades = [c.grade_level for c in active_classrooms if c.grade_level]
         if not grades:
             grades = ['Grade 2', 'Grade 3']
 
