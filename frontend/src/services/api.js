@@ -13,9 +13,14 @@ import axios from "axios";
 |
 */
 
-const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL?.replace(/\/+$/, "") ||
-  "http://127.0.0.1:8000/api";
+const getBaseUrl = () => {
+  const envUrl = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL;
+  if (!envUrl) return "http://127.0.0.1:8000/api";
+  const cleaned = envUrl.trim().replace(/\/+$/, "");
+  return cleaned.endsWith("/api") ? cleaned : `${cleaned}/api`;
+};
+
+const API_BASE_URL = getBaseUrl();
 
 const AUTH_TOKEN_KEY = "authToken";
 const REFRESH_TOKEN_KEY = "refreshToken";
