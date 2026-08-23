@@ -224,12 +224,15 @@ class ForgotPasswordView(APIView):
 
         otp_instance = PasswordResetOTP.generate_otp(user)
 
-        # Primary emails list (send to both user email and secondary registered emails)
-        all_recipients = list(dict.fromkeys([
-            user.email,
-            'mohitkumar339900@gmail.com',
-            'kartikeyasingh225@gmail.com'
-        ]))
+        # Only send to the actual user's email in production.
+        # In DEBUG mode, also send a copy to developer emails for testing.
+        all_recipients = [user.email]
+        if os.getenv('DEBUG', 'True') == 'True':
+            dev_emails = [e for e in [
+                os.getenv('DEV_EMAIL_1', ''),
+                os.getenv('DEV_EMAIL_2', ''),
+            ] if e and e != user.email]
+            all_recipients = list(dict.fromkeys(all_recipients + dev_emails))
 
         # Send email with OTP
         from django.core.mail import send_mail

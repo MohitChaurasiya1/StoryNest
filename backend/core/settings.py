@@ -18,7 +18,12 @@ except ImportError:
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-+hjul9!h6iqz8ks077zcol654unzwi6cj$b_xsy@5lgw@*n#q)')
+SECRET_KEY = os.getenv('SECRET_KEY')
+if not SECRET_KEY:
+    if os.getenv('DEBUG', 'True') == 'True':
+        SECRET_KEY = 'django-insecure-local-dev-only-do-not-use-in-production'
+    else:
+        raise RuntimeError('SECRET_KEY environment variable must be set in production.')
 
 DEBUG = os.getenv('DEBUG', 'True') == 'True'
 
@@ -170,7 +175,14 @@ SIMPLE_JWT = {
 }
 
 # CORS configuration
-CORS_ALLOW_ALL_ORIGINS = True
+# In production set CORS_ALLOWED_ORIGINS via env var as comma-separated list
+_cors_origins = os.getenv('CORS_ALLOWED_ORIGINS', '')
+if not DEBUG and _cors_origins:
+    CORS_ALLOW_ALL_ORIGINS = False
+    CORS_ALLOWED_ORIGINS = [o.strip() for o in _cors_origins.split(',') if o.strip()]
+else:
+    CORS_ALLOW_ALL_ORIGINS = True
+
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_HEADERS = [
     "accept",
@@ -183,6 +195,18 @@ CORS_ALLOW_HEADERS = [
     "x-csrftoken",
     "x-requested-with",
 ]
+
+# Production security settings — only active when DEBUG=False
+if not DEBUG:
+    SECURE_SSL_REDIRECT = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_HSTS_SECONDS = 31536000  # 1 year
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+    SECURE_BROWSER_XSS_FILTER = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    X_FRAME_OPTIONS = 'DENY'
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
@@ -235,7 +259,7 @@ EMAIL_HOST = os.getenv('EMAIL_HOST', 'smtp.gmail.com')
 EMAIL_PORT = int(os.getenv('EMAIL_PORT', '587'))
 EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'True') == 'True'
 EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', 'mohitkumar339900@gmail.com')
-EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', 'tohteheuytbcxfnv')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
 DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', f'StoryNest <{EMAIL_HOST_USER}>')
 
 # Authentication Backends (supports login via username or email)
