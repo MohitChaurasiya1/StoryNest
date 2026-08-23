@@ -153,7 +153,7 @@ html.dark {
 
 /* ── Dark Mode: Force white text on text elements (excluding buttons & badges) ── */
 html.dark p:is(.text-slate-900, .text-slate-800, .text-slate-700, .text-slate-600, .text-slate-500, .text-slate-400, .text-gray-900, .text-gray-800, .text-gray-700, .text-gray-600, .text-gray-500, .text-muted),
-html.dark span:is(.text-slate-900, .text-slate-800, .text-slate-700, .text-slate-600, .text-slate-500, .text-slate-400, .text-gray-900, .text-gray-800, .text-gray-700, .text-gray-600, .text-gray-500, .text-muted):not(button *):not(.sn-badge-*),
+html.dark span:is(.text-slate-900, .text-slate-800, .text-slate-700, .text-slate-600, .text-slate-500, .text-slate-400, .text-gray-900, .text-gray-800, .text-gray-700, .text-gray-600, .text-gray-500, .text-muted):not(button *):not([class*="sn-badge"]),
 html.dark div:is(.text-slate-900, .text-slate-800, .text-slate-700, .text-slate-600, .text-slate-500, .text-slate-400, .text-gray-900, .text-gray-800, .text-gray-700, .text-gray-600, .text-gray-500, .text-muted):not(button *) {
   color: #FFFFFF !important;
 }

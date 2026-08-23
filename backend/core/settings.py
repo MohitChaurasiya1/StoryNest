@@ -79,7 +79,21 @@ TEMPLATES = [
 WSGI_APPLICATION = 'core.wsgi.application'
 
 
-if os.getenv('DB_HOST'):
+database_url = os.getenv('DATABASE_URL')
+if database_url:
+    from urllib.parse import urlparse, unquote
+    url = urlparse(database_url)
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': url.path[1:],
+            'USER': unquote(url.username or ''),
+            'PASSWORD': unquote(url.password or ''),
+            'HOST': url.hostname or '',
+            'PORT': url.port or 5432,
+        }
+    }
+elif os.getenv('DB_HOST'):
     db_host = os.getenv('DB_HOST', 'db')
     db_port = os.getenv('DB_PORT', '5432')
 
@@ -216,13 +230,13 @@ MEDIA_ROOT = BASE_DIR / 'media'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Email Configuration — Gmail SMTP (Real emails sent to inbox)
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'mohitkumar339900@gmail.com'
-EMAIL_HOST_PASSWORD = 'tohteheuytbcxfnv'  # Gmail App Password
-DEFAULT_FROM_EMAIL = 'StoryNest <mohitkumar339900@gmail.com>'
+EMAIL_BACKEND = os.getenv('EMAIL_BACKEND', 'django.core.mail.backends.smtp.EmailBackend')
+EMAIL_HOST = os.getenv('EMAIL_HOST', 'smtp.gmail.com')
+EMAIL_PORT = int(os.getenv('EMAIL_PORT', '587'))
+EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'True') == 'True'
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', 'mohitkumar339900@gmail.com')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', 'tohteheuytbcxfnv')
+DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', f'StoryNest <{EMAIL_HOST_USER}>')
 
 # Authentication Backends (supports login via username or email)
 AUTHENTICATION_BACKENDS = [

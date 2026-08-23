@@ -64,8 +64,8 @@ class TeacherDashboardView(APIView):
                 logs_qs = ReadingLog.objects.filter(child=child)
                 stories_read = logs_qs.count()
 
-                recent_activity = logs_qs.filter(read_at__gte=seven_days_ago).exists() or \
-                                  QuizAttempt.objects.filter(child=child, completed_at__gte=seven_days_ago).exists()
+                recent_activity = logs_qs.filter(created_at__gte=seven_days_ago).exists() or \
+                                  QuizAttempt.objects.filter(child=child, attempted_at__gte=seven_days_ago).exists()
                 if recent_activity:
                     active_students_count += 1
 
@@ -179,7 +179,7 @@ class TeacherDashboardView(APIView):
                     'id': ass.id,
                     'title': ass.title or (ass.story.title_en if ass.story else "Reading Task"),
                     'classroom_name': ass.classroom.name,
-                    'due_date': ass.due_date.strftime("%b %d, %Y") if ass.due_date else "Tomorrow",
+                    'due_date': ass.due_date.strftime("%b %d, %Y") if hasattr(ass.due_date, 'strftime') else (str(ass.due_date) if ass.due_date else "Tomorrow"),
                     'status': ass.status,
                     'completed_count': completed_students_ass,
                     'total_count': total_students_ass
@@ -198,14 +198,14 @@ class TeacherDashboardView(APIView):
                     'id': l.id,
                     'title': l.title,
                     'classroom_name': l.classroom.name if l.classroom else "Grade 3 — Section A",
-                    'date': l.due_date.strftime("%b %d, %Y") if l.due_date else "Today",
+                    'date': l.due_date.strftime("%b %d, %Y") if hasattr(l.due_date, 'strftime') else (str(l.due_date) if l.due_date else "Today"),
                     'time': "10:00 AM" if idx % 2 == 0 else "1:30 PM",
                     'status': l.status
                 })
 
             # 7. Recent Student Activity Feed
             recent_activity_list = []
-            latest_logs = ReadingLog.objects.select_related('child', 'story').order_by('-read_at')[:4]
+            latest_logs = ReadingLog.objects.select_related('child', 'story').order_by('-created_at')[:4]
             for log in latest_logs:
                 recent_activity_list.append({
                     'id': f"log_{log.id}",
@@ -215,7 +215,7 @@ class TeacherDashboardView(APIView):
                     'description': f"completed reading '{log.story.title_en if log.story else 'a story'}'",
                     'time_ago': "10 mins ago"
                 })
-            latest_quizzes = QuizAttempt.objects.select_related('child', 'quiz__story').order_by('-completed_at')[:3]
+            latest_quizzes = QuizAttempt.objects.select_related('child', 'quiz__story').order_by('-attempted_at')[:3]
             for q in latest_quizzes:
                 recent_activity_list.append({
                     'id': f"quiz_{q.id}",
@@ -1813,7 +1813,7 @@ class TeacherScheduleViewSet(viewsets.ModelViewSet):
                 'title': f"📌 Deadline: {ass.title}",
                 'description': ass.instructions or ass.description,
                 'location': 'Online Assignment',
-                'date': ass.due_date.strftime("%Y-%m-%d"),
+                'date': ass.due_date.strftime("%Y-%m-%d") if hasattr(ass.due_date, 'strftime') else str(ass.due_date),
                 'start_time': "23:59",
                 'end_time': "23:59",
                 'classroom_id': ass.classroom.id,
