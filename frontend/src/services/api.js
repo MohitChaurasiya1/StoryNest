@@ -27,7 +27,7 @@ const REFRESH_TOKEN_KEY = "refreshToken";
 
 const api = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 30000,
+  timeout: 65000, // 65s — handles Render free tier cold start (up to 60s)
   headers: {
     "Content-Type": "application/json",
     Accept: "application/json",
