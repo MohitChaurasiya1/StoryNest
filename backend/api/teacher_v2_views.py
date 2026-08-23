@@ -215,6 +215,25 @@ class TeacherGlobalStudentSearchView(APIView):
         return Response({"results": results})
 
 
+class TeacherStudentCreateView(APIView):
+    """
+    Endpoint for teachers to directly create a student and optionally enroll them into a classroom.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        if request.user.role not in [User.Role.TEACHER, User.Role.ADMIN]:
+            raise PermissionDenied("You do not have permission to create students.")
+
+        try:
+            student = TeacherClassroomService.create_student(request.user, request.data)
+            return Response(student, status=status.HTTP_201_CREATED)
+        except DjangoValidationError as e:
+            return Response({"error": {"message": str(e.message) if hasattr(e, 'message') else str(e)}}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({"error": {"message": str(e)}}, status=status.HTTP_400_BAD_REQUEST)
+
+
 class StandardResultsSetPagination(PageNumberPagination):
     page_size = 20
     page_size_query_param = 'page_size'
@@ -274,3 +293,152 @@ class TeacherLibraryPreviewView(APIView):
         except Exception as e:
             # We should probably return 404 for "not found", but generic 400 is fine for preview errors
             return Response({"error": {"message": str(e)}}, status=400)
+
+from .services.teacher_assignment_service import TeacherAssignmentService
+from .teacher_v2_serializers import ClassAssignmentSerializer, ClassAssignmentStudentSerializer
+
+class TeacherAssignmentListCreateView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        if request.user.role not in [User.Role.TEACHER, User.Role.ADMIN]:
+            raise PermissionDenied("You do not have permission to access assignments.")
+            
+        filters = {
+            'status': request.query_params.get('status', 'all'),
+            'classroom_id': request.query_params.get('classroom_id'),
+            'content_type': request.query_params.get('content_type', 'all'),
+            'search': request.query_params.get('search', ''),
+            'sort': request.query_params.get('sort', '-created_at')
+        }
+        
+        assignments = TeacherAssignmentService.get_assignments(request.user, filters)
+        
+        paginator = StandardResultsSetPagination()
+        page = paginator.paginate_queryset(assignments, request, view=self)
+        if page is not None:
+            serializer = ClassAssignmentSerializer(page, many=True)
+            return paginator.get_paginated_response(serializer.data)
+
+        serializer = ClassAssignmentSerializer(assignments, many=True)
+        return Response({"results": serializer.data})
+
+    def post(self, request):
+        if request.user.role not in [User.Role.TEACHER, User.Role.ADMIN]:
+            raise PermissionDenied("You do not have permission to create assignments.")
+            
+        try:
+            assignment = TeacherAssignmentService.create_assignment(request.user, request.data)
+            serializer = ClassAssignmentSerializer(assignment)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        except DjangoValidationError as e:
+            return Response({"error": {"message": str(e.message) if hasattr(e, 'message') else str(e)}}, status=400)
+        except Exception as e:
+            return Response({"error": {"message": str(e)}}, status=500)
+
+
+class TeacherAssignmentDetailView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, assignment_id):
+        if request.user.role not in [User.Role.TEACHER, User.Role.ADMIN]:
+            raise PermissionDenied("You do not have permission to access assignments.")
+            
+        try:
+            assignment = TeacherAssignmentService.get_assignment(request.user, assignment_id)
+            serializer = ClassAssignmentSerializer(assignment)
+            return Response(serializer.data)
+        except DjangoValidationError as e:
+            return Response({"error": {"message": str(e.message) if hasattr(e, 'message') else str(e)}}, status=404)
+        except Exception as e:
+            return Response({"error": {"message": str(e)}}, status=500)
+
+    def patch(self, request, assignment_id):
+        if request.user.role not in [User.Role.TEACHER, User.Role.ADMIN]:
+            raise PermissionDenied("You do not have permission to edit assignments.")
+            
+        try:
+            assignment = TeacherAssignmentService.update_assignment(request.user, assignment_id, request.data)
+            serializer = ClassAssignmentSerializer(assignment)
+            return Response(serializer.data)
+        except DjangoValidationError as e:
+            return Response({"error": {"message": str(e.message) if hasattr(e, 'message') else str(e)}}, status=400)
+        except Exception as e:
+            return Response({"error": {"message": str(e)}}, status=500)
+
+
+class TeacherAssignmentPublishView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, assignment_id):
+        if request.user.role not in [User.Role.TEACHER, User.Role.ADMIN]:
+            raise PermissionDenied("You do not have permission to publish assignments.")
+            
+        try:
+            target_type = request.data.get('target_type')
+            student_ids = request.data.get('student_ids')
+            assignment = TeacherAssignmentService.publish_assignment(request.user, assignment_id, target_type, student_ids)
+            serializer = ClassAssignmentSerializer(assignment)
+            return Response(serializer.data)
+        except DjangoValidationError as e:
+            return Response({"error": {"message": str(e.message) if hasattr(e, 'message') else str(e)}}, status=400)
+        except Exception as e:
+            return Response({"error": {"message": str(e)}}, status=500)
+
+
+class TeacherAssignmentArchiveView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, assignment_id):
+        if request.user.role not in [User.Role.TEACHER, User.Role.ADMIN]:
+            raise PermissionDenied("You do not have permission to archive assignments.")
+            
+        try:
+            assignment = TeacherAssignmentService.archive_assignment(request.user, assignment_id)
+            serializer = ClassAssignmentSerializer(assignment)
+            return Response(serializer.data)
+        except DjangoValidationError as e:
+            return Response({"error": {"message": str(e.message) if hasattr(e, 'message') else str(e)}}, status=404)
+        except Exception as e:
+            return Response({"error": {"message": str(e)}}, status=500)
+
+
+class TeacherAssignmentDuplicateView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, assignment_id):
+        if request.user.role not in [User.Role.TEACHER, User.Role.ADMIN]:
+            raise PermissionDenied("You do not have permission to duplicate assignments.")
+            
+        try:
+            assignment = TeacherAssignmentService.duplicate_assignment(request.user, assignment_id)
+            serializer = ClassAssignmentSerializer(assignment)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        except DjangoValidationError as e:
+            return Response({"error": {"message": str(e.message) if hasattr(e, 'message') else str(e)}}, status=404)
+        except Exception as e:
+            return Response({"error": {"message": str(e)}}, status=500)
+
+
+class TeacherAssignmentRecipientsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, assignment_id):
+        if request.user.role not in [User.Role.TEACHER, User.Role.ADMIN]:
+            raise PermissionDenied("You do not have permission to access assignments.")
+            
+        try:
+            recipients = TeacherAssignmentService.get_recipients(request.user, assignment_id)
+            
+            # Simple global search within recipients
+            search_query = request.query_params.get('search', '')
+            if search_query:
+                recipients = recipients.filter(child__name__icontains=search_query)
+                
+            serializer = ClassAssignmentStudentSerializer(recipients, many=True)
+            return Response({"results": serializer.data})
+        except DjangoValidationError as e:
+            return Response({"error": {"message": str(e.message) if hasattr(e, 'message') else str(e)}}, status=404)
+        except Exception as e:
+            return Response({"error": {"message": str(e)}}, status=500)
+

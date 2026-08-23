@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { FaTimes, FaSearch, FaCheck, FaSpinner } from 'react-icons/fa';
+import { createPortal } from 'react-dom';
+import { FaTimes, FaSearch, FaCheck, FaSpinner, FaUserPlus, FaExclamationTriangle } from 'react-icons/fa';
 import teacherClassroomService from '../../../services/teacherClassroomService';
 import { useNavigate } from 'react-router-dom';
 
@@ -16,6 +17,24 @@ const DashboardAddStudentModal = ({ onClose, onSuccess }) => {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
   const [successMsg, setSuccessMsg] = useState(null);
+
+  // Lock background body scroll while modal is open
+  useEffect(() => {
+    const originalStyle = window.getComputedStyle(document.body).overflow;
+    document.body.style.overflow = 'hidden';
+    
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = originalStyle;
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [onClose]);
 
   // Fetch teacher's classrooms
   useEffect(() => {
@@ -79,176 +98,222 @@ const DashboardAddStudentModal = ({ onClose, onSuccess }) => {
     setError(null);
     try {
       await teacherClassroomService.addStudents(selectedClassroomId, Array.from(selectedIds));
-      
-      const classroomName = classrooms.find(c => c.id.toString() === selectedClassroomId.toString())?.name;
-      const count = selectedIds.size;
-      
-      setSuccessMsg(`✓ Successfully added ${count} student${count > 1 ? 's' : ''} to ${classroomName}.`);
-      
-      // Auto close after 1.5s
+      setSuccessMsg(`Successfully added ${selectedIds.size} student${selectedIds.size !== 1 ? 's' : ''}!`);
       setTimeout(() => {
         onSuccess();
-      }, 1500);
+      }, 1000);
     } catch (err) {
       setError(err.message || 'Failed to add students.');
       setSaving(false);
     }
   };
 
-  if (loadingClassrooms) {
-    return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-fade-in">
-        <div className="card w-full max-w-lg shadow-2xl flex items-center justify-center p-12">
-           <FaSpinner className="animate-spin text-3xl text-muted" />
+  const renderContent = () => {
+    if (loadingClassrooms) {
+      return (
+        <div className="p-12 flex flex-col items-center justify-center text-slate-400">
+          <FaSpinner className="animate-spin text-3xl text-rose-500 mb-3" />
+          <p className="text-sm font-medium">Loading classrooms...</p>
         </div>
-      </div>
-    );
-  }
+      );
+    }
 
-  // Handle case where teacher has no classrooms
-  if (classrooms.length === 0) {
-    return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-fade-in">
-        <div className="card w-full max-w-lg shadow-2xl">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-xl font-bold">Add Student</h2>
-            <button onClick={onClose} className="p-2 hover:bg-[var(--bg-color)] rounded-full transition-colors text-muted">
-              <FaTimes />
-            </button>
+    if (classrooms.length === 0) {
+      return (
+        <div className="p-8 text-center space-y-4">
+          <div className="w-12 h-12 rounded-2xl bg-amber-50 text-amber-500 mx-auto flex items-center justify-center text-xl">
+            🏫
           </div>
-          <div className="text-center py-8">
-            <h3 className="font-bold mb-2">You don't have any classrooms yet.</h3>
-            <p className="text-muted mb-6">Create a classroom first to add students.</p>
-            <div className="flex justify-center gap-3">
-              <button onClick={onClose} className="btn btn-outline">Cancel</button>
-              <button onClick={() => { onClose(); navigate('/teacher/classrooms'); }} className="btn btn-primary">Go to Classrooms</button>
+          <h3 className="text-lg font-bold text-slate-900 dark:text-white">You don't have any classrooms yet</h3>
+          <p className="text-sm text-slate-500 max-w-sm mx-auto">Create an active classroom first before enrolling students.</p>
+          <div className="flex justify-center gap-3 pt-2">
+            <button onClick={onClose} className="btn btn-outline">Cancel</button>
+            <button onClick={() => { onClose(); navigate('/teacher/classrooms'); }} className="btn btn-primary">Go to Classrooms</button>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <>
+        <div className="flex-1 flex flex-col min-h-0 p-6 sm:p-8 space-y-4">
+          {error && (
+            <div className="p-4 rounded-2xl bg-rose-50 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300 flex items-center gap-3 text-sm font-semibold shrink-0">
+              <FaExclamationTriangle className="shrink-0 text-base" />
+              <p className="m-0">{error}</p>
             </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
+          )}
+          
+          {successMsg && (
+            <div className="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 text-sm font-bold shrink-0">
+              {successMsg}
+            </div>
+          )}
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-fade-in">
-      <div className="card w-full max-w-lg shadow-2xl flex flex-col max-h-[85vh]">
-        <div className="flex justify-between items-center mb-6 shrink-0">
-          <div>
-            <h2 className="text-xl font-bold">Add Student</h2>
-            <p className="text-sm text-muted">Add a student to one of your classrooms.</p>
+          <div className="shrink-0">
+            <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-2">
+              Select Classroom
+            </label>
+            <select 
+              value={selectedClassroomId} 
+              onChange={(e) => setSelectedClassroomId(e.target.value)}
+              className="w-full rounded-xl border border-slate-200 dark:border-slate-700 p-3 focus:ring-2 focus:ring-rose-500 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm font-medium transition-all"
+            >
+              {classrooms.map(c => (
+                <option key={c.id} value={c.id}>
+                  {c.name} ({c.grade || 'All Grades'})
+                </option>
+              ))}
+            </select>
           </div>
-          <button 
-            onClick={onClose}
-            className="p-2 hover:bg-[var(--bg-color)] rounded-full transition-colors text-muted"
-          >
-            <FaTimes />
-          </button>
-        </div>
 
-        {error && (
-          <div className="p-3 mb-4 text-sm font-bold bg-[var(--danger-light)] text-[var(--danger-color)] rounded-[var(--radius-sm)] shrink-0">
-            {error}
-          </div>
-        )}
-        
-        {successMsg && (
-          <div className="p-3 mb-4 text-sm font-bold bg-[var(--mint-light)] text-[var(--mint)] rounded-[var(--radius-sm)] shrink-0 animate-fade-in">
-            {successMsg}
-          </div>
-        )}
-
-        <div className="form-group shrink-0">
-          <label className="form-label">Classroom</label>
-          <select 
-            className="form-control"
-            value={selectedClassroomId}
-            onChange={(e) => setSelectedClassroomId(e.target.value)}
-            disabled={saving || successMsg}
-          >
-            {classrooms.map(c => (
-              <option key={c.id} value={c.id}>{c.name}</option>
-            ))}
-          </select>
-        </div>
-
-        <div className="relative mb-4 shrink-0 mt-2">
-          <label className="form-label">Search Student</label>
-          <div className="relative">
-            <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-muted" />
+          <div className="relative shrink-0">
+            <FaSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm" />
             <input 
               type="text" 
-              placeholder="Search by name..." 
-              className="form-control pl-10"
+              placeholder="Search student by name..." 
+              className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-rose-500 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm font-medium transition-all"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              disabled={saving || successMsg}
             />
           </div>
-        </div>
 
-        <div className="flex-1 overflow-y-auto mb-4 border border-[var(--border-color)] rounded-[var(--radius-sm)] bg-[var(--bg-color)] min-h-[150px]">
-          {searching ? (
-            <div className="p-8 flex justify-center text-muted">
-              <FaSpinner className="animate-spin text-2xl" />
-            </div>
-          ) : query.trim().length < 2 ? (
-            <div className="p-8 text-center text-muted text-sm">
-              Type at least 2 characters to search for a student.
-            </div>
-          ) : results.length === 0 ? (
-            <div className="p-8 text-center text-muted text-sm">
-              No students found matching "{query}".<br/>Try searching with a different name.
-            </div>
-          ) : (
-            <div className="divide-y divide-[var(--border-color)]">
-              {results.map(student => (
+          <div className="flex-1 overflow-y-auto min-h-[180px] max-h-[260px] border border-slate-200 dark:border-slate-700 rounded-2xl bg-slate-50/50 dark:bg-slate-800/40 divide-y divide-slate-100 dark:divide-slate-800">
+            {searching ? (
+              <div className="p-8 flex flex-col items-center justify-center text-slate-400">
+                <FaSpinner className="animate-spin text-rose-500 text-2xl mb-2" />
+                <span className="text-xs font-medium">Searching students...</span>
+              </div>
+            ) : query.trim().length < 2 ? (
+              <div className="p-8 text-center text-xs font-medium text-slate-400">
+                Type at least 2 characters to search for registered students.
+              </div>
+            ) : results.length === 0 ? (
+              <div className="p-8 text-center text-xs font-medium text-slate-400">
+                No students found matching "{query}".
+              </div>
+            ) : (
+              results.map(student => (
                 <div 
                   key={student.id} 
-                  className={`p-3 flex items-center justify-between cursor-pointer transition-colors ${selectedIds.has(student.id) ? 'bg-[var(--coral-light)]' : 'hover:bg-black/5 dark:hover:bg-white/5'}`}
-                  onClick={() => !saving && !successMsg && toggleSelect(student.id)}
+                  className={`p-3.5 flex items-center justify-between cursor-pointer transition-colors ${
+                    selectedIds.has(student.id) 
+                      ? 'bg-rose-50 dark:bg-rose-950/40' 
+                      : 'hover:bg-white dark:hover:bg-slate-800'
+                  }`}
+                  onClick={() => toggleSelect(student.id)}
                 >
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-3 min-w-0">
                     <img 
                       src={student.avatar_url || "https://api.dicebear.com/7.x/fun-emoji/svg?seed=" + student.name} 
                       alt={student.name} 
-                      className="w-10 h-10 rounded-full bg-white object-cover shadow-sm"
+                      className="w-10 h-10 rounded-full bg-white object-cover shadow-sm shrink-0 border border-slate-200 dark:border-slate-700"
                     />
-                    <div className="font-bold text-[var(--text-primary)]">{student.name}</div>
+                    <div className="min-w-0">
+                      <div className="font-bold text-sm text-slate-900 dark:text-white truncate">{student.name}</div>
+                      {student.grade && (
+                        <div className="text-xs text-slate-400">Grade {student.grade}</div>
+                      )}
+                    </div>
                   </div>
                   
-                  <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${selectedIds.has(student.id) ? 'border-[var(--coral)] bg-[var(--coral)] text-white' : 'border-[var(--border-color)] text-transparent'}`}>
+                  <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${
+                    selectedIds.has(student.id) 
+                      ? 'border-rose-500 bg-rose-500 text-white shadow-sm' 
+                      : 'border-slate-300 dark:border-slate-600 text-transparent'
+                  }`}>
                     <FaCheck size={10} />
                   </div>
                 </div>
-              ))}
-            </div>
-          )}
+              ))
+            )}
+          </div>
         </div>
 
-        <div className="flex justify-between items-center shrink-0 pt-4 border-t border-[var(--border-color)]">
-          <div className="text-sm font-bold text-muted">
-            {selectedIds.size > 0 ? `Selected: ${selectedIds.size}` : ''}
+        <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-800/80 flex items-center justify-between shrink-0">
+          <div className="text-xs font-bold text-slate-500 dark:text-slate-400">
+            {selectedIds.size} student{selectedIds.size !== 1 ? 's' : ''} selected
           </div>
           <div className="flex gap-3">
             <button 
+              type="button"
               onClick={onClose}
               className="btn btn-outline"
-              disabled={saving}
             >
               Cancel
             </button>
             <button 
+              type="button"
               onClick={handleAddStudents}
-              className="btn btn-primary"
-              disabled={saving || selectedIds.size === 0 || successMsg}
+              className="btn btn-primary disabled:opacity-50"
+              disabled={saving || selectedIds.size === 0 || !selectedClassroomId}
             >
-              {saving ? 'Adding...' : selectedIds.size > 1 ? `Add ${selectedIds.size} Students` : 'Add Student'}
+              {saving ? 'Adding...' : 'Add to Class'}
             </button>
           </div>
         </div>
+      </>
+    );
+  };
+
+  const modalContent = (
+    <div 
+      className="fixed inset-0 z-[99999] flex items-center justify-center p-4 sm:p-6"
+      style={{
+        backgroundColor: 'rgba(15, 23, 42, 0.35)',
+        backdropFilter: 'blur(8px)',
+        WebkitBackdropFilter: 'blur(8px)',
+      }}
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="add-student-dashboard-title"
+    >
+      <div 
+        className="bg-white dark:bg-slate-900 rounded-3xl shadow-[0_25px_60px_-15px_rgba(0,0,0,0.2)] border border-slate-200/80 dark:border-slate-800 flex flex-col overflow-hidden animate-fade-in"
+        style={{ 
+          width: 'min(560px, 92vw)',
+          maxHeight: '88vh',
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Fixed Header */}
+        <div className="flex items-center justify-between px-6 py-4.5 border-b border-slate-100 dark:border-slate-800 bg-white/90 dark:bg-slate-900/90 shrink-0">
+          <div className="flex items-center gap-3 min-w-0 pr-4">
+            <div className="w-10 h-10 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-100 dark:border-rose-900/50 flex items-center justify-center text-rose-500 shrink-0 shadow-sm">
+              <FaUserPlus className="text-lg" />
+            </div>
+            <div>
+              <span className="text-[11px] font-extrabold uppercase tracking-wider text-rose-500 dark:text-rose-400 block">
+                Direct Enrollment
+              </span>
+              <h2 
+                id="add-student-dashboard-title"
+                className="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-white"
+              >
+                Add Student
+              </h2>
+            </div>
+          </div>
+
+          <button 
+            type="button"
+            onClick={onClose}
+            aria-label="Close modal"
+            className="w-9 h-9 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-slate-700 flex items-center justify-center transition-colors shrink-0"
+          >
+            <FaTimes className="text-sm" />
+          </button>
+        </div>
+
+        {renderContent()}
       </div>
     </div>
   );
+
+  return createPortal(modalContent, document.body);
 };
 
 export default DashboardAddStudentModal;

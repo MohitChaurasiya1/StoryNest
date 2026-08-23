@@ -115,3 +115,43 @@ class TeacherClassroomAPITests(TestCase):
         self.assertEqual(membership.status, 'removed')
         # Ensure child profile is intact
         self.assertTrue(ChildProfile.objects.filter(id=self.child1.id).exists())
+
+    def test_create_student_with_classroom(self):
+        self.client.force_authenticate(user=self.teacher1)
+        url = reverse('teacher_student_create')
+        data = {
+            "name": "Kavya Patel",
+            "age": 8,
+            "grade_level": "Grade 3",
+            "reading_level": "Intermediate",
+            "gender": "girl",
+            "avatar": "🐼",
+            "classroom_id": self.classroom1.id
+        }
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data['name'], 'Kavya Patel')
+        self.assertEqual(response.data['avatar'], '🐼')
+        self.assertIsNotNone(response.data['classroom'])
+        self.assertEqual(response.data['classroom']['id'], self.classroom1.id)
+
+        # Check DB
+        child = ChildProfile.objects.get(id=response.data['id'])
+        self.assertEqual(child.name, 'Kavya Patel')
+        self.assertTrue(ClassStudent.objects.filter(classroom=self.classroom1, child=child, status='active').exists())
+
+    def test_create_student_without_classroom(self):
+        self.client.force_authenticate(user=self.teacher1)
+        url = reverse('teacher_student_create')
+        data = {
+            "name": "Rohan Verma",
+            "age": 7,
+            "grade_level": "Grade 2"
+        }
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data['name'], 'Rohan Verma')
+        self.assertIsNone(response.data['classroom'])
+
+        # Check DB
+        self.assertTrue(ChildProfile.objects.filter(name='Rohan Verma').exists())

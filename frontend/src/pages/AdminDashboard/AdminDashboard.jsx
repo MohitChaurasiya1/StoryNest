@@ -301,7 +301,7 @@ export default function AdminDashboard() {
   };
 
   return (
-    <div className="dashboard-layout animate-fade-in">
+    <div className="dashboard-layout">
       <Sidebar role="admin" />
 
       <main className="dashboard-content">

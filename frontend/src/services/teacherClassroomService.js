@@ -123,6 +123,18 @@ const teacherClassroomService = {
       throw error.response?.data?.error || new Error("Failed to search students");
     }
   },
+
+  /**
+   * Create a new student (ChildProfile) and optionally enroll in a classroom.
+   */
+  createStudent: async (data) => {
+    try {
+      const response = await api.post("/teacher/students/create/", data);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data?.error || new Error("Failed to create student");
+    }
+  },
 };
 
 export default teacherClassroomService;

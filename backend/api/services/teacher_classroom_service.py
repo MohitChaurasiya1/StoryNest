@@ -242,3 +242,71 @@ class TeacherClassroomService:
             }
         except ClassStudent.DoesNotExist:
             raise ValidationError("Student is not active in this classroom.")
+
+    @staticmethod
+    @transaction.atomic
+    def create_student(user, data):
+        """
+        Create a new ChildProfile (student) and optionally enroll them into one of the teacher's classrooms.
+        """
+        name = data.get('name', '').strip()
+        if not name:
+            raise ValidationError("Student name is required.")
+
+        age = data.get('age')
+        if age:
+            try:
+                age = int(age)
+                if age < 1 or age > 18:
+                    raise ValidationError("Age must be between 1 and 18.")
+            except (ValueError, TypeError):
+                raise ValidationError("Age must be a valid number.")
+        else:
+            age = 7
+
+        grade_level = data.get('grade_level') or data.get('grade') or 'Grade 2'
+        reading_level = data.get('reading_level') or 'Beginner'
+        gender = data.get('gender') or 'boy'
+        if gender not in ['boy', 'girl', 'other']:
+            gender = 'boy'
+
+        dob = data.get('dob') or None
+        preferred_language = data.get('preferred_language') or 'Bilingual (EN/HI)'
+        avatar = data.get('avatar') or '🦁'
+        interests = data.get('interests') or 'Animals, Space, Magic'
+
+        child = ChildProfile.objects.create(
+            name=name,
+            age=age,
+            dob=dob,
+            gender=gender,
+            grade_level=grade_level,
+            reading_level=reading_level,
+            preferred_language=preferred_language,
+            avatar=avatar,
+            interests=interests
+        )
+
+        classroom_id = data.get('classroom_id')
+        enrolled_classroom = None
+        if classroom_id:
+            classroom = TeacherClassroomService.get_classroom(user, classroom_id)
+            ClassStudent.objects.create(
+                classroom=classroom,
+                child=child,
+                status='active'
+            )
+            enrolled_classroom = {
+                'id': classroom.id,
+                'name': classroom.name
+            }
+
+        return {
+            'id': child.id,
+            'name': child.name,
+            'age': child.age,
+            'grade_level': child.grade_level,
+            'reading_level': child.reading_level,
+            'avatar': child.avatar,
+            'classroom': enrolled_classroom
+        }

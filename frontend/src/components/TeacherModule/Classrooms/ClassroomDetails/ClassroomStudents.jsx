@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FaSearch, FaUserPlus, FaEllipsisV, FaSpinner, FaTimes } from 'react-icons/fa';
+import { FaSearch, FaUserPlus, FaPlus, FaTimes, FaSpinner } from 'react-icons/fa';
 import teacherClassroomService from '../../../../services/teacherClassroomService';
 import AddStudentsModal from './AddStudentsModal';
+import CreateStudentModal from '../CreateStudentModal';
 
 const ClassroomStudents = ({ classroomId, onUpdate }) => {
   const navigate = useNavigate();
@@ -10,6 +11,7 @@ const ClassroomStudents = ({ classroomId, onUpdate }) => {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isCreateStudentModalOpen, setIsCreateStudentModalOpen] = useState(false);
 
   const fetchStudents = async () => {
     try {
@@ -24,7 +26,6 @@ const ClassroomStudents = ({ classroomId, onUpdate }) => {
   };
 
   useEffect(() => {
-    // Debounce search
     const timer = setTimeout(() => {
       fetchStudents();
     }, 300);
@@ -36,11 +37,17 @@ const ClassroomStudents = ({ classroomId, onUpdate }) => {
       try {
         await teacherClassroomService.removeStudent(classroomId, studentId);
         fetchStudents();
-        onUpdate(); // Update header stats
+        onUpdate();
       } catch (err) {
         alert(err.message || "Failed to remove student");
       }
     }
+  };
+
+  const handleStudentCreated = () => {
+    setIsCreateStudentModalOpen(false);
+    fetchStudents();
+    onUpdate();
   };
 
   return (
@@ -56,67 +63,78 @@ const ClassroomStudents = ({ classroomId, onUpdate }) => {
             onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
-        <button className="btn btn-primary w-full sm:w-auto" onClick={() => setIsAddModalOpen(true)}>
-          <FaUserPlus /> Add Students
-        </button>
+        <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+          <button 
+            className="btn btn-secondary w-full sm:w-auto"
+            onClick={() => setIsAddModalOpen(true)}
+          >
+            <FaUserPlus /> Enroll Existing
+          </button>
+          <button 
+            className="btn btn-primary w-full sm:w-auto" 
+            onClick={() => setIsCreateStudentModalOpen(true)}
+          >
+            <FaPlus /> Create Student
+          </button>
+        </div>
       </div>
 
       {loading ? (
         <div className="py-12 flex justify-center text-muted">
-          <FaSpinner className="animate-spin text-3xl" />
+          <FaSpinner className="animate-spin text-3xl text-rose-500" />
         </div>
       ) : students.length === 0 ? (
-        <div className="empty-card border-2 border-dashed border-[var(--border-color)] bg-transparent my-4">
-          <h4 className="font-bold mb-2">No students found</h4>
-          <p className="text-muted mb-4">Add students to start tracking their progress.</p>
-          <button className="btn btn-outline" onClick={() => setIsAddModalOpen(true)}>
-            <FaUserPlus /> Add Students
-          </button>
+        <div className="empty-card border-2 border-dashed border-[var(--border-color)] bg-transparent my-4 py-12 text-center">
+          <h4 className="font-bold mb-2">No students enrolled yet</h4>
+          <p className="text-muted mb-6">Create a new student or enroll existing learners into this classroom.</p>
+          <div className="flex justify-center gap-3">
+            <button className="btn btn-secondary" onClick={() => setIsAddModalOpen(true)}>
+              <FaUserPlus /> Enroll Existing
+            </button>
+            <button className="btn btn-primary" onClick={() => setIsCreateStudentModalOpen(true)}>
+              <FaPlus /> Create Student
+            </button>
+          </div>
         </div>
       ) : (
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
+        <div className="table-responsive">
+          <table className="table">
             <thead>
-              <tr className="border-b border-[var(--border-color)]">
-                <th className="p-3 text-sm font-bold text-muted uppercase">Student</th>
-                <th className="p-3 text-sm font-bold text-muted uppercase">Reading Streak</th>
-                <th className="p-3 text-sm font-bold text-muted uppercase">Stories Completed</th>
-                <th className="p-3 text-sm font-bold text-muted uppercase">Avg. Score</th>
-                <th className="p-3 text-sm font-bold text-muted uppercase text-right">Actions</th>
+              <tr>
+                <th>Student</th>
+                <th>Grade / Age</th>
+                <th>Joined Date</th>
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody>
               {students.map(student => (
-                <tr key={student.id} className="border-b border-[var(--border-color)] hover:bg-[var(--bg-color)] transition-colors">
-                  <td className="p-3">
-                    <div className="flex items-center gap-3 cursor-pointer" onClick={() => navigate(`/teacher/classrooms/${classroomId}/students/${student.id}`)}>
+                <tr key={student.id}>
+                  <td>
+                    <div 
+                      className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity"
+                      onClick={() => navigate(`/teacher/classrooms/${classroomId}/students/${student.id}`)}
+                    >
                       <img 
                         src={student.avatar_url || "https://api.dicebear.com/7.x/fun-emoji/svg?seed=" + student.name} 
                         alt={student.name} 
-                        className="w-10 h-10 rounded-full bg-[var(--purple-light)] object-cover"
+                        className="w-10 h-10 rounded-full bg-white object-cover shadow-sm border border-slate-200 dark:border-slate-700"
                       />
                       <div>
-                        <div className="font-bold text-[var(--text-primary)]">{student.name}</div>
-                        <div className="text-xs text-muted">Joined {new Date(student.enrolled_at).toLocaleDateString()}</div>
+                        <div className="font-bold text-[var(--text-primary)] hover:text-[var(--coral)]">{student.name}</div>
+                        <div className="text-xs text-muted">ID: #{student.id}</div>
                       </div>
                     </div>
                   </td>
-                  <td className="p-3 font-bold">{student.reading_streak} Days</td>
-                  <td className="p-3 font-bold">{student.stories_completed}</td>
-                  <td className="p-3 font-bold">
-                    <span className={student.average_progress >= 80 ? 'text-[var(--mint)]' : student.average_progress < 60 ? 'text-[var(--danger-color)]' : ''}>
-                      {student.average_progress}%
-                    </span>
+                  <td>
+                    <span className="pill">{student.grade || 'Grade 2'} • Age {student.age || 7}</span>
                   </td>
-                  <td className="p-3 text-right">
+                  <td className="text-muted">
+                    {student.enrolled_at ? new Date(student.enrolled_at).toLocaleDateString() : 'Active'}
+                  </td>
+                  <td>
                     <button 
-                      className="btn btn-outline text-xs px-3 py-1 mr-2"
-                      onClick={() => navigate(`/teacher/classrooms/${classroomId}/students/${student.id}`)}
-                    >
-                      View
-                    </button>
-                    <button 
-                      className="p-2 text-muted hover:text-[var(--danger-color)] hover:bg-[var(--danger-light)] rounded-full transition-colors"
+                      className="p-2 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-full transition-colors"
                       title="Remove from class"
                       onClick={() => handleRemoveStudent(student.id, student.name)}
                     >
@@ -139,6 +157,14 @@ const ClassroomStudents = ({ classroomId, onUpdate }) => {
             fetchStudents();
             onUpdate();
           }}
+        />
+      )}
+
+      {isCreateStudentModalOpen && (
+        <CreateStudentModal 
+          initialClassroomId={classroomId}
+          onClose={() => setIsCreateStudentModalOpen(false)}
+          onSuccess={handleStudentCreated}
         />
       )}
     </div>

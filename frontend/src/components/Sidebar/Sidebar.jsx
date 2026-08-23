@@ -39,7 +39,7 @@ export default function Sidebar({ role }) {
       } else {
         const activeEl = navRef.current.querySelector('.active');
         if (activeEl) {
-          activeEl.scrollIntoView({ block: 'nearest' });
+          navRef.current.scrollTop = Math.max(0, activeEl.offsetTop - navRef.current.offsetTop - 20);
         }
       }
     }
