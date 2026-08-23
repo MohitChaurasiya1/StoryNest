@@ -90,7 +90,7 @@ def calculate_streak_for_child(child):
     if not read_dates:
         return 0
 
-    today = timezone.now().date()
+    today = timezone.localdate()
     yesterday = today - timedelta(days=1)
     if read_dates[0] != today and read_dates[0] != yesterday:
         return 0
@@ -306,7 +306,6 @@ class ResetPasswordView(APIView):
         return Response({"detail": "Password has been reset successfully. You can now log in."})
 
 
-
 # ─── Parent Profile & Settings ─────────────────────────────────
 
 class ParentProfileView(APIView):
@@ -433,7 +432,7 @@ class ParentDashboardView(APIView):
             })
 
         # Weekly reading chart (last 7 days)
-        today = timezone.now().date()
+        today = timezone.localdate()
         weekly_chart = []
         day_names = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
         start_of_week = today - timedelta(days=today.weekday())
@@ -498,7 +497,7 @@ class ChildDashboardView(APIView):
             total=Sum('reading_time_minutes')
         )['total'] or 0
 
-        today = timezone.now().date()
+        today = timezone.localdate()
         start_of_week = today - timedelta(days=today.weekday())
         week_days = []
         day_names = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
@@ -611,7 +610,7 @@ class ChildInsightsView(APIView):
 
         # Monthly reading data (last 6 months)
         monthly_data = []
-        today = timezone.now().date()
+        today = timezone.localdate()
         for i in range(5, -1, -1):
             month_start = (today.replace(day=1) - timedelta(days=30 * i)).replace(day=1)
             if i > 0:
@@ -801,7 +800,6 @@ class ToggleFavouriteView(APIView):
             parent=request.user, story_id=story_id
         ).delete()
         return Response({"status": "unfavourited"})
-
 
 
 # ─── Child Stories ──────────────────────────────────────────────
