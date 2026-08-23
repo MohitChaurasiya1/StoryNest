@@ -16,4 +16,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . /app/
 
-CMD ["sh", "-c", "gunicorn core.wsgi:application --bind 0.0.0.0:$PORT"]
+# Collect static files during Docker build
+RUN python manage.py collectstatic --no-input
+
+# Run migrations and start Gunicorn on Render
+CMD ["sh", "-c", "python manage.py migrate --no-input && gunicorn core.wsgi:application --bind 0.0.0.0:$PORT"]

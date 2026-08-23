@@ -27,7 +27,22 @@ if not SECRET_KEY:
 
 DEBUG = os.getenv('DEBUG', 'True') == 'True'
 
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '*').split(',')
+ALLOWED_HOSTS = [
+    host.strip()
+    for host in os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1,.onrender.com').split(',')
+    if host.strip()
+]
+
+# Render / reverse-proxy HTTPS support
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+# CSRF trusted origins — set in production via environment variable
+_csrf_origins = os.getenv('CSRF_TRUSTED_ORIGINS', 'https://*.onrender.com,https://*.netlify.app')
+CSRF_TRUSTED_ORIGINS = [
+    origin.strip()
+    for origin in _csrf_origins.split(',')
+    if origin.strip()
+]
 
 
 # Application definition
@@ -235,6 +250,7 @@ if HAS_WHITENOISE and not DEBUG:
             "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
         },
     }
+    WHITENOISE_MANIFEST_STRICT = False
 else:
     STORAGES = {
         "default": {
