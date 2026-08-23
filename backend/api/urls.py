@@ -33,17 +33,16 @@ from .parent_views import (
     IssueCertificateView,
     FamilyReadingLogsView,
 )
-from .teacher_views import (
-    TeacherDashboardView,
-    TeacherAnalysisView,
-    TeacherInboxViewSet,
-    TeacherLessonViewSet,
-    TeacherStudentViewSet,
-    TeacherSettingsView,
-    TeacherClassroomViewSet,
-    TeacherAssignmentViewSet,
-    TeacherScheduleViewSet,
-    TeacherStoryLibraryViewSet,
+from .teacher_v2_views import (
+    TeacherDashboardAPIView,
+    TeacherClassroomListCreateView,
+    TeacherClassroomDetailView,
+    TeacherClassroomArchiveView,
+    TeacherClassroomStudentsView,
+    TeacherClassroomStudentDetailView,
+    TeacherGlobalStudentSearchView,
+    TeacherLibraryListView,
+    TeacherLibraryPreviewView
 )
 
 from .parent_views_extended import (
@@ -73,13 +72,7 @@ router.register(r'parent/goals', ChildGoalViewSet, basename='parent-goals')
 router.register(r'parent/schedules', ReadingScheduleViewSet, basename='parent-schedules')
 router.register(r'parent/ratings', StoryRatingViewSet, basename='parent-ratings')
 router.register(r'parent/rewards/shop', RewardShopItemViewSet, basename='reward-shop')
-router.register(r'teacher/inbox', TeacherInboxViewSet, basename='teacher-inbox')
-router.register(r'teacher/lessons', TeacherLessonViewSet, basename='teacher-lessons')
-router.register(r'teacher/students', TeacherStudentViewSet, basename='teacher-students')
-router.register(r'teacher/classrooms', TeacherClassroomViewSet, basename='teacher-classrooms')
-router.register(r'teacher/assignments', TeacherAssignmentViewSet, basename='teacher-assignments')
-router.register(r'teacher/schedule', TeacherScheduleViewSet, basename='teacher-schedule')
-router.register(r'teacher/stories', TeacherStoryLibraryViewSet, basename='teacher-stories')
+
 
 urlpatterns = [
     # Story endpoints
@@ -92,10 +85,7 @@ urlpatterns = [
     path('admin/users/<int:user_id>/', AdminUserDetailView.as_view(), name='admin_user_detail'),
     path('admin/users/<int:user_id>/toggle/', AdminUserToggleActiveView.as_view(), name='admin_user_toggle'),
 
-    # Teacher Module Endpoints
-    path('teacher/dashboard/', TeacherDashboardView.as_view(), name='teacher_dashboard'),
-    path('teacher/analysis/', TeacherAnalysisView.as_view(), name='teacher_analysis'),
-    path('teacher/settings/', TeacherSettingsView.as_view(), name='teacher_settings'),
+
 
     # Auth JWT & Profile endpoints
     path('auth/register/', RegisterView.as_view(), name='auth_register'),
@@ -110,6 +100,18 @@ urlpatterns = [
     path('parent/auth/update-profile/', UpdateProfileView.as_view(), name='parent_update_profile'),
     path('parent/auth/delete-account/', DeleteAccountView.as_view(), name='parent_delete_account'),
     path('parent/profile/', ParentProfileView.as_view(), name='parent_profile'),
+    # Teacher Module Endpoints
+    path('teacher/dashboard/', TeacherDashboardAPIView.as_view(), name='teacher_dashboard_v2'),
+    path('teacher/classrooms/', TeacherClassroomListCreateView.as_view(), name='teacher_classrooms_list_create'),
+    path('teacher/classrooms/<int:classroom_id>/', TeacherClassroomDetailView.as_view(), name='teacher_classroom_detail'),
+    path('teacher/classrooms/<int:classroom_id>/archive/', TeacherClassroomArchiveView.as_view(), name='teacher_classroom_archive'),
+    path('teacher/classrooms/<int:classroom_id>/students/', TeacherClassroomStudentsView.as_view(), name='teacher_classroom_students'),
+    path('teacher/classrooms/<int:classroom_id>/students/<int:student_id>/', TeacherClassroomStudentDetailView.as_view(), name='teacher_classroom_student_detail'),
+    path('teacher/students/search/', TeacherGlobalStudentSearchView.as_view(), name='teacher_global_student_search'),
+
+    # Teacher Library Endpoints
+    path('teacher/library/', TeacherLibraryListView.as_view(), name='teacher-library-list'),
+    path('teacher/library/<str:content_type>/<int:content_id>/', TeacherLibraryPreviewView.as_view(), name='teacher-library-preview'),
 
     # Forgot/Reset Password (public, no auth required)
     path('auth/forgot-password/', ForgotPasswordView.as_view(), name='forgot_password'),

@@ -424,85 +424,7 @@ class FavouriteStorySerializer(serializers.ModelSerializer):
         read_only_fields = ["id", "parent", "created_at"]
 
 
-class TeacherProfileSerializer(serializers.ModelSerializer):
-    username = serializers.ReadOnlyField(source='user.username')
-    email = serializers.ReadOnlyField(source='user.email')
 
-    class Meta:
-        model = TeacherProfile
-        fields = [
-            "id", "username", "email", "school_name", "grade_level",
-            "subject", "bio", "avatar", "email_notifications",
-            "theme_preference", "created_at"
-        ]
-        read_only_fields = ["id", "created_at"]
-
-
-class TeacherClassSerializer(serializers.ModelSerializer):
-    teacher_name = serializers.ReadOnlyField(source='teacher.username')
-    enrolled_count = serializers.SerializerMethodField()
-    active_students_count = serializers.SerializerMethodField()
-    reading_avg = serializers.SerializerMethodField()
-    quiz_avg = serializers.SerializerMethodField()
-    overall_progress = serializers.SerializerMethodField()
-    students_needing_attention_count = serializers.SerializerMethodField()
-
-    class Meta:
-        model = TeacherClass
-        fields = [
-            "id", "name", "grade_level", "section", "school_name",
-            "description", "subject", "academic_year", "max_students",
-            "status", "join_code", "teacher_name", "enrolled_count",
-            "active_students_count", "reading_avg", "quiz_avg",
-            "overall_progress", "students_needing_attention_count",
-            "created_at", "updated_at"
-        ]
-        read_only_fields = ["id", "teacher", "created_at", "updated_at"]
-
-    def get_enrolled_count(self, obj):
-        return obj.enrolled_students.count()
-
-    def get_active_students_count(self, obj):
-        return obj.enrolled_students.filter(status='active').count()
-
-    def get_reading_avg(self, obj):
-        from django.db.models import Avg
-        children = [e.child for e in obj.enrolled_students.all()]
-        if not children:
-            return 76.0
-        logs = ReadingLog.objects.filter(child__in=children)
-        if not logs.exists():
-            return 76.0
-        completed = logs.filter(completed=True).count()
-        total = logs.count() or 1
-        return round(min(100.0, (completed / total) * 100), 1)
-
-    def get_quiz_avg(self, obj):
-        from django.db.models import Avg
-        children = [e.child for e in obj.enrolled_students.all()]
-        if not children:
-            return 81.0
-        attempts = QuizAttempt.objects.filter(child__in=children)
-        if not attempts.exists():
-            return 81.0
-        avg = attempts.aggregate(avg=Avg('percentage'))['avg']
-        return round(avg, 1) if avg is not None else 81.0
-
-    def get_overall_progress(self, obj):
-        reading = self.get_reading_avg(obj)
-        quiz = self.get_quiz_avg(obj)
-        return round((reading + quiz) / 2, 1)
-
-    def get_students_needing_attention_count(self, obj):
-        from django.db.models import Avg
-        count = 0
-        children = [e.child for e in obj.enrolled_students.all()]
-        for child in children:
-            avg_q = QuizAttempt.objects.filter(child=child).aggregate(avg=Avg('percentage'))['avg'] or 75.0
-            logs_count = ReadingLog.objects.filter(child=child).count()
-            if avg_q < 65 or logs_count < 2:
-                count += 1
-        return count
 
 
 class ClassAssignmentStudentSerializer(serializers.ModelSerializer):
@@ -582,14 +504,7 @@ class LessonSerializer(serializers.ModelSerializer):
         return obj.submissions.filter(status='completed').count()
 
 
-class TeacherMessageSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = TeacherMessage
-        fields = [
-            "id", "sender", "recipient", "sender_name", "recipient_name",
-            "subject", "content", "message_type", "is_read", "created_at"
-        ]
-        read_only_fields = ["id", "created_at"]
+
 
 
 class StoryApprovalSerializer(serializers.ModelSerializer):

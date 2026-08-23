@@ -7,29 +7,7 @@ import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import AdminDashboard from './pages/AdminDashboard';
-import TeacherDashboard from './pages/TeacherDashboard/TeacherDashboard';
-import TeacherLayout from './components/TeacherModule/TeacherLayout';
-import TeacherClassrooms from './components/TeacherModule/TeacherClassrooms';
-import TeacherClassroomDetails from './components/TeacherModule/TeacherClassroomDetails';
-import TeacherStoryLibrary from './components/TeacherModule/TeacherStoryLibrary';
-import TeacherReadingProgress from './components/TeacherModule/TeacherReadingProgress';
-import TeacherQuizReports from './components/TeacherModule/TeacherQuizReports';
-import TeacherLearningGoals from './components/TeacherModule/TeacherLearningGoals';
-import TeacherAchievements from './components/TeacherModule/TeacherAchievements';
-import TeacherCertificates from './components/TeacherModule/TeacherCertificates';
-import TeacherAnalytics from './components/TeacherModule/TeacherAnalytics';
-import TeacherAIInsights from './components/TeacherModule/TeacherAIInsights';
-import TeacherRecommendations from './components/TeacherModule/TeacherRecommendations';
-import TeacherComparison from './components/TeacherModule/TeacherComparison';
-import TeacherReports from './components/TeacherModule/TeacherReports';
-import TeacherResources from './components/TeacherModule/TeacherResources';
-import TeacherNotifications from './components/TeacherModule/TeacherNotifications';
-import TeacherAssignments from './components/TeacherModule/TeacherAssignments';
-import TeacherAssignmentDetails from './components/TeacherModule/TeacherAssignmentDetails';
-import TeacherSchedule from './components/TeacherModule/TeacherSchedule';
-import TeacherStudents from './components/TeacherModule/TeacherStudents';
-import TeacherStudentProfile from './components/TeacherModule/TeacherStudentProfile';
-import TeacherLessons from './components/TeacherModule/TeacherLessons';
+
 import ParentDashboard from './pages/ParentDashboard';
 import ChildrenList from './components/ParentModule/ChildrenList';
 import ChildDetails from './components/ParentModule/ChildDetails';
@@ -58,6 +36,14 @@ import GlobalSearch from './components/ParentModule/GlobalSearch';
 import ReportExport from './components/ParentModule/ReportExport';
 import StoryCreator from './pages/StoryCreator/StoryCreator';
 import StoryReader from './pages/StoryReader';
+
+import TeacherLayout from './components/TeacherModule/TeacherLayout';
+import TeacherDashboard from './components/TeacherModule/Dashboard/TeacherDashboard';
+import ClassroomsPage from './components/TeacherModule/Classrooms/ClassroomsPage';
+import ClassroomDetailsPage from './components/TeacherModule/Classrooms/ClassroomDetails/ClassroomDetailsPage';
+import StudentProfilePage from './components/TeacherModule/Classrooms/Student/StudentProfilePage';
+import LibraryPage from './components/TeacherModule/Library/LibraryPage';
+import ComingSoonPlaceholder from './components/TeacherModule/ComingSoonPlaceholder';
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -95,43 +81,7 @@ function App() {
               </ProtectedRoute>
             }
           />
-          <Route
-            path="/teacher"
-            element={
-              <ProtectedRoute allowedRoles={['TEACHER', 'ADMIN']}>
-                <TeacherLayout />
-              </ProtectedRoute>
-            }
-          >
-            {/* Phase 1: Keep existing dashboard logic for now by mapping everything into the layout */}
-            <Route index element={<TeacherDashboard activeTab="dashboard" />} />
-            <Route path="classrooms" element={<TeacherClassrooms />} />
-            <Route path="classrooms/:id" element={<TeacherClassroomDetails />} />
-            <Route path="library" element={<TeacherStoryLibrary />} />
-            <Route path="progress" element={<TeacherReadingProgress />} />
-            <Route path="quizzes" element={<TeacherQuizReports />} />
-            <Route path="goals" element={<TeacherLearningGoals />} />
-            <Route path="achievements" element={<TeacherAchievements />} />
-            <Route path="certificates" element={<TeacherCertificates />} />
-            <Route path="analytics" element={<TeacherAnalytics />} />
-            <Route path="insights" element={<TeacherAIInsights />} />
-            <Route path="recommendations" element={<TeacherRecommendations />} />
-            <Route path="comparison" element={<TeacherComparison />} />
-            <Route path="reports" element={<TeacherReports />} />
-            <Route path="resources" element={<TeacherResources />} />
-            <Route path="notifications" element={<TeacherNotifications />} />
-            <Route path="inbox" element={<TeacherDashboard activeTab="inbox" />} />
-            <Route path="messages" element={<TeacherDashboard activeTab="inbox" />} />
-            <Route path="lessons" element={<TeacherLessons />} />
-            <Route path="assignments" element={<TeacherAssignments />} />
-            <Route path="assignments/:assignmentId" element={<TeacherAssignmentDetails />} />
-            <Route path="schedule" element={<TeacherSchedule />} />
-            <Route path="students" element={<TeacherStudents />} />
-            <Route path="students/:id" element={<TeacherStudentProfile />} />
-            <Route path="settings" element={<TeacherDashboard activeTab="settings" />} />
-            {/* Future nested routes will replace these mapped activeTab components */}
-            <Route path="*" element={<TeacherDashboard activeTab="dashboard" />} />
-          </Route>
+
           <Route
             path="/parent"
             element={
@@ -340,6 +290,48 @@ function App() {
               </ProtectedRoute>
             }
           />
+
+          <Route
+            path="/teacher"
+            element={
+              <ProtectedRoute allowedRoles={['TEACHER', 'ADMIN']}>
+                <TeacherLayout />
+              </ProtectedRoute>
+            }
+          >
+            <Route index element={<TeacherDashboard />} />
+            <Route path="dashboard" element={<TeacherDashboard />} />
+            <Route path="classrooms" element={<ClassroomsPage />} />
+            <Route path="classrooms/:id" element={<ClassroomDetailsPage />} />
+            <Route path="classrooms/:id/students/:studentId" element={<StudentProfilePage />} />
+            <Route path="library" element={<LibraryPage />} />
+            
+            {/* Placeholders for future modules */}
+            <Route path="assignments/create" element={
+              <ComingSoonPlaceholder 
+                title="Create Assignment" 
+                description="The Assignment Builder is coming soon. You'll be able to assign stories and quizzes to your classrooms here." 
+              />
+            } />
+            <Route path="library/create-lesson" element={
+              <ComingSoonPlaceholder 
+                title="Lesson Builder" 
+                description="The Lesson Builder is coming soon. You'll be able to create custom lessons for your students here." 
+              />
+            } />
+            <Route path="library/create-story" element={
+              <ComingSoonPlaceholder 
+                title="Story Creator" 
+                description="The Teacher Story Creator is coming soon. Generate amazing AI stories tailored to your curriculum." 
+              />
+            } />
+            <Route path="library/create-quiz" element={
+              <ComingSoonPlaceholder 
+                title="Quiz Creator" 
+                description="The Quiz Creator is coming soon. Create custom comprehension checks for your students here." 
+              />
+            } />
+          </Route>
 
           <Route
             path="/create"
