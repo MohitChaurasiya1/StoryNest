@@ -19,5 +19,5 @@ COPY . /app/
 # Collect static files during Docker build
 RUN python manage.py collectstatic --no-input
 
-# Run migrations and start Gunicorn on Render
-CMD ["sh", "-c", "python manage.py migrate --no-input && gunicorn core.wsgi:application --bind 0.0.0.0:$PORT"]
+# Run migrations, auto-initialize admin, and start Gunicorn on Render
+CMD ["sh", "-c", "python manage.py migrate --no-input && python manage.py init_admin && gunicorn core.wsgi:application --bind 0.0.0.0:$PORT"]
