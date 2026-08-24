@@ -1,20 +1,50 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiSearch, FiChevronRight } from 'react-icons/fi';
+import { FiSearch, FiChevronRight, FiAlertCircle } from 'react-icons/fi';
 
 const StudentPerformanceTable = ({ students, search, onSearchChange, sortBy, onSortChange }) => {
   const navigate = useNavigate();
 
-  const getStatusBadge = (status) => {
+  const getStatusBadge = (status, reasons) => {
     switch (status) {
       case 'on_track':
-        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300">🟢 On Track</span>;
+        return (
+          <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-extrabold bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300">
+            🟢 On Track
+          </span>
+        );
       case 'needs_attention':
-        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300">🟡 Needs Attention</span>;
+        return (
+          <div className="flex flex-col items-start gap-1">
+            <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-extrabold bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300">
+              🟡 Needs Attention
+            </span>
+            {reasons && reasons.length > 0 && (
+              <span className="text-[10px] text-amber-700 dark:text-amber-400 font-semibold line-clamp-1 max-w-[200px]">
+                {reasons[0]}
+              </span>
+            )}
+          </div>
+        );
       case 'at_risk':
-        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-100 text-rose-800 dark:bg-rose-900/30 dark:text-rose-300">🔴 At Risk</span>;
+        return (
+          <div className="flex flex-col items-start gap-1">
+            <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-extrabold bg-rose-100 text-rose-800 dark:bg-rose-900/30 dark:text-rose-300">
+              🔴 At Risk
+            </span>
+            {reasons && reasons.length > 0 && (
+              <span className="text-[10px] text-rose-600 dark:text-rose-400 font-semibold line-clamp-1 max-w-[200px]">
+                {reasons[0]}
+              </span>
+            )}
+          </div>
+        );
       default:
-        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-800 dark:bg-slate-700 dark:text-slate-300">Active</span>;
+        return (
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-800 dark:bg-slate-700 dark:text-slate-300">
+            Active
+          </span>
+        );
     }
   };
 
@@ -65,46 +95,52 @@ const StudentPerformanceTable = ({ students, search, onSearchChange, sortBy, onS
           </thead>
           <tbody className="bg-white dark:bg-slate-800 divide-y divide-slate-200 dark:divide-slate-700">
             {students.length > 0 ? (
-              students.map((s) => (
-                <tr
-                  key={s.id}
-                  onClick={() => navigate(`/teacher/progress/students/${s.id}`)}
-                  className="hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors cursor-pointer"
-                >
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center gap-3">
-                      <span className="text-2xl">{s.avatar || '🧑‍🎓'}</span>
-                      <span className="text-sm font-bold text-slate-900 dark:text-white">{s.name}</span>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500 dark:text-slate-400">
-                    {s.classroom_name}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center gap-2">
-                      <div className="w-16 bg-slate-100 dark:bg-slate-700 rounded-full h-2">
-                        <div
-                          className="bg-indigo-600 h-2 rounded-full transition-all duration-500"
-                          style={{ width: `${s.progress}%` }}
-                        />
+              students.map((s) => {
+                const progressVal = s.progress !== null && s.progress !== undefined ? s.progress : 0;
+                const quizVal = s.quiz_avg !== null && s.quiz_avg !== undefined ? `${s.quiz_avg}%` : 'No quizzes';
+                const asgnVal = s.assignment_completion !== null && s.assignment_completion !== undefined ? `${s.assignment_completion}%` : 'No tasks';
+
+                return (
+                  <tr
+                    key={s.id}
+                    onClick={() => navigate(`/teacher/progress/students/${s.id}`)}
+                    className="hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors cursor-pointer"
+                  >
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center gap-3">
+                        <span className="text-2xl">{s.avatar || '🧑‍🎓'}</span>
+                        <span className="text-sm font-bold text-slate-900 dark:text-white">{s.name}</span>
                       </div>
-                      <span className="text-sm font-bold text-slate-900 dark:text-white">{s.progress}%</span>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-slate-900 dark:text-white">
-                    {s.quiz_avg}%
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-slate-900 dark:text-white">
-                    {s.assignment_completion}%
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    {getStatusBadge(s.status)}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium text-slate-400">
-                    <FiChevronRight className="h-5 w-5 ml-auto" />
-                  </td>
-                </tr>
-              ))
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500 dark:text-slate-400">
+                      {s.classroom_name}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center gap-2">
+                        <div className="w-16 bg-slate-100 dark:bg-slate-700 rounded-full h-2">
+                          <div
+                            className="bg-indigo-600 h-2 rounded-full transition-all duration-500"
+                            style={{ width: `${progressVal}%` }}
+                          />
+                        </div>
+                        <span className="text-sm font-bold text-slate-900 dark:text-white">{progressVal}%</span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-slate-900 dark:text-white">
+                      {quizVal}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-slate-900 dark:text-white">
+                      {asgnVal}
+                    </td>
+                    <td className="px-6 py-4">
+                      {getStatusBadge(s.status, s.reasons)}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium text-slate-400">
+                      <FiChevronRight className="h-5 w-5 ml-auto" />
+                    </td>
+                  </tr>
+                );
+              })
             ) : (
               <tr>
                 <td colSpan={7} className="px-6 py-12 text-center text-sm text-slate-500 dark:text-slate-400">

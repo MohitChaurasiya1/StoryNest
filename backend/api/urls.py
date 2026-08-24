@@ -55,6 +55,7 @@ from .teacher_v2_views import (
     TeacherAssignmentArchiveView,
     TeacherAssignmentDuplicateView,
     TeacherAssignmentRecipientsView,
+    TeacherDirectStudentAssignmentsView,
 )
 from .teacher_progress_views import (
     TeacherProgressOverviewView,
@@ -145,6 +146,7 @@ urlpatterns = [
     path('teacher/classrooms/<int:classroom_id>/students/<int:student_id>/assignments/', TeacherStudentAssignmentsView.as_view(), name='teacher_student_assignments'),
     path('teacher/classrooms/<int:classroom_id>/students/<int:student_id>/certificates/', TeacherStudentCertificatesView.as_view(), name='teacher_student_certificates'),
     path('teacher/classrooms/<int:classroom_id>/students/<int:student_id>/certificates/<int:cert_id>/', TeacherStudentCertificateDetailView.as_view(), name='teacher_student_certificate_detail'),
+    path('teacher/students/<int:student_id>/assignments/', TeacherDirectStudentAssignmentsView.as_view(), name='teacher_direct_student_assignments'),
     path('teacher/students/search/', TeacherGlobalStudentSearchView.as_view(), name='teacher_global_student_search'),
     path('teacher/students/create/', TeacherStudentCreateView.as_view(), name='teacher_student_create'),
     path('teacher/students/', TeacherStudentCreateView.as_view(), name='teacher_students'),

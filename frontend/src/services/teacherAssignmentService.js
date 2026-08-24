@@ -2,8 +2,11 @@ import api from './api';
 
 const teacherAssignmentService = {
   getAssignments: async (filters = {}) => {
-    const params = new URLSearchParams(filters).toString();
-    const response = await api.get(`/teacher/assignments/?${params}`);
+    const cleanedFilters = Object.fromEntries(
+      Object.entries(filters).filter(([_, v]) => v !== undefined && v !== null && v !== '')
+    );
+    const params = new URLSearchParams(cleanedFilters).toString();
+    const response = await api.get(`/teacher/assignments/${params ? `?${params}` : ''}`);
     return response.data.results || response.data;
   },
 
@@ -37,9 +40,21 @@ const teacherAssignmentService = {
     return response.data;
   },
 
-  getRecipients: async (id) => {
-    const response = await api.get(`/teacher/assignments/${id}/recipients/`);
+  getRecipients: async (id, filters = {}) => {
+    const cleanedFilters = Object.fromEntries(
+      Object.entries(filters).filter(([_, v]) => v !== undefined && v !== null && v !== '')
+    );
+    const params = new URLSearchParams(cleanedFilters).toString();
+    const response = await api.get(`/teacher/assignments/${id}/recipients/${params ? `?${params}` : ''}`);
     return response.data.results || response.data;
+  },
+
+  getStudentAssignments: async (studentId, classroomId = null) => {
+    const url = classroomId
+      ? `/teacher/classrooms/${classroomId}/students/${studentId}/assignments/`
+      : `/teacher/students/${studentId}/assignments/`;
+    const response = await api.get(url);
+    return response.data;
   }
 };
 

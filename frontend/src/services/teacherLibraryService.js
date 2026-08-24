@@ -19,6 +19,10 @@ const teacherLibraryService = {
     }
   },
 
+  getLibraryFeed: async (filters = {}, page = 1) => {
+    return teacherLibraryService.getContent(filters, page);
+  },
+
   /**
    * Fetch detailed preview data for a specific content type and ID
    * @param {String} type - 'story', 'lesson', or 'quiz'

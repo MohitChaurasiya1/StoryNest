@@ -235,12 +235,33 @@ class TeacherStudentAssignmentsView(APIView):
         if request.user.role not in [User.Role.TEACHER, User.Role.ADMIN]:
             raise PermissionDenied("You do not have permission to view student assignments.")
         try:
-            assignments = TeacherClassroomService.get_student_assignments(request.user, classroom_id, student_id)
+            assignments = TeacherAssignmentService.get_student_assignments(request.user, student_id, classroom_id)
             return Response(assignments)
         except DjangoValidationError as e:
             return Response({"error": {"message": str(e.message) if hasattr(e, 'message') else str(e)}}, status=400)
+        except PermissionDenied as e:
+            return Response({"error": {"message": str(e)}}, status=403)
         except Exception as e:
             return Response({"error": {"message": str(e)}}, status=500)
+
+
+class TeacherDirectStudentAssignmentsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, student_id):
+        if request.user.role not in [User.Role.TEACHER, User.Role.ADMIN]:
+            raise PermissionDenied("You do not have permission to view student assignments.")
+        try:
+            classroom_id = request.query_params.get('classroom_id')
+            assignments = TeacherAssignmentService.get_student_assignments(request.user, student_id, classroom_id)
+            return Response(assignments)
+        except DjangoValidationError as e:
+            return Response({"error": {"message": str(e.message) if hasattr(e, 'message') else str(e)}}, status=400)
+        except PermissionDenied as e:
+            return Response({"error": {"message": str(e)}}, status=403)
+        except Exception as e:
+            return Response({"error": {"message": str(e)}}, status=500)
+
 
 
 class TeacherStudentCertificatesView(APIView):
@@ -406,7 +427,9 @@ class TeacherAssignmentListCreateView(APIView):
         filters = {
             'status': request.query_params.get('status', 'all'),
             'classroom_id': request.query_params.get('classroom_id'),
+            'student_id': request.query_params.get('student_id'),
             'content_type': request.query_params.get('content_type', 'all'),
+            'time_filter': request.query_params.get('time_filter'),
             'search': request.query_params.get('search', ''),
             'sort': request.query_params.get('sort', '-created_at')
         }
@@ -433,6 +456,8 @@ class TeacherAssignmentListCreateView(APIView):
         except DjangoValidationError as e:
             return Response({"error": {"message": str(e.message) if hasattr(e, 'message') else str(e)}}, status=400)
         except Exception as e:
+            import traceback
+            traceback.print_exc()
             return Response({"error": {"message": str(e)}}, status=500)
 
 
@@ -527,15 +552,12 @@ class TeacherAssignmentRecipientsView(APIView):
             raise PermissionDenied("You do not have permission to access assignments.")
             
         try:
-            recipients = TeacherAssignmentService.get_recipients(request.user, assignment_id)
-            
-            # Simple global search within recipients
+            status_filter = request.query_params.get('status')
             search_query = request.query_params.get('search', '')
-            if search_query:
-                recipients = recipients.filter(child__name__icontains=search_query)
-                
-            serializer = ClassAssignmentStudentSerializer(recipients, many=True)
-            return Response({"results": serializer.data})
+            recipients = TeacherAssignmentService.get_recipients(
+                request.user, assignment_id, status_filter=status_filter, search=search_query
+            )
+            return Response({"results": recipients})
         except DjangoValidationError as e:
             return Response({"error": {"message": str(e.message) if hasattr(e, 'message') else str(e)}}, status=404)
         except Exception as e:

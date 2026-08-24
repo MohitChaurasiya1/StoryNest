@@ -59,7 +59,9 @@ const StudentProfilePage = () => {
       }
 
       if (asgRes.status === 'fulfilled') {
-        setAssignedTasks(asgRes.value || []);
+        const asgData = asgRes.value;
+        const taskList = Array.isArray(asgData) ? asgData : (asgData?.all || asgData?.results || []);
+        setAssignedTasks(taskList);
       }
 
       if (libRes.status === 'fulfilled' && libRes.value?.results) {
@@ -162,11 +164,39 @@ const StudentProfilePage = () => {
     );
   }
 
-  const { child, stats, weekly_activity, recent_stories, story_ideas, achievements } = dashboardData;
+  const { child = {}, stats = {}, weekly_activity = [], recent_stories = [], story_ideas = [], achievements = [], assigned_tasks = [], assignment_stats = {} } = dashboardData || {};
+  const currentAssignedTasks = assignedTasks.length > 0 ? assignedTasks : (Array.isArray(assigned_tasks) ? assigned_tasks : []);
   const streak = stats.reading_streak || stats.current_streak || 0;
   const booksRead = stats.total_books_read || stats.stories_completed || 0;
   const totalMins = stats.total_minutes || 0;
   const avgQuiz = stats.average_quiz || stats.quiz_average || 0;
+
+  const handleCreateStoryForStudent = (customTitle, customPrompt) => {
+    const studentName = child?.name || 'Student';
+    const title = customTitle || `${studentName}'s Adventure`;
+    const grade = child?.grade || child?.grade_level || 'Grade 2';
+    const readingLevel = child?.reading_level || 'Beginner';
+    const prompt = customPrompt || `An engaging reading adventure tailored for ${studentName}`;
+    const characters = `${studentName} and magical friends`;
+
+    const search = new URLSearchParams({
+      title,
+      grade,
+      reading_difficulty: readingLevel,
+      characters,
+      custom_prompt: prompt
+    }).toString();
+
+    navigate(`/teacher/library/create-story?${search}`, {
+      state: {
+        title,
+        grade,
+        reading_difficulty: readingLevel,
+        characters,
+        custom_prompt: prompt
+      }
+    });
+  };
 
   return (
     <div className="animate-fade-in max-w-6xl mx-auto pb-16">
@@ -184,7 +214,7 @@ const StudentProfilePage = () => {
         className="flex items-center gap-2 text-slate-500 hover:text-slate-800 dark:hover:text-white font-bold mb-4 transition-colors text-sm"
         onClick={() => navigate(`/teacher/classrooms/${classroomId}`)}
       >
-        <FaArrowLeft size={12} /> Back to {child.classroom_name || 'Classroom'}
+        <FaArrowLeft size={12} /> Back to {child?.classroom_name || 'Classroom'}
       </button>
 
       {/* Hero Header matching Parent/Teacher Style */}
@@ -192,27 +222,27 @@ const StudentProfilePage = () => {
         <div className="parent-header-left flex items-center gap-5 sm:gap-6 flex-wrap sm:flex-nowrap">
           <div className="relative">
             <img 
-              src={child.avatar_url || "https://api.dicebear.com/7.x/fun-emoji/svg?seed=" + child.name} 
-              alt={child.name} 
+              src={child?.avatar_url || "https://api.dicebear.com/7.x/fun-emoji/svg?seed=" + (child?.name || 'Student')} 
+              alt={child?.name || 'Student'} 
               className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-white object-cover border-4 border-white/30 shadow-lg shrink-0"
             />
-            <span className="absolute -bottom-1 -right-1 text-2xl select-none">{child.avatar || '🦁'}</span>
+            <span className="absolute -bottom-1 -right-1 text-2xl select-none">{child?.avatar || '🦁'}</span>
           </div>
 
           <div>
             <div className="flex items-center gap-2.5 flex-wrap">
-              <h2 className="serif-heading text-white text-2xl sm:text-3xl">{child.name}</h2>
+              <h2 className="serif-heading text-white text-2xl sm:text-3xl">{child?.name || 'Student'}</h2>
               <span className="px-3 py-1 rounded-full text-xs font-extrabold bg-white/20 text-white border border-white/30 backdrop-blur-sm">
-                {child.grade || child.grade_level || 'Grade 2'}
+                {child?.grade || child?.grade_level || 'Grade 2'}
               </span>
             </div>
 
             <p className="text-white/85 mt-2 text-sm font-semibold flex items-center gap-3 flex-wrap">
-              <span>🏫 {child.classroom_name}</span>
+              <span>🏫 {child?.classroom_name || 'Classroom'}</span>
               <span className="opacity-60">•</span>
-              <span>Age {child.age || 7}</span>
+              <span>Age {child?.age || 7}</span>
               <span className="opacity-60">•</span>
-              <span>Level: {child.reading_level || 'Intermediate'}</span>
+              <span>Level: {child?.reading_level || 'Intermediate'}</span>
             </p>
           </div>
         </div>
@@ -243,15 +273,7 @@ const StudentProfilePage = () => {
               border: 'none',
               boxShadow: '0 4px 12px rgba(0, 0, 0, 0.12)'
             }}
-            onClick={() => navigate('/teacher/library/create-story', {
-              state: {
-                title: `${child.name}'s Adventure`,
-                grade: child.grade || child.grade_level || 'Grade 2',
-                reading_difficulty: child.reading_level || 'Beginner',
-                characters: `${child.name} and magical friends`,
-                custom_prompt: `An engaging reading adventure tailored for ${child.name}`
-              }
-            })}
+            onClick={() => handleCreateStoryForStudent()}
           >
             <FaMagic /> Create Story
           </button>
@@ -391,16 +413,7 @@ const StudentProfilePage = () => {
                     <button 
                       type="button"
                       className="px-3 py-1.5 rounded-xl text-xs font-bold bg-white dark:bg-slate-700 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-800 shadow-sm shrink-0 hover:bg-rose-500 hover:text-white transition-all cursor-pointer"
-                      onClick={() => navigate('/teacher/library/create-story', {
-                        state: {
-                          title: idea.prompt,
-                          genre: idea.theme,
-                          reading_difficulty: idea.difficulty || child.reading_level,
-                          grade: child.grade || child.grade_level,
-                          custom_prompt: idea.prompt,
-                          characters: `${child.name} and friends`
-                        }
-                      })}
+                      onClick={() => handleCreateStoryForStudent(idea.prompt, idea.prompt)}
                     >
                       Use
                     </button>
@@ -572,8 +585,8 @@ const StudentProfilePage = () => {
 
       {/* Tab 3: ASSIGNED WORK */}
       {activeTab === 'assignments' && (
-        <div className="card p-6 shadow-sm border border-slate-200/80 dark:border-slate-800 animate-fade-in">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+        <div className="card p-6 shadow-sm border border-slate-200/80 dark:border-slate-800 animate-fade-in space-y-6">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
               <h3 className="font-extrabold text-xl text-slate-900 dark:text-white">Assigned Learning Tasks</h3>
               <p className="text-xs text-slate-500 dark:text-slate-400">Classroom assignments targeting {child.name}</p>
@@ -581,13 +594,41 @@ const StudentProfilePage = () => {
             <button 
               type="button"
               className="btn btn-primary text-sm flex items-center gap-2"
-              onClick={() => navigate('/teacher/assignments/create')}
+              onClick={() => navigate(`/teacher/assignments/create?classroom_id=${classroomId}&student_id=${child.id}`)}
             >
-              <FaPlus /> Create Assignment
+              <FaPlus /> Assign Work to {child.name}
             </button>
           </div>
 
-          {assignedTasks.length === 0 ? (
+          {/* 4 Mini Stat Badges */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div className="p-3.5 bg-slate-50 dark:bg-slate-900/40 rounded-xl border border-slate-200/60 dark:border-slate-700">
+              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Active</span>
+              <p className="text-xl font-black text-slate-900 dark:text-white mt-0.5">
+                {assignment_stats.active ?? currentAssignedTasks.filter(t => t.status === 'in_progress' || t.status === 'not_started' || t.status === 'assigned').length}
+              </p>
+            </div>
+            <div className="p-3.5 bg-emerald-50/60 dark:bg-emerald-950/20 rounded-xl border border-emerald-100 dark:border-emerald-900/30">
+              <span className="text-[11px] font-bold text-emerald-600 uppercase tracking-wider">Completed</span>
+              <p className="text-xl font-black text-emerald-700 dark:text-emerald-300 mt-0.5">
+                {assignment_stats.completed ?? currentAssignedTasks.filter(t => t.status === 'completed' || t.status === 'submitted' || t.status === 'reviewed').length}
+              </p>
+            </div>
+            <div className="p-3.5 bg-rose-50/60 dark:bg-rose-950/20 rounded-xl border border-rose-100 dark:border-rose-900/30">
+              <span className="text-[11px] font-bold text-rose-600 uppercase tracking-wider">Overdue</span>
+              <p className="text-xl font-black text-rose-700 dark:text-rose-300 mt-0.5">
+                {assignment_stats.overdue ?? currentAssignedTasks.filter(t => t.status === 'overdue' || t.is_overdue).length}
+              </p>
+            </div>
+            <div className="p-3.5 bg-sky-50/60 dark:bg-sky-950/20 rounded-xl border border-sky-100 dark:border-sky-900/30">
+              <span className="text-[11px] font-bold text-sky-600 uppercase tracking-wider">Total</span>
+              <p className="text-xl font-black text-sky-700 dark:text-sky-300 mt-0.5">
+                {assignment_stats.total ?? currentAssignedTasks.length}
+              </p>
+            </div>
+          </div>
+
+          {currentAssignedTasks.length === 0 ? (
             <div className="text-center py-12 border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-2xl">
               <FaTasks className="text-4xl text-slate-300 dark:text-slate-600 mx-auto mb-3" />
               <h4 className="font-bold text-slate-700 dark:text-slate-300">No active assignments for this student</h4>
@@ -595,7 +636,7 @@ const StudentProfilePage = () => {
               <button 
                 type="button"
                 className="btn btn-secondary text-sm"
-                onClick={() => navigate('/teacher/assignments/create')}
+                onClick={() => navigate(`/teacher/assignments/create?classroom_id=${classroomId}&student_id=${child.id}`)}
               >
                 Assign Work
               </button>
@@ -610,28 +651,59 @@ const StudentProfilePage = () => {
                     <th>Due Date</th>
                     <th>Status</th>
                     <th>Score</th>
+                    <th className="text-right">Action</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {assignedTasks.map((t) => (
-                    <tr key={t.id}>
-                      <td className="font-extrabold text-slate-900 dark:text-white">{t.title}</td>
-                      <td>
-                        <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-sky-50 text-sky-600 border border-sky-200 uppercase">
-                          {t.type}
-                        </span>
-                      </td>
-                      <td className="text-xs text-slate-500">{t.due_date ? new Date(t.due_date).toLocaleDateString() : 'No date'}</td>
-                      <td>
-                        <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-extrabold ${t.status === 'completed' ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600'}`}>
-                          {t.status || 'Assigned'}
-                        </span>
-                      </td>
-                      <td className="text-xs font-bold text-slate-700 dark:text-slate-300">
-                        {t.score !== null && t.score !== undefined ? `${t.score}%` : '—'}
-                      </td>
-                    </tr>
-                  ))}
+                  {currentAssignedTasks.map((t) => {
+                    const isCompleted = t.status === 'completed' || t.status === 'submitted' || t.status === 'reviewed';
+                    const isOverdue = t.status === 'overdue' || t.is_overdue;
+
+                    return (
+                      <tr key={t.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40">
+                        <td className="font-extrabold text-slate-900 dark:text-white">{t.title}</td>
+                        <td>
+                          <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-sky-50 text-sky-600 border border-sky-200 uppercase">
+                            {t.type || t.assignment_type || 'Story'}
+                          </span>
+                        </td>
+                        <td className="text-xs text-slate-500 font-medium">
+                          {t.due_date ? new Date(t.due_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'No date'}
+                        </td>
+                        <td>
+                          {isCompleted ? (
+                            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300">
+                              ✓ Completed
+                            </span>
+                          ) : isOverdue ? (
+                            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-rose-100 text-rose-800 dark:bg-rose-900/30 dark:text-rose-300">
+                              ⚠ Overdue
+                            </span>
+                          ) : t.status === 'in_progress' ? (
+                            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300">
+                              ◐ In Progress
+                            </span>
+                          ) : (
+                            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-slate-100 text-slate-700 dark:bg-slate-700 dark:text-slate-300">
+                              ○ Not Started
+                            </span>
+                          )}
+                        </td>
+                        <td className="text-xs font-extrabold text-slate-700 dark:text-slate-300">
+                          {t.score !== null && t.score !== undefined ? `${t.score}%` : '—'}
+                        </td>
+                        <td className="text-right">
+                          <button
+                            type="button"
+                            onClick={() => navigate(`/teacher/assignments/${t.id}`)}
+                            className="px-3 py-1 text-xs font-bold text-[#FF6B6B] hover:bg-coral-50 dark:hover:bg-coral-900/20 rounded-lg transition-colors"
+                          >
+                            Details →
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
@@ -803,8 +875,12 @@ const StudentProfilePage = () => {
 
       {/* Log Reading Session Modal */}
       {(() => {
-        const assignedStoryOptions = (assignedTasks || [])
-          .filter(t => t.type === 'story' || t.title)
+        const rawAssigned = Array.isArray(assignedTasks) ? assignedTasks : (Array.isArray(assignedTasks?.all) ? assignedTasks.all : []);
+        const rawLibrary = Array.isArray(libraryStories) ? libraryStories : [];
+        const rawRecent = Array.isArray(recent_stories) ? recent_stories : [];
+
+        const assignedStoryOptions = rawAssigned
+          .filter(t => t && (t.type === 'story' || t.title))
           .map(t => ({
             id: t.story_id || t.id,
             assignment_id: t.id,
@@ -815,7 +891,7 @@ const StudentProfilePage = () => {
             due_date: t.due_date
           }));
 
-        const libraryStoryOptions = (libraryStories || []).map(s => ({
+        const libraryStoryOptions = rawLibrary.map(s => ({
           id: s.id,
           title: s.title || s.title_en,
           title_en: s.title || s.title_en,
@@ -823,7 +899,7 @@ const StudentProfilePage = () => {
           category: 'library'
         }));
 
-        const recentStoryOptions = (recent_stories || []).map(s => ({
+        const recentStoryOptions = rawRecent.map(s => ({
           id: s.story_id || s.id,
           title: s.title,
           title_en: s.title,

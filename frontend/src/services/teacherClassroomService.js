@@ -74,6 +74,10 @@ const teacherClassroomService = {
     }
   },
 
+  getClassroomStudents: async (classroomId, params = {}) => {
+    return teacherClassroomService.getStudents(classroomId, params);
+  },
+
   /**
    * Add multiple students to a classroom.
    */

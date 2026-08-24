@@ -101,23 +101,14 @@ class TeacherClassroomService:
             
         child_ids = list(enrolled.values_list('child_id', flat=True))
         
-        # simplified avg progress from quiz attempts
-        quiz_avg = QuizAttempt.objects.filter(
-            child_id__in=child_ids
-        ).aggregate(avg=Avg('percentage'))['avg']
-        
-        # calculate active readers (read in last 7 days)
-        seven_days_ago = timezone.now() - timezone.timedelta(days=7)
-        active_readers = ReadingLog.objects.filter(
-            child_id__in=child_ids,
-            created_at__gte=seven_days_ago
-        ).values('child_id').distinct().count()
+        from api.services.teacher_progress_service import TeacherProgressService
+        overview = TeacherProgressService.get_overview(classroom.teacher, classroom_id=classroom.id)
         
         return {
             "student_count": student_count,
-            "average_progress": int(round(quiz_avg)) if quiz_avg else 0,
-            "average_reading": 75, # Mock metric for this phase
-            "active_readers": active_readers
+            "average_progress": overview.get('average_progress') or 0,
+            "average_reading": overview.get('assignment_completion') or 0,
+            "active_readers": overview.get('active_readers') or 0
         }
 
     @staticmethod
@@ -312,25 +303,11 @@ class TeacherClassroomService:
                 "earned_at": earned_achievements.get(ach.id)
             })
 
-        # Assigned Tasks (Teacher Assignments)
-        assigned_students = ClassAssignmentStudent.objects.filter(
-            assignment__classroom=classroom,
-            child=child
-        ).select_related('assignment', 'assignment__story', 'assignment__classroom').order_by('-assignment__created_at')
-
-        assigned_tasks = []
-        for asg in assigned_students:
-            a = asg.assignment
-            assigned_tasks.append({
-                "id": a.id,
-                "title": a.title or (a.story.title_en if a.story else "Reading Task"),
-                "type": a.assignment_type,
-                "due_date": a.due_date,
-                "status": asg.status,
-                "completed_at": asg.completed_at,
-                "score": asg.score,
-                "classroom_name": classroom.name
-            })
+        # Assigned Tasks (Teacher Assignments via TeacherAssignmentService)
+        from api.services.teacher_assignment_service import TeacherAssignmentService
+        student_asgns_data = TeacherAssignmentService.get_student_assignments(user, child.id, classroom.id)
+        assigned_tasks = student_asgns_data.get('all', [])
+        assignment_stats = student_asgns_data.get('stats', {})
 
         # Certificates
         from api.models import Certificate
@@ -387,6 +364,7 @@ class TeacherClassroomService:
             "story_ideas": story_ideas,
             "achievements": achievements_list,
             "assigned_tasks": assigned_tasks,
+            "assignment_stats": assignment_stats,
             "certificates": certificates_list
         }
 

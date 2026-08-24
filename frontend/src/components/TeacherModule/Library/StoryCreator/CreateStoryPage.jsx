@@ -13,34 +13,35 @@ const CreateStoryPage = () => {
   const [step, setStep] = useState('details'); // 'details' | 'editor'
   const [creationMode, setCreationMode] = useState('ai'); // 'ai' | 'manual'
 
+  const queryParams = new URLSearchParams(location.search);
+
   // Story Form Meta
   const [formData, setFormData] = useState({
-    title: location.state?.title || '',
-    grade: location.state?.grade || 'Grade 2',
-    reading_difficulty: location.state?.reading_difficulty || 'Intermediate',
-    genre: location.state?.genre || 'Adventure',
-    num_pages: location.state?.num_pages || '5',
-    characters: location.state?.characters || 'Felix the curious fox',
-    companion: location.state?.companion || 'Barnaby the wise owl',
-    setting: location.state?.setting || 'Enchanted Forest',
-    learning_objective: location.state?.learning_objective || 'Teamwork and creative problem solving',
-    custom_prompt: location.state?.custom_prompt || ''
+    title: queryParams.get('title') || location.state?.title || '',
+    grade: queryParams.get('grade') || location.state?.grade || 'Grade 2',
+    reading_difficulty: queryParams.get('reading_difficulty') || queryParams.get('reading_level') || location.state?.reading_difficulty || 'Intermediate',
+    genre: queryParams.get('genre') || location.state?.genre || 'Adventure',
+    num_pages: queryParams.get('num_pages') || location.state?.num_pages || '5',
+    characters: queryParams.get('characters') || location.state?.characters || 'Felix the curious fox',
+    companion: queryParams.get('companion') || location.state?.companion || 'Barnaby the wise owl',
+    setting: queryParams.get('setting') || location.state?.setting || 'Enchanted Forest',
+    learning_objective: queryParams.get('learning_objective') || location.state?.learning_objective || 'Teamwork and creative problem solving',
+    custom_prompt: queryParams.get('custom_prompt') || queryParams.get('prompt') || location.state?.custom_prompt || ''
   });
 
   useEffect(() => {
-    if (location.state) {
-      const s = location.state;
-      setFormData(prev => ({
-        ...prev,
-        title: s.title || prev.title,
-        grade: s.grade || prev.grade,
-        reading_difficulty: s.reading_difficulty || prev.reading_difficulty,
-        genre: s.genre || prev.genre,
-        characters: s.characters || prev.characters,
-        custom_prompt: s.custom_prompt || prev.custom_prompt
-      }));
-    }
-  }, [location.state]);
+    const qp = new URLSearchParams(location.search);
+    const s = location.state || {};
+    setFormData(prev => ({
+      ...prev,
+      title: qp.get('title') || s.title || prev.title,
+      grade: qp.get('grade') || s.grade || prev.grade,
+      reading_difficulty: qp.get('reading_difficulty') || qp.get('reading_level') || s.reading_difficulty || prev.reading_difficulty,
+      genre: qp.get('genre') || s.genre || prev.genre,
+      characters: qp.get('characters') || s.characters || prev.characters,
+      custom_prompt: qp.get('custom_prompt') || qp.get('prompt') || s.custom_prompt || prev.custom_prompt
+    }));
+  }, [location.state, location.search]);
 
   // Story Pages
   const [pages, setPages] = useState([]);

@@ -252,6 +252,7 @@ const ClassroomStudents = ({ classroomId, onUpdate }) => {
               </div>
             );
           })}
+          
         </div>
       ) : (
         /* Modern Table List View */

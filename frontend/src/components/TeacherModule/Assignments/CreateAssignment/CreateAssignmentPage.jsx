@@ -13,9 +13,11 @@ const CreateAssignmentPage = () => {
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
   
-  // Try to pre-populate if coming from Library
+  // Try to pre-populate if coming from Library or Student Profile
   const initialContentType = queryParams.get('contentType');
   const initialContentId = queryParams.get('contentId');
+  const initialClassroomId = queryParams.get('classroom_id') || queryParams.get('classroomId');
+  const initialStudentId = queryParams.get('student_id') || queryParams.get('studentId');
   
   const [step, setStep] = useState(initialContentId ? 2 : 1);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -26,10 +28,10 @@ const CreateAssignmentPage = () => {
     content_id: initialContentId ? parseInt(initialContentId) : null,
     content_title: queryParams.get('contentTitle') || '',
     
-    target_type: 'classroom',
-    classroom_id: null,
+    target_type: initialStudentId ? 'student' : 'classroom',
+    classroom_id: initialClassroomId ? parseInt(initialClassroomId) : null,
     classroom_name: '',
-    student_ids: [],
+    student_ids: initialStudentId ? [parseInt(initialStudentId)] : [],
     
     title: queryParams.get('contentTitle') || '',
     instructions: '',
