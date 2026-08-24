@@ -173,6 +173,44 @@ const teacherClassroomService = {
   },
 
   /**
+   * Get all certificates issued to a student in a classroom.
+   */
+  getStudentCertificates: async (classroomId, studentId) => {
+    try {
+      const response = await api.get(`/teacher/classrooms/${classroomId}/students/${studentId}/certificates/`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data?.error || new Error("Failed to fetch student certificates");
+    }
+  },
+
+  /**
+   * Issue a certificate to a student.
+   */
+  issueStudentCertificate: async (classroomId, studentId, data) => {
+    try {
+      const response = await api.post(`/teacher/classrooms/${classroomId}/students/${studentId}/certificates/`, data);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data?.error || new Error("Failed to issue certificate");
+    }
+  },
+
+  /**
+   * Revoke a certificate.
+   */
+  revokeStudentCertificate: async (classroomId, studentId, certId, reason) => {
+    try {
+      const response = await api.delete(`/teacher/classrooms/${classroomId}/students/${studentId}/certificates/${certId}/`, {
+        data: { reason }
+      });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data?.error || new Error("Failed to revoke certificate");
+    }
+  },
+
+  /**
    * Search globally for students to add.
    */
   searchStudents: async (query) => {

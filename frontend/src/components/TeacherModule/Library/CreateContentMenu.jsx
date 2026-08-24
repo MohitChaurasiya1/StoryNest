@@ -23,10 +23,10 @@ const CreateContentMenu = () => {
   };
 
   return (
-    <div className="relative inline-block text-left" ref={menuRef}>
+    <div className="relative inline-block text-left z-50" ref={menuRef} style={{ zIndex: 99999 }}>
       <button 
         type="button"
-        className="flex items-center gap-2.5 px-5 py-3 rounded-full font-extrabold text-sm transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0"
+        className="flex items-center gap-2.5 px-5 py-3 rounded-full font-extrabold text-sm transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 cursor-pointer"
         style={{
           backgroundColor: '#FFFFFF',
           color: '#FF6B6B',
@@ -46,7 +46,8 @@ const CreateContentMenu = () => {
 
       {isOpen && (
         <div 
-          className="absolute right-0 top-full mt-2.5 w-60 bg-white dark:bg-slate-900 rounded-2xl shadow-[0_15px_35px_-5px_rgba(0,0,0,0.2)] border border-slate-200/80 dark:border-slate-800 p-2 z-50 animate-fade-in backdrop-blur-sm"
+          className="absolute right-0 top-full mt-2.5 w-60 bg-white dark:bg-slate-900 rounded-2xl shadow-[0_20px_45px_-5px_rgba(0,0,0,0.3)] border border-slate-200/90 dark:border-slate-800 p-2 animate-fade-in"
+          style={{ zIndex: 999999 }}
         >
           <div className="space-y-1">
             <button 

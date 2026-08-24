@@ -108,8 +108,13 @@ const ContentPreviewModal = ({ item, onClose }) => {
         {/* Fixed Header */}
         <div className="flex items-center justify-between px-6 py-4.5 border-b border-slate-100 dark:border-slate-800 bg-white/90 dark:bg-slate-900/90 shrink-0">
           <div className="flex flex-col gap-1 min-w-0 pr-4">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               {getTypeBadge()}
+              {(item.creator?.type === 'system' || item.creator?.name === 'StoryNest') && (
+                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-black uppercase tracking-wide bg-gradient-to-r from-amber-500 to-rose-500 text-white shadow-sm">
+                  ✨ Suggested
+                </span>
+              )}
               {item.grade && (
                 <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2.5 py-0.5 rounded-full">
                   Grade {item.grade}

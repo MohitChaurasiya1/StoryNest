@@ -170,4 +170,93 @@ class TeacherStudentDashboardTests(APITestCase):
         self.assertEqual(response.data['results'][0]['name'], 'Leo Lion')
         self.assertIn('avatar_url', response.data['results'][0])
 
+    def test_issue_and_revoke_certificate_api(self):
+        self.client.force_authenticate(user=self.teacher1)
+        # 1. Issue certificate
+        issue_res = self.client.post(
+            f'/api/teacher/classrooms/{self.classroom1.id}/students/{self.student1.id}/certificates/',
+            {
+                'title': 'Outstanding Storyteller Award',
+                'certificate_type': 'story_explorer',
+                'description': 'For creating and reading exceptional imaginative stories.',
+                'issued_date': str(timezone.localdate())
+            }
+        )
+        self.assertEqual(issue_res.status_code, 201)
+        cert_id = issue_res.data['id']
+        self.assertEqual(issue_res.data['title'], 'Outstanding Storyteller Award')
+        self.assertEqual(issue_res.data['status'], 'active')
+
+        # 2. List certificates
+        list_res = self.client.get(
+            f'/api/teacher/classrooms/{self.classroom1.id}/students/{self.student1.id}/certificates/'
+        )
+        self.assertEqual(list_res.status_code, 200)
+        self.assertEqual(len(list_res.data), 1)
+
+        # 3. Revoke certificate
+        revoke_res = self.client.delete(
+            f'/api/teacher/classrooms/{self.classroom1.id}/students/{self.student1.id}/certificates/{cert_id}/',
+            {'reason': 'Issued by mistake'}
+        )
+        self.assertEqual(revoke_res.status_code, 200)
+
+        # 4. Check dashboard payload has the certificate with revoked status
+        dash_res = self.client.get(
+            f'/api/teacher/classrooms/{self.classroom1.id}/students/{self.student1.id}/dashboard/'
+        )
+        self.assertEqual(dash_res.status_code, 200)
+        self.assertIn('certificates', dash_res.data)
+        self.assertEqual(dash_res.data['certificates'][0]['status'], 'revoked')
+
+    def test_automatic_reading_completion_certificate_and_duplicate_protection(self):
+        self.client.force_authenticate(user=self.teacher1)
+        # 1. Log a reading session with completed = True
+        log_res = self.client.post(
+            f'/api/teacher/classrooms/{self.classroom1.id}/students/{self.student1.id}/reading-logs/',
+            {
+                'story_title': 'The Moon Rabbit',
+                'reading_time_minutes': 20,
+                'pages_read': 5,
+                'completed': True,
+                'rating': 5
+            }
+        )
+        self.assertEqual(log_res.status_code, 201)
+        self.assertTrue(log_res.data['certificate_earned'])
+        self.assertIsNotNone(log_res.data['certificate'])
+        self.assertEqual(log_res.data['certificate']['certificate_type'], 'reading_completion')
+        self.assertIn('The Moon Rabbit', log_res.data['certificate']['title'])
+
+        # 2. Verify certificate exists in student certificates API
+        cert_list = self.client.get(
+            f'/api/teacher/classrooms/{self.classroom1.id}/students/{self.student1.id}/certificates/'
+        )
+        self.assertEqual(cert_list.status_code, 200)
+        self.assertEqual(len(cert_list.data), 1)
+        self.assertEqual(cert_list.data[0]['certificate_type'], 'reading_completion')
+
+        # 3. Duplicate protection test: Log the same story again
+        log_res_2 = self.client.post(
+            f'/api/teacher/classrooms/{self.classroom1.id}/students/{self.student1.id}/reading-logs/',
+            {
+                'story_title': 'The Moon Rabbit',
+                'reading_time_minutes': 15,
+                'pages_read': 5,
+                'completed': True,
+                'rating': 5
+            }
+        )
+        self.assertEqual(log_res_2.status_code, 201)
+        self.assertFalse(log_res_2.data['certificate_earned'])
+
+        # 4. Certificates count must remain 1
+        cert_list_2 = self.client.get(
+            f'/api/teacher/classrooms/{self.classroom1.id}/students/{self.student1.id}/certificates/'
+        )
+        self.assertEqual(cert_list_2.status_code, 200)
+        self.assertEqual(len(cert_list_2.data), 1)
+
+
+
 

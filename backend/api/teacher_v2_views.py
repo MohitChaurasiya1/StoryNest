@@ -243,6 +243,49 @@ class TeacherStudentAssignmentsView(APIView):
             return Response({"error": {"message": str(e)}}, status=500)
 
 
+class TeacherStudentCertificatesView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, classroom_id, student_id):
+        if request.user.role not in [User.Role.TEACHER, User.Role.ADMIN]:
+            raise PermissionDenied("You do not have permission to view certificates.")
+        try:
+            certificates = TeacherClassroomService.get_student_certificates(request.user, classroom_id, student_id)
+            return Response(certificates)
+        except DjangoValidationError as e:
+            return Response({"error": {"message": str(e.message) if hasattr(e, 'message') else str(e)}}, status=400)
+        except Exception as e:
+            return Response({"error": {"message": str(e)}}, status=500)
+
+    def post(self, request, classroom_id, student_id):
+        if request.user.role not in [User.Role.TEACHER, User.Role.ADMIN]:
+            raise PermissionDenied("You do not have permission to issue certificates.")
+        try:
+            certificate = TeacherClassroomService.issue_student_certificate(request.user, classroom_id, student_id, request.data)
+            return Response(certificate, status=status.HTTP_201_CREATED)
+        except DjangoValidationError as e:
+            return Response({"error": {"message": str(e.message) if hasattr(e, 'message') else str(e)}}, status=400)
+        except Exception as e:
+            return Response({"error": {"message": str(e)}}, status=500)
+
+
+class TeacherStudentCertificateDetailView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request, classroom_id, student_id, cert_id):
+        if request.user.role not in [User.Role.TEACHER, User.Role.ADMIN]:
+            raise PermissionDenied("You do not have permission to revoke certificates.")
+        reason = request.data.get('reason') or request.query_params.get('reason', 'Revoked by teacher')
+        try:
+            TeacherClassroomService.revoke_student_certificate(request.user, classroom_id, student_id, cert_id, reason)
+            return Response({"message": "Certificate revoked successfully."}, status=status.HTTP_200_OK)
+        except DjangoValidationError as e:
+            return Response({"error": {"message": str(e.message) if hasattr(e, 'message') else str(e)}}, status=400)
+        except Exception as e:
+            return Response({"error": {"message": str(e)}}, status=500)
+
+
+
 class TeacherGlobalStudentSearchView(APIView):
     """
     Search endpoint for teachers to find students to add to their classroom.

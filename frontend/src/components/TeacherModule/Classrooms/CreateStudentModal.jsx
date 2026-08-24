@@ -5,7 +5,19 @@ import teacherClassroomService from '../../../services/teacherClassroomService';
 
 const AVATAR_OPTIONS = ['🦁', '🐼', '🦊', '🐰', '🚀', '🌟', '🦄', '🎨', '🐻', '🐯', '🐬', '🦉'];
 
-const CreateStudentModal = ({ onClose, onSuccess, initialClassroomId = null }) => {
+const CreateStudentModal = ({ 
+  isOpen = true, 
+  onClose, 
+  onSuccess, 
+  onStudentCreated, 
+  initialClassroomId = null, 
+  classroomId = null 
+}) => {
+  if (isOpen === false) return null;
+
+  const targetClassroomId = initialClassroomId || classroomId;
+  const handleSuccessCallback = onSuccess || onStudentCreated;
+
   const [classrooms, setClassrooms] = useState([]);
   const [loadingClassrooms, setLoadingClassrooms] = useState(true);
 
@@ -16,7 +28,7 @@ const CreateStudentModal = ({ onClose, onSuccess, initialClassroomId = null }) =
     grade_level: 'Grade 2',
     reading_level: 'Beginner',
     avatar: '🦁',
-    classroom_id: initialClassroomId || '',
+    classroom_id: targetClassroomId || '',
     interests: 'Animals, Space, Magic'
   });
 
@@ -95,7 +107,7 @@ const CreateStudentModal = ({ onClose, onSuccess, initialClassroomId = null }) =
       setSuccessToast(true);
 
       setTimeout(() => {
-        if (onSuccess) onSuccess(newStudent);
+        if (handleSuccessCallback) handleSuccessCallback(newStudent);
         onClose();
       }, 700);
     } catch (err) {

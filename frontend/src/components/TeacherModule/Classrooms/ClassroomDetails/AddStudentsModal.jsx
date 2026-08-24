@@ -3,7 +3,8 @@ import { createPortal } from 'react-dom';
 import { FaTimes, FaSearch, FaCheck, FaSpinner, FaUserGraduate, FaExclamationTriangle } from 'react-icons/fa';
 import teacherClassroomService from '../../../../services/teacherClassroomService';
 
-const AddStudentsModal = ({ classroomId, onClose, onSuccess }) => {
+const AddStudentsModal = ({ isOpen = true, classroomId, onClose, onSuccess }) => {
+  if (isOpen === false) return null;
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
   const [selectedIds, setSelectedIds] = useState(new Set());

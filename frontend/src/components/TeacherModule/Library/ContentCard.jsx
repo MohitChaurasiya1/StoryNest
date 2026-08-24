@@ -49,6 +49,7 @@ const ContentCard = ({ item, onPreview }) => {
   };
 
   const theme = getTheme();
+  const isStoryNestSuggested = item.creator?.type === 'system' || item.creator?.name === 'StoryNest';
 
   return (
     <div className="card p-0 overflow-hidden flex flex-col h-full hover:-translate-y-1 hover:shadow-lg transition-all duration-200 border border-slate-200/80 dark:border-slate-800 group">
@@ -77,6 +78,12 @@ const ContentCard = ({ item, onPreview }) => {
               </span>
             )}
           </div>
+
+          {isStoryNestSuggested && (
+            <span className="px-2.5 py-1 rounded-xl text-[10px] font-black uppercase tracking-wider bg-gradient-to-r from-amber-500 to-rose-500 text-white shadow-md flex items-center gap-1 backdrop-blur-sm">
+              ✨ Suggested
+            </span>
+          )}
         </div>
       </div>
 
@@ -96,12 +103,21 @@ const ContentCard = ({ item, onPreview }) => {
         <div className="space-y-3 pt-3 border-t border-slate-100 dark:border-slate-800">
           <div className="flex items-center justify-between text-xs text-slate-400 font-medium">
             <div className="flex items-center gap-1.5">
-              {item.creator?.type === 'system' ? (
-                <BuildingIcon className="text-indigo-400" />
+              {isStoryNestSuggested ? (
+                <>
+                  <span className="text-amber-500 text-xs">✨</span>
+                  <span className="truncate max-w-[130px] font-bold text-slate-700 dark:text-slate-300">
+                    StoryNest (Suggested)
+                  </span>
+                </>
               ) : (
-                <UserIcon className="text-rose-400" />
+                <>
+                  <UserIcon className="text-rose-400" />
+                  <span className="truncate max-w-[130px] font-bold text-slate-700 dark:text-slate-300">
+                    {item.creator?.name || 'Me'}
+                  </span>
+                </>
               )}
-              <span className="truncate max-w-[120px]">{item.creator?.name || 'StoryNest'}</span>
             </div>
 
             {item.estimated_minutes && (

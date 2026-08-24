@@ -332,6 +332,26 @@ class TeacherClassroomService:
                 "classroom_name": classroom.name
             })
 
+        # Certificates
+        from api.models import Certificate
+        certificates_qs = Certificate.objects.filter(child=child).order_by('-issued_date', '-created_at')
+        certificates_list = [
+            {
+                "id": c.id,
+                "certificate_number": c.certificate_number or f"SN-{c.id:06d}",
+                "title": c.title,
+                "certificate_type": c.certificate_type,
+                "description": c.description,
+                "issued_date": c.issued_date,
+                "issuer_name": f"{c.issuer.first_name} {c.issuer.last_name}".strip() or c.issuer.username if c.issuer else "Lead Educator",
+                "classroom_name": c.classroom.name if c.classroom else classroom.name,
+                "status": c.status,
+                "revoked_reason": c.revoked_reason,
+                "created_at": c.created_at
+            }
+            for c in certificates_qs
+        ]
+
         avatar_str = child.avatar or '🦁'
         avatar_url = avatar_str if (avatar_str.startswith('http') or '/' in avatar_str) else f"https://api.dicebear.com/7.x/fun-emoji/svg?seed={child.name}"
 
@@ -366,7 +386,8 @@ class TeacherClassroomService:
             "recent_quizzes": recent_quizzes,
             "story_ideas": story_ideas,
             "achievements": achievements_list,
-            "assigned_tasks": assigned_tasks
+            "assigned_tasks": assigned_tasks,
+            "certificates": certificates_list
         }
 
     @staticmethod
@@ -477,6 +498,37 @@ class TeacherClassroomService:
                 score=new_score
             )
 
+        # Auto-issue Reading Completion Certificate if marked completed
+        earned_certificate = None
+        if completed and (story_title or story_obj):
+            import uuid
+            from api.models import Certificate
+            cert_story_name = story_title or (story_obj.title_en if story_obj else 'Story')
+            cert_story_clean = cert_story_name.replace('Read:', '').replace('Read', '').strip()
+
+            # Duplicate protection: do not issue duplicate certificate for the same student + story
+            existing_cert = Certificate.objects.filter(
+                child=child,
+                certificate_type='reading_completion',
+                status='active'
+            ).filter(
+                Q(title__icontains=cert_story_clean) | Q(description__icontains=cert_story_clean)
+            ).first()
+
+            if not existing_cert:
+                cert_num = f"SN-CERT-{uuid.uuid4().hex[:8].upper()}"
+                earned_certificate = Certificate.objects.create(
+                    certificate_number=cert_num,
+                    child=child,
+                    issuer=user,
+                    classroom=classroom,
+                    certificate_type='reading_completion',
+                    title=f"Reading Completion: {cert_story_clean}",
+                    description=f"Awarded to {child.name} for successfully reading, comprehending, and reflecting upon the story '{cert_story_clean}'.",
+                    issued_date=read_date,
+                    status='active'
+                )
+
         return {
             "id": log.id,
             "story_id": log.story_id,
@@ -487,7 +539,20 @@ class TeacherClassroomService:
             "completed": log.completed,
             "rating": log.rating,
             "notes": log.notes,
-            "created_at": log.created_at
+            "created_at": log.created_at,
+            "certificate_earned": bool(earned_certificate),
+            "certificate": {
+                "id": earned_certificate.id,
+                "certificate_number": earned_certificate.certificate_number,
+                "title": earned_certificate.title,
+                "certificate_type": earned_certificate.certificate_type,
+                "description": earned_certificate.description,
+                "issued_date": earned_certificate.issued_date,
+                "issuer_name": f"{user.first_name} {user.last_name}".strip() or user.username,
+                "classroom_name": classroom.name,
+                "status": earned_certificate.status,
+                "created_at": earned_certificate.created_at
+            } if earned_certificate else None
         }
 
     @staticmethod
@@ -635,3 +700,99 @@ class TeacherClassroomService:
             'avatar': child.avatar,
             'classroom': enrolled_classroom
         }
+
+    @staticmethod
+    def get_student_certificates(user, classroom_id, student_id):
+        """Get all certificates issued to this student."""
+        classroom = TeacherClassroomService.get_classroom(user, classroom_id)
+        if not ClassStudent.objects.filter(classroom=classroom, child_id=student_id, status='active').exists():
+            raise ValidationError("Student is not active in this classroom.")
+
+        from api.models import Certificate
+        certs = Certificate.objects.filter(child_id=student_id).order_by('-issued_date', '-created_at')
+        return [
+            {
+                "id": c.id,
+                "certificate_number": c.certificate_number or f"SN-{c.id:06d}",
+                "title": c.title,
+                "certificate_type": c.certificate_type,
+                "description": c.description,
+                "issued_date": c.issued_date,
+                "issuer_name": f"{c.issuer.first_name} {c.issuer.last_name}".strip() or c.issuer.username if c.issuer else "Lead Educator",
+                "classroom_name": c.classroom.name if c.classroom else classroom.name,
+                "status": c.status,
+                "revoked_reason": c.revoked_reason,
+                "created_at": c.created_at
+            }
+            for c in certs
+        ]
+
+    @staticmethod
+    @transaction.atomic
+    def issue_student_certificate(user, classroom_id, student_id, cert_data):
+        """Issue a new certificate to a student in this classroom."""
+        classroom = TeacherClassroomService.get_classroom(user, classroom_id)
+        try:
+            membership = ClassStudent.objects.get(classroom=classroom, child_id=student_id, status='active')
+            child = membership.child
+        except ClassStudent.DoesNotExist:
+            raise ValidationError("Student is not active in this classroom.")
+
+        from api.models import Certificate
+        import uuid
+
+        title = cert_data.get('title', '').strip()
+        if not title:
+            raise ValidationError("Certificate title is required.")
+
+        cert_type = cert_data.get('certificate_type', 'reading_excellence')
+        description = cert_data.get('description', '').strip()
+        if not description:
+            description = f"Awarded to {child.name} in recognition of outstanding effort and achievement in reading."
+
+        issued_date = cert_data.get('issued_date') or timezone.localdate()
+        cert_num = f"SN-CERT-{uuid.uuid4().hex[:8].upper()}"
+
+        cert = Certificate.objects.create(
+            certificate_number=cert_num,
+            child=child,
+            issuer=user,
+            classroom=classroom,
+            certificate_type=cert_type,
+            title=title,
+            description=description,
+            issued_date=issued_date,
+            status='active'
+        )
+
+        return {
+            "id": cert.id,
+            "certificate_number": cert.certificate_number,
+            "title": cert.title,
+            "certificate_type": cert.certificate_type,
+            "description": cert.description,
+            "issued_date": cert.issued_date,
+            "issuer_name": f"{user.first_name} {user.last_name}".strip() or user.username,
+            "classroom_name": classroom.name,
+            "status": cert.status,
+            "created_at": cert.created_at
+        }
+
+    @staticmethod
+    @transaction.atomic
+    def revoke_student_certificate(user, classroom_id, student_id, cert_id, reason=''):
+        """Revoke a previously issued certificate."""
+        classroom = TeacherClassroomService.get_classroom(user, classroom_id)
+        if not ClassStudent.objects.filter(classroom=classroom, child_id=student_id, status='active').exists():
+            raise ValidationError("Student is not active in this classroom.")
+
+        from api.models import Certificate
+        try:
+            cert = Certificate.objects.get(id=cert_id, child_id=student_id)
+            cert.status = 'revoked'
+            cert.revoked_reason = reason or "Revoked by teacher"
+            cert.save(update_fields=['status', 'revoked_reason'])
+            return True
+        except Certificate.DoesNotExist:
+            raise ValidationError("Certificate not found.")
+

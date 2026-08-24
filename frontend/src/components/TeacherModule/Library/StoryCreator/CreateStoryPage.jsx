@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { FaArrowLeft, FaMagic, FaBookOpen, FaCheckCircle, FaExclamationTriangle } from 'react-icons/fa';
 import StoryDetailsForm from './StoryDetailsForm';
 import StoryPageEditor from './StoryPageEditor';
@@ -8,23 +8,39 @@ import teacherStoryService from '../../../../services/teacherStoryService';
 
 const CreateStoryPage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [step, setStep] = useState('details'); // 'details' | 'editor'
   const [creationMode, setCreationMode] = useState('ai'); // 'ai' | 'manual'
 
   // Story Form Meta
   const [formData, setFormData] = useState({
-    title: '',
-    grade: 'Grade 2',
-    reading_difficulty: 'Intermediate',
-    genre: 'Adventure',
-    num_pages: '5',
-    characters: 'Felix the curious fox',
-    companion: 'Barnaby the wise owl',
-    setting: 'Enchanted Forest',
-    learning_objective: 'Teamwork and creative problem solving',
-    custom_prompt: ''
+    title: location.state?.title || '',
+    grade: location.state?.grade || 'Grade 2',
+    reading_difficulty: location.state?.reading_difficulty || 'Intermediate',
+    genre: location.state?.genre || 'Adventure',
+    num_pages: location.state?.num_pages || '5',
+    characters: location.state?.characters || 'Felix the curious fox',
+    companion: location.state?.companion || 'Barnaby the wise owl',
+    setting: location.state?.setting || 'Enchanted Forest',
+    learning_objective: location.state?.learning_objective || 'Teamwork and creative problem solving',
+    custom_prompt: location.state?.custom_prompt || ''
   });
+
+  useEffect(() => {
+    if (location.state) {
+      const s = location.state;
+      setFormData(prev => ({
+        ...prev,
+        title: s.title || prev.title,
+        grade: s.grade || prev.grade,
+        reading_difficulty: s.reading_difficulty || prev.reading_difficulty,
+        genre: s.genre || prev.genre,
+        characters: s.characters || prev.characters,
+        custom_prompt: s.custom_prompt || prev.custom_prompt
+      }));
+    }
+  }, [location.state]);
 
   // Story Pages
   const [pages, setPages] = useState([]);

@@ -4,11 +4,14 @@ import {
   FaArrowLeft, FaFire, FaBookOpen, FaClock, FaTrophy, 
   FaPlus, FaCheckCircle, FaMagic, FaTasks, FaChartLine, 
   FaExclamationTriangle, FaTrash, FaStar, FaCalendarAlt, 
-  FaUserGraduate, FaLayerGroup, FaHistory, FaLightbulb, FaSpinner 
+  FaUserGraduate, FaLayerGroup, FaHistory, FaLightbulb, FaSpinner,
+  FaAward, FaBan, FaEye, FaPrint, FaCertificate
 } from 'react-icons/fa';
 import teacherClassroomService from '../../../../services/teacherClassroomService';
 import teacherLibraryService from '../../../../services/teacherLibraryService';
 import ReadingLogModal from '../../../ReadingLogModal/ReadingLogModal';
+import IssueCertificateModal from './IssueCertificateModal';
+import SharedCertificateModal from '../../../Certificate/SharedCertificateModal';
 
 const StudentProfilePage = () => {
   const { id: classroomId, studentId } = useParams();
@@ -18,12 +21,15 @@ const StudentProfilePage = () => {
   const [readingLogs, setReadingLogs] = useState([]);
   const [assignedTasks, setAssignedTasks] = useState([]);
   const [libraryStories, setLibraryStories] = useState([]);
+  const [certificates, setCertificates] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [activeTab, setActiveTab] = useState('overview'); // 'overview' | 'logs' | 'assignments' | 'achievements' | 'insights'
+  const [activeTab, setActiveTab] = useState('overview'); // 'overview' | 'logs' | 'assignments' | 'certificates' | 'achievements' | 'insights'
 
   // Modals
   const [isLogModalOpen, setIsLogModalOpen] = useState(false);
+  const [isIssueCertModalOpen, setIsIssueCertModalOpen] = useState(false);
+  const [selectedCertToView, setSelectedCertToView] = useState(null);
   const [toastMessage, setToastMessage] = useState(null);
 
   const fetchStudentData = useCallback(async () => {
@@ -31,15 +37,19 @@ const StudentProfilePage = () => {
       setLoading(true);
       setError(null);
 
-      const [dashRes, logsRes, asgRes, libRes] = await Promise.allSettled([
+      const [dashRes, logsRes, asgRes, libRes, certRes] = await Promise.allSettled([
         teacherClassroomService.getStudentDashboard(classroomId, studentId),
         teacherClassroomService.getStudentReadingLogs(classroomId, studentId),
         teacherClassroomService.getStudentAssignments(classroomId, studentId),
-        teacherLibraryService.getContent({ type: 'story' }, 1)
+        teacherLibraryService.getContent({ type: 'story' }, 1),
+        teacherClassroomService.getStudentCertificates(classroomId, studentId)
       ]);
 
       if (dashRes.status === 'fulfilled') {
         setDashboardData(dashRes.value);
+        if (dashRes.value?.certificates) {
+          setCertificates(dashRes.value.certificates);
+        }
       } else {
         throw dashRes.reason || new Error("Failed to load student dashboard");
       }
@@ -54,6 +64,10 @@ const StudentProfilePage = () => {
 
       if (libRes.status === 'fulfilled' && libRes.value?.results) {
         setLibraryStories(libRes.value.results || []);
+      }
+
+      if (certRes.status === 'fulfilled') {
+        setCertificates(certRes.value || []);
       }
     } catch (err) {
       console.error(err);
@@ -74,9 +88,13 @@ const StudentProfilePage = () => {
 
   const handleSaveReadingLog = async (logData) => {
     try {
-      await teacherClassroomService.createStudentReadingLog(classroomId, studentId, logData);
+      const res = await teacherClassroomService.createStudentReadingLog(classroomId, studentId, logData);
       setIsLogModalOpen(false);
-      showToast('Reading session logged successfully!');
+      if (res?.certificate_earned || (logData.completed && res?.certificate)) {
+        showToast("Story completed! Reading certificate earned 🎉");
+      } else {
+        showToast("Reading session logged successfully!");
+      }
       fetchStudentData();
     } catch (err) {
       alert(err.message || 'Failed to log reading session.');
@@ -92,6 +110,28 @@ const StudentProfilePage = () => {
       } catch (err) {
         alert(err.message || 'Failed to delete reading log.');
       }
+    }
+  };
+
+  const handleIssueCertificate = async (certData) => {
+    try {
+      await teacherClassroomService.issueStudentCertificate(classroomId, studentId, certData);
+      setIsIssueCertModalOpen(false);
+      showToast('Certificate issued successfully.');
+      fetchStudentData();
+    } catch (err) {
+      alert(err.message || 'Failed to issue certificate.');
+    }
+  };
+
+  const handleRevokeCertificate = async (certId, reason) => {
+    try {
+      await teacherClassroomService.revokeStudentCertificate(classroomId, studentId, certId, reason);
+      setSelectedCertToView(null);
+      showToast('Certificate revoked.');
+      fetchStudentData();
+    } catch (err) {
+      alert(err.message || 'Failed to revoke certificate.');
     }
   };
 
@@ -181,15 +221,37 @@ const StudentProfilePage = () => {
         <div className="parent-header-right flex flex-wrap items-center gap-3">
           <button 
             type="button"
-            className="btn btn-secondary flex items-center gap-2 text-sm shadow-md"
+            className="btn btn-secondary flex items-center gap-2 text-sm shadow-md cursor-pointer"
             onClick={() => setIsLogModalOpen(true)}
           >
             <FaBookOpen /> Log Reading
           </button>
           <button 
             type="button"
-            className="btn btn-primary flex items-center gap-2 text-sm shadow-md"
-            onClick={() => navigate(`/teacher/library/create-story`)}
+            className="btn btn-secondary flex items-center gap-2 text-sm shadow-md cursor-pointer"
+            onClick={() => setIsIssueCertModalOpen(true)}
+          >
+            <FaAward /> Issue Certificate
+          </button>
+          <button 
+            type="button"
+            className="btn btn-primary flex items-center gap-2 text-sm shadow-md cursor-pointer"
+            style={{
+              background: '#FFFFFF',
+              color: '#FF6B6B',
+              fontWeight: 800,
+              border: 'none',
+              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.12)'
+            }}
+            onClick={() => navigate('/teacher/library/create-story', {
+              state: {
+                title: `${child.name}'s Adventure`,
+                grade: child.grade || child.grade_level || 'Grade 2',
+                reading_difficulty: child.reading_level || 'Beginner',
+                characters: `${child.name} and magical friends`,
+                custom_prompt: `An engaging reading adventure tailored for ${child.name}`
+              }
+            })}
           >
             <FaMagic /> Create Story
           </button>
@@ -202,6 +264,7 @@ const StudentProfilePage = () => {
           { id: 'overview', label: 'Overview', icon: FaLayerGroup },
           { id: 'logs', label: `Reading Logs (${readingLogs.length})`, icon: FaHistory },
           { id: 'assignments', label: `Assigned Tasks (${assignedTasks.length})`, icon: FaTasks },
+          { id: 'certificates', label: `Certificates (${certificates.length})`, icon: FaAward },
           { id: 'achievements', label: 'Achievements', icon: FaTrophy },
           { id: 'insights', label: 'Insights & Growth', icon: FaChartLine },
         ].map(tab => {
@@ -327,8 +390,17 @@ const StudentProfilePage = () => {
                     </div>
                     <button 
                       type="button"
-                      className="px-3 py-1.5 rounded-xl text-xs font-bold bg-white dark:bg-slate-700 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-800 shadow-sm shrink-0 hover:bg-rose-500 hover:text-white transition-all"
-                      onClick={() => navigate('/teacher/library/create-story')}
+                      className="px-3 py-1.5 rounded-xl text-xs font-bold bg-white dark:bg-slate-700 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-800 shadow-sm shrink-0 hover:bg-rose-500 hover:text-white transition-all cursor-pointer"
+                      onClick={() => navigate('/teacher/library/create-story', {
+                        state: {
+                          title: idea.prompt,
+                          genre: idea.theme,
+                          reading_difficulty: idea.difficulty || child.reading_level,
+                          grade: child.grade || child.grade_level,
+                          custom_prompt: idea.prompt,
+                          characters: `${child.name} and friends`
+                        }
+                      })}
                     >
                       Use
                     </button>
@@ -567,7 +639,110 @@ const StudentProfilePage = () => {
         </div>
       )}
 
-      {/* Tab 4: ACHIEVEMENTS */}
+      {/* Tab 4: CERTIFICATES & AWARDS */}
+      {activeTab === 'certificates' && (
+        <div className="card p-6 shadow-sm border border-slate-200/80 dark:border-slate-800 animate-fade-in">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+            <div>
+              <h3 className="font-extrabold text-xl text-slate-900 dark:text-white flex items-center gap-2">
+                <FaAward className="text-rose-500" /> Student Certificates & Awards
+              </h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400">Official StoryNest certificates awarded to {child.name}</p>
+            </div>
+            <button 
+              type="button"
+              className="btn btn-primary text-sm flex items-center gap-2"
+              onClick={() => setIsIssueCertModalOpen(true)}
+            >
+              <FaPlus /> Issue Certificate
+            </button>
+          </div>
+
+          {certificates.length === 0 ? (
+            <div className="text-center py-12 border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-2xl">
+              <FaAward className="text-5xl text-amber-300 dark:text-amber-600 mx-auto mb-3" />
+              <h4 className="font-bold text-slate-700 dark:text-slate-300">No certificates yet. Keep learning and achieving!</h4>
+              <p className="text-xs text-slate-400 mb-5 max-w-md mx-auto">
+                Recognize {child.name}'s reading milestones, quiz comprehension, or classroom excellence by issuing an official certificate.
+              </p>
+              <button 
+                type="button"
+                className="btn btn-secondary text-sm"
+                onClick={() => setIsIssueCertModalOpen(true)}
+              >
+                <FaAward className="mr-1" /> Issue First Certificate
+              </button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {certificates.map((cert) => {
+                const isRevoked = cert.status === 'revoked';
+                const isReadingCompletion = cert.certificate_type === 'reading_completion';
+                return (
+                  <div 
+                    key={cert.id}
+                    className={`p-5 rounded-2xl border transition-all flex flex-col justify-between ${
+                      isRevoked 
+                        ? 'bg-slate-50/70 dark:bg-slate-800/40 border-slate-200 dark:border-slate-700 opacity-60' 
+                        : isReadingCompletion
+                          ? 'bg-gradient-to-br from-emerald-50/60 via-amber-50/30 to-rose-50/20 dark:bg-slate-800/90 border-emerald-300/80 dark:border-slate-700 shadow-sm hover:shadow-md'
+                          : 'bg-gradient-to-br from-amber-50/40 to-rose-50/30 dark:bg-slate-800/80 border-amber-200/80 dark:border-slate-700 shadow-sm hover:shadow-md'
+                    }`}
+                  >
+                    <div>
+                      <div className="flex items-start justify-between gap-2 mb-3">
+                        <div className="flex items-center gap-2">
+                          <span className="text-3xl select-none">{isReadingCompletion ? '🏆' : '🎖️'}</span>
+                          {isReadingCompletion && (
+                            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-800 border border-emerald-200">
+                              Reading Completion
+                            </span>
+                          )}
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                          <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold ${
+                            isRevoked 
+                              ? 'bg-rose-100 text-rose-700 border border-rose-200' 
+                              : 'bg-emerald-100 text-emerald-700 border border-emerald-200'
+                          }`}>
+                            {isRevoked ? 'Revoked' : 'Active'}
+                          </span>
+                        </div>
+                      </div>
+
+                      <h4 className="font-extrabold text-base text-slate-900 dark:text-white leading-snug mb-1">
+                        {cert.title}
+                      </h4>
+
+                      <p className="text-xs text-slate-600 dark:text-slate-300 font-medium line-clamp-2 mb-3">
+                        {cert.description}
+                      </p>
+                    </div>
+
+                    <div className="pt-3 border-t border-slate-200/70 dark:border-slate-700/60 flex items-center justify-between mt-2">
+                      <div className="text-[11px] text-slate-400 font-semibold">
+                        <span>Issued: {new Date(cert.issued_date).toLocaleDateString()}</span>
+                        <div className="text-[10px] text-slate-400 font-normal">By {cert.issuer_name || 'Teacher'}</div>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => setSelectedCertToView(cert)}
+                        className="px-3.5 py-1.5 rounded-xl text-xs font-extrabold bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-100 border border-slate-200 dark:border-slate-600 shadow-sm hover:bg-rose-500 hover:text-white hover:border-rose-500 transition-all flex items-center gap-1.5 cursor-pointer"
+                      >
+                        <FaEye size={12} /> View Certificate
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Tab 5: ACHIEVEMENTS */}
       {activeTab === 'achievements' && (
         <div className="card p-6 shadow-sm border border-slate-200/80 dark:border-slate-800 animate-fade-in">
           <h3 className="font-extrabold text-xl text-slate-900 dark:text-white mb-1">Student Achievements & Badges</h3>
@@ -597,7 +772,7 @@ const StudentProfilePage = () => {
         </div>
       )}
 
-      {/* Tab 5: INSIGHTS */}
+      {/* Tab 6: INSIGHTS */}
       {activeTab === 'insights' && (
         <div className="space-y-6 animate-fade-in">
           <div className="card p-6 shadow-sm border border-slate-200/80 dark:border-slate-800">
@@ -626,9 +801,8 @@ const StudentProfilePage = () => {
         </div>
       )}
 
-      {/* Log Reading Session Modal (Reuses Parent ReadingLogModal) */}
+      {/* Log Reading Session Modal */}
       {(() => {
-        // Build rich categorized story list
         const assignedStoryOptions = (assignedTasks || [])
           .filter(t => t.type === 'story' || t.title)
           .map(t => ({
@@ -656,7 +830,6 @@ const StudentProfilePage = () => {
           category: 'recent'
         }));
 
-        // Deduplicate
         const seen = new Set();
         const combined = [...assignedStoryOptions, ...libraryStoryOptions, ...recentStoryOptions].filter(item => {
           if (!item.id || seen.has(item.id)) return false;
@@ -674,6 +847,25 @@ const StudentProfilePage = () => {
           />
         );
       })()}
+
+      {/* Issue Certificate Modal */}
+      <IssueCertificateModal
+        isOpen={isIssueCertModalOpen}
+        onClose={() => setIsIssueCertModalOpen(false)}
+        onIssue={handleIssueCertificate}
+        studentName={child.name}
+        classroomName={child.classroom_name}
+      />
+
+      {/* Shared Certificate Modal */}
+      <SharedCertificateModal
+        isOpen={!!selectedCertToView}
+        onClose={() => setSelectedCertToView(null)}
+        certificate={selectedCertToView}
+        childName={child.name}
+        onRevoke={handleRevokeCertificate}
+        isTeacher={true}
+      />
     </div>
   );
 };

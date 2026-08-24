@@ -683,6 +683,37 @@ class ReadingLogViewSet(viewsets.ModelViewSet):
         if serializer.is_valid():
             log = serializer.save(child=child)
             evaluate_child_achievements(child)
+
+            # Auto-issue reading completion certificate if marked completed
+            if log.completed and (log.story_title or log.story):
+                import uuid
+                from api.models import Certificate
+                from django.db.models import Q
+
+                story_name = log.story_title or (log.story.title_en if log.story else 'Story')
+                cleaned_title = story_name.replace('Read:', '').replace('Read', '').strip()
+
+                existing_cert = Certificate.objects.filter(
+                    child=child,
+                    certificate_type='reading_completion',
+                    status='active'
+                ).filter(
+                    Q(title__icontains=cleaned_title) | Q(description__icontains=cleaned_title)
+                ).first()
+
+                if not existing_cert:
+                    cert_num = f"SN-CERT-{uuid.uuid4().hex[:8].upper()}"
+                    Certificate.objects.create(
+                        certificate_number=cert_num,
+                        child=child,
+                        issuer=request.user,
+                        certificate_type='reading_completion',
+                        title=f"Reading Completion: {cleaned_title}",
+                        description=f"Awarded to {child.name} for successfully reading, comprehending, and reflecting upon the story '{cleaned_title}'.",
+                        issued_date=log.read_date or timezone.localdate(),
+                        status='active'
+                    )
+
             return Response(
                 ReadingLogSerializer(log).data,
                 status=status.HTTP_201_CREATED
