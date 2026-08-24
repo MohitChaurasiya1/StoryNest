@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { FaSearch } from 'react-icons/fa';
+import { 
+  FaSearch, FaTimes, FaUser, 
+  FaLayerGroup, FaBook, FaListAlt, FaQuestionCircle, FaFilter 
+} from 'react-icons/fa';
 
 const LibraryFilters = ({ filters, onFilterChange, onSearchChange }) => {
   const [localSearch, setLocalSearch] = useState(filters.search);
@@ -10,15 +13,15 @@ const LibraryFilters = ({ filters, onFilterChange, onSearchChange }) => {
       if (localSearch !== filters.search) {
         onSearchChange(localSearch);
       }
-    }, 500);
+    }, 400);
     return () => clearTimeout(timer);
   }, [localSearch, filters.search, onSearchChange]);
 
   const tabs = [
-    { id: 'all', label: 'All Content' },
-    { id: 'story', label: 'Stories' },
-    { id: 'lesson', label: 'Lessons' },
-    { id: 'quiz', label: 'Quizzes' }
+    { id: 'all', label: 'All Content', icon: FaLayerGroup },
+    { id: 'story', label: 'Stories', icon: FaBook },
+    { id: 'lesson', label: 'Lessons', icon: FaListAlt },
+    { id: 'quiz', label: 'Quizzes', icon: FaQuestionCircle }
   ];
 
   const grades = [
@@ -32,71 +35,133 @@ const LibraryFilters = ({ filters, onFilterChange, onSearchChange }) => {
     'Grade 5'
   ];
 
+  const hasActiveFilters = Boolean(
+    filters.search || 
+    filters.grade || 
+    filters.created_by_me || 
+    filters.type !== 'all'
+  );
+
+  const handleClearAll = () => {
+    setLocalSearch('');
+    onFilterChange({
+      type: 'all',
+      grade: '',
+      created_by_me: false,
+      search: ''
+    });
+    onSearchChange('');
+  };
+
   return (
-    <div className="card mb-6" style={{ padding: '1rem' }}>
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', alignItems: 'center', justifyContent: 'space-between' }}>
-        
-        {/* Search */}
-        <div style={{ flex: '1 1 250px', position: 'relative' }}>
-          <FaSearch style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
-          <input 
-            type="text" 
-            placeholder="Search stories, lessons, quizzes..." 
-            value={localSearch}
-            onChange={(e) => setLocalSearch(e.target.value)}
-            style={{ 
-              width: '100%', 
-              padding: '0.75rem 1rem 0.75rem 2.5rem', 
-              borderRadius: '999px',
-              border: '1px solid #e2e8f0',
-              outline: 'none'
-            }}
-          />
-        </div>
-
-        {/* Filters */}
-        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
-          <select 
-            value={filters.grade || 'All Grades'} 
-            onChange={(e) => onFilterChange({ grade: e.target.value === 'All Grades' ? '' : e.target.value })}
-            style={{ padding: '0.5rem 1rem', borderRadius: '8px', border: '1px solid #e2e8f0', background: 'white' }}
-          >
-            {grades.map(g => (
-              <option key={g} value={g}>{g}</option>
-            ))}
-          </select>
-
-          <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', color: 'var(--text-color)' }}>
+    <div className="space-y-4 mb-6">
+      {/* 1. Cohesive Search & Filters Toolbar Card */}
+      <div className="card p-4 sm:p-5 shadow-sm border border-slate-200/80 dark:border-slate-800">
+        <div className="flex flex-col md:flex-row gap-3.5 items-stretch md:items-center justify-between">
+          
+          {/* Search Bar */}
+          <div className="relative flex-1">
+            <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500 text-sm" />
             <input 
-              type="checkbox" 
-              checked={filters.created_by_me} 
-              onChange={(e) => onFilterChange({ created_by_me: e.target.checked })}
+              type="text" 
+              placeholder="Search stories, lessons, quizzes by title or keyword..." 
+              value={localSearch}
+              onChange={(e) => setLocalSearch(e.target.value)}
+              className="w-full pl-11 pr-10 py-2.5 rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50/70 dark:bg-slate-800/80 text-slate-900 dark:text-white placeholder:text-slate-400 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-rose-500 focus:bg-white dark:focus:bg-slate-800 transition-all"
             />
-            My Content Only
-          </label>
-        </div>
-      </div>
+            {localSearch && (
+              <button 
+                type="button"
+                onClick={() => {
+                  setLocalSearch('');
+                  onSearchChange('');
+                }}
+                className="absolute right-3 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 flex items-center justify-center text-xs hover:bg-slate-300 transition-colors"
+                title="Clear search"
+              >
+                <FaTimes />
+              </button>
+            )}
+          </div>
 
-      {/* Type Tabs */}
-      <div style={{ display: 'flex', gap: '1rem', marginTop: '1.5rem', borderBottom: '1px solid #e2e8f0' }}>
-        {tabs.map(tab => (
-          <button
-            key={tab.id}
-            onClick={() => onFilterChange({ type: tab.id })}
-            style={{
-              padding: '0.75rem 1rem',
-              background: 'transparent',
-              border: 'none',
-              borderBottom: filters.type === tab.id ? '2px solid var(--primary-color)' : '2px solid transparent',
-              color: filters.type === tab.id ? 'var(--primary-color)' : 'var(--text-light)',
-              fontWeight: filters.type === tab.id ? '600' : '400',
-              cursor: 'pointer',
-              transition: 'all 0.2s'
-            }}
-          >
-            {tab.label}
-          </button>
-        ))}
+          {/* Controls: Grade Filter & My Content Switch */}
+          <div className="flex flex-wrap items-center gap-3 shrink-0">
+            {/* Grade Filter */}
+            <div className="relative min-w-[150px]">
+              <select 
+                value={filters.grade || 'All Grades'} 
+                onChange={(e) => onFilterChange({ grade: e.target.value === 'All Grades' ? '' : e.target.value })}
+                className="w-full pl-3.5 pr-8 py-2.5 rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50/70 dark:bg-slate-800/80 text-slate-800 dark:text-slate-200 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-rose-500 cursor-pointer appearance-none transition-all"
+              >
+                {grades.map(g => (
+                  <option key={g} value={g}>{g}</option>
+                ))}
+              </select>
+              <div className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs">
+                ▼
+              </div>
+            </div>
+
+            {/* My Content Only Toggle Pill */}
+            <button
+              type="button"
+              onClick={() => onFilterChange({ created_by_me: !filters.created_by_me })}
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-sm font-bold border transition-all cursor-pointer select-none ${
+                filters.created_by_me
+                  ? 'bg-rose-50 dark:bg-rose-950/50 border-rose-300 dark:border-rose-800 text-rose-600 dark:text-rose-400 shadow-sm'
+                  : 'bg-slate-50/70 dark:bg-slate-800/80 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-600'
+              }`}
+            >
+              <FaUser className="text-xs" />
+              <span>My Content Only</span>
+              {filters.created_by_me && (
+                <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
+              )}
+            </button>
+
+            {/* Clear Filters Reset Button */}
+            {hasActiveFilters && (
+              <button
+                type="button"
+                onClick={handleClearAll}
+                className="text-xs font-bold text-slate-500 hover:text-rose-500 px-2 py-1 transition-colors"
+                title="Reset all filters"
+              >
+                Reset
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* 2. Type Tabs: Filled StoryNest Accent / Pill Background with Explicit Styles */}
+        <div className="flex flex-wrap gap-2.5 pt-4 mt-4 border-t border-slate-100 dark:border-slate-800/80">
+          {tabs.map(tab => {
+            const Icon = tab.icon;
+            const isActive = filters.type === tab.id;
+            return (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => onFilterChange({ type: tab.id })}
+                className="flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-extrabold transition-all cursor-pointer select-none"
+                style={isActive ? {
+                  background: 'linear-gradient(135deg, #FF6B6B, #FF8E53)',
+                  color: '#FFFFFF',
+                  boxShadow: '0 4px 14px rgba(255, 107, 107, 0.35)',
+                  transform: 'translateY(-1px)',
+                  border: '1.5px solid transparent'
+                } : {
+                  background: 'var(--surface-color, #F8FAFC)',
+                  color: 'var(--text-secondary, #475569)',
+                  border: '1.5px solid var(--border-color, #E2E8F0)'
+                }}
+              >
+                <Icon style={{ color: isActive ? '#FFFFFF' : '#94A3B8', fontSize: '0.9rem' }} />
+                <span style={{ color: isActive ? '#FFFFFF' : 'inherit' }}>{tab.label}</span>
+              </button>
+            );
+          })}
+        </div>
       </div>
     </div>
   );

@@ -1,7 +1,10 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { FiAlertCircle as AlertCircle, FiAlertTriangle as AlertTriangle, FiChevronRight as ChevronRight } from 'react-icons/fi';
 
 const AttentionSection = ({ items = [] }) => {
+  const navigate = useNavigate();
+
   if (!items || items.length === 0) {
     return (
       <div className="card mb-8">
@@ -39,8 +42,12 @@ const AttentionSection = ({ items = [] }) => {
                 <p className="text-sm text-muted">{item.issue}</p>
               </div>
             </div>
-            <button className="flex items-center gap-1 text-sm font-bold text-[var(--coral)] hover:underline self-end sm:self-auto shrink-0">
-              {item.action_text} <ChevronRight size={16} />
+            <button 
+              type="button"
+              onClick={() => navigate('/teacher/progress')}
+              className="flex items-center gap-1 text-sm font-bold text-[var(--coral)] hover:underline self-end sm:self-auto shrink-0 cursor-pointer"
+            >
+              {item.action_text || 'Review'} <ChevronRight size={16} />
             </button>
           </div>
         ))}

@@ -3,14 +3,14 @@ import CreateContentMenu from './CreateContentMenu';
 
 const LibraryHeader = () => {
   return (
-    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-      <div>
-        <h1 style={{ margin: 0, color: 'var(--text-color)' }}>Content Library</h1>
-        <p style={{ margin: '0.5rem 0 0 0', color: 'var(--text-light)' }}>
-          Discover, create, and manage your teaching resources.
+    <div className="parent-header parent-hero-card mb-6">
+      <div className="parent-header-left">
+        <h2 className="serif-heading text-white">Content Library</h2>
+        <p className="text-white/85 mt-2" style={{ fontSize: '0.95rem' }}>
+          Discover, create, and manage teaching resources, interactive stories, and classroom lessons.
         </p>
       </div>
-      <div>
+      <div className="parent-header-right flex flex-wrap items-center gap-3">
         <CreateContentMenu />
       </div>
     </div>

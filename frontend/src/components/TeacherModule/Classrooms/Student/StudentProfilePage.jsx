@@ -1,47 +1,120 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { FaSpinner, FaArrowLeft, FaExclamationTriangle, FaFire, FaBookOpen, FaChartLine } from 'react-icons/fa';
+import { 
+  FaArrowLeft, FaFire, FaBookOpen, FaClock, FaTrophy, 
+  FaPlus, FaCheckCircle, FaMagic, FaTasks, FaChartLine, 
+  FaExclamationTriangle, FaTrash, FaStar, FaCalendarAlt, 
+  FaUserGraduate, FaLayerGroup, FaHistory, FaLightbulb, FaSpinner 
+} from 'react-icons/fa';
 import teacherClassroomService from '../../../../services/teacherClassroomService';
+import teacherLibraryService from '../../../../services/teacherLibraryService';
+import ReadingLogModal from '../../../ReadingLogModal/ReadingLogModal';
 
 const StudentProfilePage = () => {
   const { id: classroomId, studentId } = useParams();
   const navigate = useNavigate();
-  const [student, setStudent] = useState(null);
+
+  const [dashboardData, setDashboardData] = useState(null);
+  const [readingLogs, setReadingLogs] = useState([]);
+  const [assignedTasks, setAssignedTasks] = useState([]);
+  const [libraryStories, setLibraryStories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [activeTab, setActiveTab] = useState('overview'); // 'overview' | 'logs' | 'assignments' | 'achievements' | 'insights'
+
+  // Modals
+  const [isLogModalOpen, setIsLogModalOpen] = useState(false);
+  const [toastMessage, setToastMessage] = useState(null);
+
+  const fetchStudentData = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const [dashRes, logsRes, asgRes, libRes] = await Promise.allSettled([
+        teacherClassroomService.getStudentDashboard(classroomId, studentId),
+        teacherClassroomService.getStudentReadingLogs(classroomId, studentId),
+        teacherClassroomService.getStudentAssignments(classroomId, studentId),
+        teacherLibraryService.getContent({ type: 'story' }, 1)
+      ]);
+
+      if (dashRes.status === 'fulfilled') {
+        setDashboardData(dashRes.value);
+      } else {
+        throw dashRes.reason || new Error("Failed to load student dashboard");
+      }
+
+      if (logsRes.status === 'fulfilled') {
+        setReadingLogs(logsRes.value || []);
+      }
+
+      if (asgRes.status === 'fulfilled') {
+        setAssignedTasks(asgRes.value || []);
+      }
+
+      if (libRes.status === 'fulfilled' && libRes.value?.results) {
+        setLibraryStories(libRes.value.results || []);
+      }
+    } catch (err) {
+      console.error(err);
+      setError(err.message || 'Failed to load student profile.');
+    } finally {
+      setLoading(false);
+    }
+  }, [classroomId, studentId]);
 
   useEffect(() => {
-    const fetchStudent = async () => {
+    fetchStudentData();
+  }, [fetchStudentData]);
+
+  const showToast = (msg) => {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(null), 3500);
+  };
+
+  const handleSaveReadingLog = async (logData) => {
+    try {
+      await teacherClassroomService.createStudentReadingLog(classroomId, studentId, logData);
+      setIsLogModalOpen(false);
+      showToast('Reading session logged successfully!');
+      fetchStudentData();
+    } catch (err) {
+      alert(err.message || 'Failed to log reading session.');
+    }
+  };
+
+  const handleDeleteLog = async (logId) => {
+    if (window.confirm("Are you sure you want to delete this reading log?")) {
       try {
-        setLoading(true);
-        const data = await teacherClassroomService.getStudentSummary(classroomId, studentId);
-        setStudent(data);
+        await teacherClassroomService.deleteStudentReadingLog(classroomId, studentId, logId);
+        showToast('Reading log deleted.');
+        fetchStudentData();
       } catch (err) {
-        setError(err.message || 'Failed to load student details.');
-      } finally {
-        setLoading(false);
+        alert(err.message || 'Failed to delete reading log.');
       }
-    };
-    fetchStudent();
-  }, [classroomId, studentId]);
+    }
+  };
 
   if (loading) {
     return (
-      <div className="dashboard-loading-state">
-        <FaSpinner className="spinner-icon" />
-        <p>Loading student profile...</p>
+      <div className="max-w-6xl mx-auto py-20 text-center flex flex-col items-center justify-center">
+        <FaSpinner className="animate-spin text-4xl text-rose-500 mb-4" />
+        <p className="font-bold text-slate-600 dark:text-slate-300">Loading Student Learning Dashboard...</p>
       </div>
     );
   }
 
-  if (error || !student) {
+  if (error || !dashboardData) {
     return (
-      <div className="card error-banner">
-        <FaExclamationTriangle className="error-icon" />
+      <div className="card error-banner max-w-xl mx-auto my-12 p-6">
+        <FaExclamationTriangle className="error-icon text-2xl" />
         <div>
-          <h4>Student Not Found</h4>
-          <p>{error}</p>
-          <button onClick={() => navigate(`/teacher/classrooms/${classroomId}`)} className="btn btn-secondary mt-2">
+          <h4 className="font-bold text-lg">Student Profile Not Found</h4>
+          <p className="text-sm mt-1">{error}</p>
+          <button 
+            onClick={() => navigate(`/teacher/classrooms/${classroomId}`)} 
+            className="btn btn-secondary mt-4"
+          >
             Back to Classroom
           </button>
         </div>
@@ -49,120 +122,558 @@ const StudentProfilePage = () => {
     );
   }
 
-  const { stats, recent_reads, recent_quizzes } = student;
+  const { child, stats, weekly_activity, recent_stories, story_ideas, achievements } = dashboardData;
+  const streak = stats.reading_streak || stats.current_streak || 0;
+  const booksRead = stats.total_books_read || stats.stories_completed || 0;
+  const totalMins = stats.total_minutes || 0;
+  const avgQuiz = stats.average_quiz || stats.quiz_average || 0;
 
   return (
-    <div className="animate-fade-in">
+    <div className="animate-fade-in max-w-6xl mx-auto pb-16">
+      {/* Toast */}
+      {toastMessage && (
+        <div className="fixed top-6 right-6 z-[999999] p-4 rounded-2xl bg-emerald-600 text-white font-bold shadow-xl flex items-center gap-3 animate-bounce">
+          <FaCheckCircle className="text-xl" />
+          <span>{toastMessage}</span>
+        </div>
+      )}
+
+      {/* Back link */}
       <button 
-        className="flex items-center gap-2 text-muted hover:text-[var(--text-primary)] font-bold mb-4 transition-colors"
+        type="button"
+        className="flex items-center gap-2 text-slate-500 hover:text-slate-800 dark:hover:text-white font-bold mb-4 transition-colors text-sm"
         onClick={() => navigate(`/teacher/classrooms/${classroomId}`)}
       >
-        <FaArrowLeft size={14} /> Back to {student.classroom_name}
+        <FaArrowLeft size={12} /> Back to {child.classroom_name || 'Classroom'}
       </button>
 
-      {/* Hero Header */}
+      {/* Hero Header matching Parent/Teacher Style */}
       <div className="parent-header parent-hero-card mb-8">
-        <div className="parent-header-left flex items-center gap-6">
-          <img 
-            src={student.avatar_url || "https://api.dicebear.com/7.x/fun-emoji/svg?seed=" + student.name} 
-            alt={student.name} 
-            className="w-24 h-24 rounded-full bg-white object-cover border-4 border-white/20 shadow-lg"
-          />
+        <div className="parent-header-left flex items-center gap-5 sm:gap-6 flex-wrap sm:flex-nowrap">
+          <div className="relative">
+            <img 
+              src={child.avatar_url || "https://api.dicebear.com/7.x/fun-emoji/svg?seed=" + child.name} 
+              alt={child.name} 
+              className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-white object-cover border-4 border-white/30 shadow-lg shrink-0"
+            />
+            <span className="absolute -bottom-1 -right-1 text-2xl select-none">{child.avatar || '🦁'}</span>
+          </div>
+
           <div>
-            <h2 className="serif-heading text-white">{student.name}</h2>
-            <p className="text-white/85 mt-2 font-bold flex items-center gap-2" style={{ fontSize: '0.95rem' }}>
-              <span>Student Profile</span>
-              <span className="opacity-50">•</span>
-              <span>Joined {new Date(student.joined_at).toLocaleDateString()}</span>
+            <div className="flex items-center gap-2.5 flex-wrap">
+              <h2 className="serif-heading text-white text-2xl sm:text-3xl">{child.name}</h2>
+              <span className="px-3 py-1 rounded-full text-xs font-extrabold bg-white/20 text-white border border-white/30 backdrop-blur-sm">
+                {child.grade || child.grade_level || 'Grade 2'}
+              </span>
+            </div>
+
+            <p className="text-white/85 mt-2 text-sm font-semibold flex items-center gap-3 flex-wrap">
+              <span>🏫 {child.classroom_name}</span>
+              <span className="opacity-60">•</span>
+              <span>Age {child.age || 7}</span>
+              <span className="opacity-60">•</span>
+              <span>Level: {child.reading_level || 'Intermediate'}</span>
             </p>
           </div>
         </div>
-      </div>
 
-      {/* High-Level Stats */}
-      <div className="grid-3 mb-8">
-        <div className="card text-center flex flex-col items-center justify-center p-6 border-t-4 border-t-[var(--coral)]">
-          <div className="w-12 h-12 rounded-full bg-[var(--coral-light)] text-[var(--coral)] flex items-center justify-center mb-3">
-            <FaFire size={20} />
-          </div>
-          <h3 className="text-3xl font-bold mb-1">{stats.reading_streak} <span className="text-lg text-muted font-normal">Days</span></h3>
-          <p className="font-bold text-muted uppercase text-xs">Current Streak</p>
-        </div>
-        
-        <div className="card text-center flex flex-col items-center justify-center p-6 border-t-4 border-t-[var(--purple)]">
-          <div className="w-12 h-12 rounded-full bg-[var(--purple-light)] text-[var(--purple)] flex items-center justify-center mb-3">
-            <FaBookOpen size={20} />
-          </div>
-          <h3 className="text-3xl font-bold mb-1">{stats.stories_completed}</h3>
-          <p className="font-bold text-muted uppercase text-xs">Stories Completed</p>
-        </div>
-
-        <div className="card text-center flex flex-col items-center justify-center p-6 border-t-4 border-t-[var(--mint)]">
-          <div className="w-12 h-12 rounded-full bg-[var(--mint-light)] text-[var(--mint)] flex items-center justify-center mb-3">
-            <FaChartLine size={20} />
-          </div>
-          <h3 className="text-3xl font-bold mb-1">{stats.average_quiz}%</h3>
-          <p className="font-bold text-muted uppercase text-xs">Avg. Quiz Score</p>
+        {/* Action Buttons */}
+        <div className="parent-header-right flex flex-wrap items-center gap-3">
+          <button 
+            type="button"
+            className="btn btn-secondary flex items-center gap-2 text-sm shadow-md"
+            onClick={() => setIsLogModalOpen(true)}
+          >
+            <FaBookOpen /> Log Reading
+          </button>
+          <button 
+            type="button"
+            className="btn btn-primary flex items-center gap-2 text-sm shadow-md"
+            onClick={() => navigate(`/teacher/library/create-story`)}
+          >
+            <FaMagic /> Create Story
+          </button>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Recent Reading */}
-        <div className="card">
-          <h3 className="font-bold text-lg mb-4 border-b border-[var(--border-color)] pb-3">Recent Reading</h3>
-          {recent_reads.length === 0 ? (
-            <div className="text-center text-muted p-6">No reading logs found for this student.</div>
-          ) : (
-            <div className="space-y-4">
-              {recent_reads.map(read => (
-                <div key={read.id} className="flex justify-between items-center p-3 hover:bg-[var(--bg-color)] rounded-[var(--radius-sm)] transition-colors">
-                  <div className="flex items-center gap-3">
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center ${read.completed ? 'bg-[var(--mint-light)] text-[var(--mint)]' : 'bg-slate-100 text-slate-400'}`}>
-                      <FaBookOpen size={12} />
-                    </div>
-                    <div>
-                      <div className="font-bold">{read.title}</div>
-                      <div className="text-xs text-muted">{new Date(read.timestamp).toLocaleDateString()}</div>
-                    </div>
-                  </div>
-                  {read.completed ? (
-                    <span className="pill pill-green text-xs">Completed</span>
-                  ) : (
-                    <span className="pill pill-grey text-xs">In Progress</span>
-                  )}
+      {/* Tabs Row */}
+      <div className="flex flex-wrap gap-2.5 mb-8 border-b border-slate-200 dark:border-slate-800 pb-3">
+        {[
+          { id: 'overview', label: 'Overview', icon: FaLayerGroup },
+          { id: 'logs', label: `Reading Logs (${readingLogs.length})`, icon: FaHistory },
+          { id: 'assignments', label: `Assigned Tasks (${assignedTasks.length})`, icon: FaTasks },
+          { id: 'achievements', label: 'Achievements', icon: FaTrophy },
+          { id: 'insights', label: 'Insights & Growth', icon: FaChartLine },
+        ].map(tab => {
+          const Icon = tab.icon;
+          const isActive = activeTab === tab.id;
+          return (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => setActiveTab(tab.id)}
+              className="flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-extrabold transition-all cursor-pointer select-none"
+              style={isActive ? {
+                background: 'linear-gradient(135deg, #FF6B6B, #FF8E53)',
+                color: '#FFFFFF',
+                boxShadow: '0 4px 14px rgba(255, 107, 107, 0.35)',
+                transform: 'translateY(-1px)'
+              } : {
+                background: 'var(--surface-color, #F8FAFC)',
+                color: 'var(--text-secondary, #475569)',
+                border: '1.5px solid var(--border-color, #E2E8F0)'
+              }}
+            >
+              <Icon style={{ color: isActive ? '#FFFFFF' : '#94A3B8' }} />
+              <span style={{ color: isActive ? '#FFFFFF' : 'inherit' }}>{tab.label}</span>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Tab 1: OVERVIEW */}
+      {activeTab === 'overview' && (
+        <div className="space-y-8 animate-fade-in">
+          {/* Key Metric Stats Row */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="card p-5 text-center flex flex-col items-center justify-center border-t-4 border-t-rose-500 shadow-sm">
+              <div className="w-12 h-12 rounded-2xl bg-rose-50 dark:bg-rose-950/40 text-rose-500 flex items-center justify-center text-xl mb-2.5">
+                <FaFire />
+              </div>
+              <div className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white">{streak} <span className="text-sm font-bold text-slate-400">Days</span></div>
+              <div className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mt-0.5">Reading Streak</div>
+            </div>
+
+            <div className="card p-5 text-center flex flex-col items-center justify-center border-t-4 border-t-sky-500 shadow-sm">
+              <div className="w-12 h-12 rounded-2xl bg-sky-50 dark:bg-sky-950/40 text-sky-500 flex items-center justify-center text-xl mb-2.5">
+                <FaBookOpen />
+              </div>
+              <div className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white">{booksRead}</div>
+              <div className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mt-0.5">Stories Read</div>
+            </div>
+
+            <div className="card p-5 text-center flex flex-col items-center justify-center border-t-4 border-t-amber-500 shadow-sm">
+              <div className="w-12 h-12 rounded-2xl bg-amber-50 dark:bg-amber-950/40 text-amber-500 flex items-center justify-center text-xl mb-2.5">
+                <FaClock />
+              </div>
+              <div className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white">{totalMins} <span className="text-sm font-bold text-slate-400">min</span></div>
+              <div className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mt-0.5">Total Reading</div>
+            </div>
+
+            <div className="card p-5 text-center flex flex-col items-center justify-center border-t-4 border-t-emerald-500 shadow-sm">
+              <div className="w-12 h-12 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-500 flex items-center justify-center text-xl mb-2.5">
+                <FaTrophy />
+              </div>
+              <div className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white">{avgQuiz}%</div>
+              <div className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mt-0.5">Quiz Mastery</div>
+            </div>
+          </div>
+
+          {/* Two Columns: Weekly Calendar & Story Ideas */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {/* Weekly Reading Activity Calendar */}
+            <div className="card p-6 shadow-sm border border-slate-200/80 dark:border-slate-800">
+              <div className="flex justify-between items-center mb-6">
+                <div>
+                  <h4 className="font-extrabold text-lg text-slate-900 dark:text-white">Weekly Activity</h4>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">Current week's reading consistency</p>
                 </div>
-              ))}
+                <span className="px-3 py-1 rounded-full text-xs font-extrabold bg-rose-50 dark:bg-rose-950/40 text-rose-500 border border-rose-200 dark:border-rose-800 flex items-center gap-1.5">
+                  <FaFire /> {streak}-day streak
+                </span>
+              </div>
+
+              <div className="grid grid-cols-7 gap-2 text-center">
+                {weekly_activity?.map((d, idx) => (
+                  <div key={idx} className="flex flex-col items-center">
+                    <span className="text-xs font-bold text-slate-400 mb-2">{d.day}</span>
+                    <div 
+                      className={`w-10 h-10 rounded-2xl flex items-center justify-center text-base transition-transform ${
+                        d.read 
+                          ? 'bg-emerald-500 text-white shadow-md shadow-emerald-500/20 scale-105' 
+                          : 'bg-slate-100 dark:bg-slate-800 text-slate-300 dark:text-slate-600'
+                      }`}
+                      title={d.read ? `${d.minutes} mins on ${d.date}` : `No logs on ${d.date}`}
+                    >
+                      {d.read ? <FaCheckCircle /> : '—'}
+                    </div>
+                    <span className="text-[11px] font-bold text-slate-500 mt-1.5">{d.minutes > 0 ? `${d.minutes}m` : '0m'}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* AI Story Recommendations for Student */}
+            <div className="card p-6 shadow-sm border border-slate-200/80 dark:border-slate-800">
+              <div className="flex justify-between items-center mb-4">
+                <div>
+                  <h4 className="font-extrabold text-lg text-slate-900 dark:text-white flex items-center gap-2">
+                    <FaMagic className="text-rose-500 text-base" /> Story Ideas for {child.name}
+                  </h4>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">Personalized prompts based on interests</p>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                {story_ideas?.map((idea, idx) => (
+                  <div key={idx} className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/70 dark:border-slate-700/60 flex items-center justify-between gap-3 group hover:border-rose-300 transition-colors">
+                    <div className="text-xs">
+                      <div className="font-extrabold text-slate-900 dark:text-white leading-snug mb-1">{idea.prompt}</div>
+                      <div className="flex items-center gap-2 text-slate-400 font-bold text-[11px]">
+                        <span>✨ {idea.theme}</span>
+                        <span>•</span>
+                        <span>{idea.difficulty}</span>
+                      </div>
+                    </div>
+                    <button 
+                      type="button"
+                      className="px-3 py-1.5 rounded-xl text-xs font-bold bg-white dark:bg-slate-700 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-800 shadow-sm shrink-0 hover:bg-rose-500 hover:text-white transition-all"
+                      onClick={() => navigate('/teacher/library/create-story')}
+                    >
+                      Use
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Recent Reading Sessions & Achievements */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {/* Recent Reading */}
+            <div className="card p-6 shadow-sm border border-slate-200/80 dark:border-slate-800">
+              <div className="flex justify-between items-center mb-4">
+                <h4 className="font-extrabold text-lg text-slate-900 dark:text-white">Recent Reading Sessions</h4>
+                <button 
+                  type="button" 
+                  onClick={() => setActiveTab('logs')}
+                  className="text-xs font-bold text-rose-500 hover:underline"
+                >
+                  View All ({readingLogs.length})
+                </button>
+              </div>
+
+              {recent_stories?.length === 0 ? (
+                <div className="text-center py-8 text-slate-400 text-xs font-bold">
+                  No reading sessions logged yet.
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {recent_stories?.map((read, idx) => (
+                    <div key={idx} className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className={`w-9 h-9 rounded-xl flex items-center justify-center text-sm shrink-0 ${read.completed ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-950/60' : 'bg-slate-200 text-slate-500'}`}>
+                          <FaBookOpen />
+                        </div>
+                        <div className="min-w-0">
+                          <div className="font-extrabold text-xs text-slate-900 dark:text-white truncate">{read.title}</div>
+                          <div className="text-[11px] text-slate-400 font-semibold">{read.date} • {read.minutes || 15} mins</div>
+                        </div>
+                      </div>
+                      <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-extrabold shrink-0 ${read.completed ? 'bg-emerald-50 text-emerald-600 border border-emerald-200' : 'bg-slate-100 text-slate-500'}`}>
+                        {read.completed ? 'Completed' : `${read.progress || 50}%`}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Achievements Showcase */}
+            <div className="card p-6 shadow-sm border border-slate-200/80 dark:border-slate-800">
+              <div className="flex justify-between items-center mb-4">
+                <h4 className="font-extrabold text-lg text-slate-900 dark:text-white">Earned Badges</h4>
+                <button 
+                  type="button" 
+                  onClick={() => setActiveTab('achievements')}
+                  className="text-xs font-bold text-rose-500 hover:underline"
+                >
+                  All Badges
+                </button>
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                {achievements?.slice(0, 6).map((ach) => (
+                  <div 
+                    key={ach.id}
+                    className={`p-3 rounded-2xl text-center border transition-all ${
+                      ach.earned 
+                        ? 'bg-amber-50/60 dark:bg-amber-950/30 border-amber-200 dark:border-amber-800/60 shadow-sm' 
+                        : 'bg-slate-50 dark:bg-slate-800/40 border-slate-200/60 dark:border-slate-700/50 opacity-50 grayscale'
+                    }`}
+                  >
+                    <div className="text-2xl mb-1 select-none">{ach.emoji}</div>
+                    <div className="font-extrabold text-xs text-slate-900 dark:text-white leading-tight truncate">{ach.name}</div>
+                    <div className="text-[10px] text-slate-400 mt-0.5">{ach.earned ? 'Earned' : 'Locked'}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Tab 2: READING LOGS */}
+      {activeTab === 'logs' && (
+        <div className="card p-6 shadow-sm border border-slate-200/80 dark:border-slate-800 animate-fade-in">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+            <div>
+              <h3 className="font-extrabold text-xl text-slate-900 dark:text-white">Reading History & Logs</h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400">All recorded reading sessions for {child.name}</p>
+            </div>
+            <button 
+              type="button"
+              className="btn btn-primary text-sm flex items-center gap-2"
+              onClick={() => setIsLogModalOpen(true)}
+            >
+              <FaPlus /> Log New Session
+            </button>
+          </div>
+
+          {readingLogs.length === 0 ? (
+            <div className="text-center py-12 border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-2xl">
+              <FaBookOpen className="text-4xl text-slate-300 dark:text-slate-600 mx-auto mb-3" />
+              <h4 className="font-bold text-slate-700 dark:text-slate-300">No reading logs recorded yet</h4>
+              <p className="text-xs text-slate-400 mb-4">Record your classroom reading sessions or independent reading.</p>
+              <button 
+                type="button"
+                className="btn btn-secondary text-sm"
+                onClick={() => setIsLogModalOpen(true)}
+              >
+                Log First Session
+              </button>
+            </div>
+          ) : (
+            <div className="table-responsive">
+              <table className="table">
+                <thead>
+                  <tr>
+                    <th>Story / Book</th>
+                    <th>Date</th>
+                    <th>Time</th>
+                    <th>Pages</th>
+                    <th>Rating</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {readingLogs.map((log) => (
+                    <tr key={log.id}>
+                      <td className="font-extrabold text-slate-900 dark:text-white">
+                        <div>{log.story_title}</div>
+                        {log.notes && <div className="text-xs text-slate-400 font-normal mt-0.5">"{log.notes}"</div>}
+                      </td>
+                      <td className="text-xs text-slate-500">{new Date(log.read_date).toLocaleDateString()}</td>
+                      <td className="text-xs font-bold text-slate-700 dark:text-slate-300">{log.reading_time_minutes} min</td>
+                      <td className="text-xs text-slate-500">{log.pages_read} pages</td>
+                      <td>
+                        <div className="flex text-amber-400 text-xs">
+                          {Array.from({ length: log.rating || 5 }).map((_, i) => (
+                            <FaStar key={i} />
+                          ))}
+                        </div>
+                      </td>
+                      <td>
+                        <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-extrabold ${log.completed ? 'bg-emerald-50 text-emerald-600 border border-emerald-200' : 'bg-slate-100 text-slate-500'}`}>
+                          {log.completed ? 'Completed' : 'In Progress'}
+                        </span>
+                      </td>
+                      <td>
+                        <button 
+                          type="button"
+                          className="p-2 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-full transition-colors"
+                          title="Delete log"
+                          onClick={() => handleDeleteLog(log.id)}
+                        >
+                          <FaTrash size={12} />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           )}
         </div>
+      )}
 
-        {/* Recent Quizzes */}
-        <div className="card">
-          <h3 className="font-bold text-lg mb-4 border-b border-[var(--border-color)] pb-3">Recent Quizzes</h3>
-          {recent_quizzes.length === 0 ? (
-            <div className="text-center text-muted p-6">No quizzes completed yet.</div>
+      {/* Tab 3: ASSIGNED WORK */}
+      {activeTab === 'assignments' && (
+        <div className="card p-6 shadow-sm border border-slate-200/80 dark:border-slate-800 animate-fade-in">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+            <div>
+              <h3 className="font-extrabold text-xl text-slate-900 dark:text-white">Assigned Learning Tasks</h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400">Classroom assignments targeting {child.name}</p>
+            </div>
+            <button 
+              type="button"
+              className="btn btn-primary text-sm flex items-center gap-2"
+              onClick={() => navigate('/teacher/assignments/create')}
+            >
+              <FaPlus /> Create Assignment
+            </button>
+          </div>
+
+          {assignedTasks.length === 0 ? (
+            <div className="text-center py-12 border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-2xl">
+              <FaTasks className="text-4xl text-slate-300 dark:text-slate-600 mx-auto mb-3" />
+              <h4 className="font-bold text-slate-700 dark:text-slate-300">No active assignments for this student</h4>
+              <p className="text-xs text-slate-400 mb-4">Assign a story, lesson, or comprehension quiz.</p>
+              <button 
+                type="button"
+                className="btn btn-secondary text-sm"
+                onClick={() => navigate('/teacher/assignments/create')}
+              >
+                Assign Work
+              </button>
+            </div>
           ) : (
-            <div className="space-y-4">
-              {recent_quizzes.map(quiz => (
-                <div key={quiz.id} className="flex justify-between items-center p-3 hover:bg-[var(--bg-color)] rounded-[var(--radius-sm)] transition-colors">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-[var(--purple-light)] text-[var(--purple)] flex items-center justify-center">
-                      <FaChartLine size={12} />
-                    </div>
-                    <div>
-                      <div className="font-bold">{quiz.title}</div>
-                      <div className="text-xs text-muted">{new Date(quiz.timestamp).toLocaleDateString()}</div>
-                    </div>
-                  </div>
-                  <div className={`font-bold ${quiz.percentage >= 80 ? 'text-[var(--mint)]' : quiz.percentage < 60 ? 'text-[var(--danger-color)]' : 'text-[var(--text-primary)]'}`}>
-                    {quiz.percentage}%
-                  </div>
-                </div>
-              ))}
+            <div className="table-responsive">
+              <table className="table">
+                <thead>
+                  <tr>
+                    <th>Assignment</th>
+                    <th>Type</th>
+                    <th>Due Date</th>
+                    <th>Status</th>
+                    <th>Score</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {assignedTasks.map((t) => (
+                    <tr key={t.id}>
+                      <td className="font-extrabold text-slate-900 dark:text-white">{t.title}</td>
+                      <td>
+                        <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-sky-50 text-sky-600 border border-sky-200 uppercase">
+                          {t.type}
+                        </span>
+                      </td>
+                      <td className="text-xs text-slate-500">{t.due_date ? new Date(t.due_date).toLocaleDateString() : 'No date'}</td>
+                      <td>
+                        <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-extrabold ${t.status === 'completed' ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600'}`}>
+                          {t.status || 'Assigned'}
+                        </span>
+                      </td>
+                      <td className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                        {t.score !== null && t.score !== undefined ? `${t.score}%` : '—'}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           )}
         </div>
-      </div>
+      )}
+
+      {/* Tab 4: ACHIEVEMENTS */}
+      {activeTab === 'achievements' && (
+        <div className="card p-6 shadow-sm border border-slate-200/80 dark:border-slate-800 animate-fade-in">
+          <h3 className="font-extrabold text-xl text-slate-900 dark:text-white mb-1">Student Achievements & Badges</h3>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mb-6">Milestones unlocked through reading, streaks, and quiz mastery</p>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+            {achievements?.map((ach) => (
+              <div 
+                key={ach.id}
+                className={`p-4 rounded-2xl border flex items-start gap-3.5 transition-all ${
+                  ach.earned 
+                    ? 'bg-amber-50/50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-800/80 shadow-sm' 
+                    : 'bg-slate-50 dark:bg-slate-800/30 border-slate-200/70 dark:border-slate-700/60 opacity-50 grayscale'
+                }`}
+              >
+                <div className="text-3xl shrink-0 select-none">{ach.emoji}</div>
+                <div>
+                  <div className="font-extrabold text-sm text-slate-900 dark:text-white leading-tight">{ach.name}</div>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-snug">{ach.description}</p>
+                  <div className="text-[11px] font-bold text-amber-600 dark:text-amber-400 mt-2">
+                    {ach.earned ? `Unlocked ${ach.earned_at ? new Date(ach.earned_at).toLocaleDateString() : '✓'}` : 'Locked Milestone'}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Tab 5: INSIGHTS */}
+      {activeTab === 'insights' && (
+        <div className="space-y-6 animate-fade-in">
+          <div className="card p-6 shadow-sm border border-slate-200/80 dark:border-slate-800">
+            <h3 className="font-extrabold text-xl text-slate-900 dark:text-white mb-2">Reading & Comprehension Growth</h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mb-6">Analytics tracking vocabulary, pace, and consistency</p>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+              <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-center">
+                <div className="text-xs font-bold text-slate-400 uppercase">Preferred Language</div>
+                <div className="text-lg font-extrabold text-slate-900 dark:text-white mt-1">{child.preferred_language || 'Bilingual (EN/HI)'}</div>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-center">
+                <div className="text-xs font-bold text-slate-400 uppercase">Reading Level</div>
+                <div className="text-lg font-extrabold text-slate-900 dark:text-white mt-1">{child.reading_level || 'Beginner'}</div>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-center">
+                <div className="text-xs font-bold text-slate-400 uppercase">Average Session</div>
+                <div className="text-lg font-extrabold text-slate-900 dark:text-white mt-1">
+                  {booksRead > 0 ? Math.round(totalMins / Math.max(1, booksRead)) : 15} mins / book
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Log Reading Session Modal (Reuses Parent ReadingLogModal) */}
+      {(() => {
+        // Build rich categorized story list
+        const assignedStoryOptions = (assignedTasks || [])
+          .filter(t => t.type === 'story' || t.title)
+          .map(t => ({
+            id: t.story_id || t.id,
+            assignment_id: t.id,
+            title: t.title,
+            title_en: t.title,
+            is_assignment: true,
+            category: 'assignment',
+            due_date: t.due_date
+          }));
+
+        const libraryStoryOptions = (libraryStories || []).map(s => ({
+          id: s.id,
+          title: s.title || s.title_en,
+          title_en: s.title || s.title_en,
+          language: s.language,
+          category: 'library'
+        }));
+
+        const recentStoryOptions = (recent_stories || []).map(s => ({
+          id: s.story_id || s.id,
+          title: s.title,
+          title_en: s.title,
+          category: 'recent'
+        }));
+
+        // Deduplicate
+        const seen = new Set();
+        const combined = [...assignedStoryOptions, ...libraryStoryOptions, ...recentStoryOptions].filter(item => {
+          if (!item.id || seen.has(item.id)) return false;
+          seen.add(item.id);
+          return true;
+        });
+
+        return (
+          <ReadingLogModal 
+            isOpen={isLogModalOpen}
+            onClose={() => setIsLogModalOpen(false)}
+            onSave={handleSaveReadingLog}
+            childName={child.name}
+            stories={combined}
+          />
+        );
+      })()}
     </div>
   );
 };

@@ -113,6 +113,66 @@ const teacherClassroomService = {
   },
 
   /**
+   * Get an individual student's learning dashboard.
+   */
+  getStudentDashboard: async (classroomId, studentId) => {
+    try {
+      const response = await api.get(`/teacher/classrooms/${classroomId}/students/${studentId}/dashboard/`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data?.error || new Error("Failed to fetch student dashboard");
+    }
+  },
+
+  /**
+   * Get an individual student's reading logs.
+   */
+  getStudentReadingLogs: async (classroomId, studentId) => {
+    try {
+      const response = await api.get(`/teacher/classrooms/${classroomId}/students/${studentId}/reading-logs/`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data?.error || new Error("Failed to fetch student reading logs");
+    }
+  },
+
+  /**
+   * Log a reading session for a student.
+   */
+  createStudentReadingLog: async (classroomId, studentId, data) => {
+    try {
+      const response = await api.post(`/teacher/classrooms/${classroomId}/students/${studentId}/reading-logs/`, data);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data?.error || new Error("Failed to log reading session");
+    }
+  },
+
+  /**
+   * Delete a student's reading log.
+   */
+  deleteStudentReadingLog: async (classroomId, studentId, logId) => {
+    try {
+      const response = await api.delete(`/teacher/classrooms/${classroomId}/students/${studentId}/reading-logs/${logId}/`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data?.error || new Error("Failed to delete reading log");
+    }
+  },
+
+  /**
+   * Get a student's classroom assignments.
+   */
+  getStudentAssignments: async (classroomId, studentId) => {
+    try {
+      const response = await api.get(`/teacher/classrooms/${classroomId}/students/${studentId}/assignments/`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data?.error || new Error("Failed to fetch student assignments");
+    }
+  },
+
+  /**
    * Search globally for students to add.
    */
   searchStudents: async (query) => {
@@ -138,3 +198,4 @@ const teacherClassroomService = {
 };
 
 export default teacherClassroomService;
+

@@ -375,15 +375,22 @@ class TeacherProgressService:
         asgn_completion = int(round((comp_asgn / tot_asgn) * 100)) if tot_asgn > 0 else 0
 
         # Reading details
+        from api.parent_views import calculate_streak_for_child
         logs = ReadingLog.objects.filter(child=child)
         if cutoff:
             logs = logs.filter(created_at__gte=cutoff)
 
+        real_streak = calculate_streak_for_child(child)
+        try:
+            longest_streak = max(real_streak, child.streak.longest_streak) if hasattr(child, 'streak') else real_streak
+        except Exception:
+            longest_streak = real_streak
+
         reading_details = {
             'stories_completed': logs.filter(completed=True).count(),
             'reading_minutes': logs.aggregate(tot=Sum('reading_time_minutes'))['tot'] or 0,
-            'current_streak': 6, # Placeholder calculation
-            'longest_streak': 12,
+            'current_streak': real_streak,
+            'longest_streak': longest_streak,
             'average_session': int(round(logs.aggregate(avg=Avg('reading_time_minutes'))['avg'] or 0))
         }
 

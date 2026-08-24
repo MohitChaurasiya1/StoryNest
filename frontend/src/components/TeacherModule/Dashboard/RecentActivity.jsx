@@ -1,7 +1,10 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { FiBookOpen as BookOpen, FiCheckCircle as CheckCircle, FiChevronRight as ChevronRight } from 'react-icons/fi';
 
 const RecentActivity = ({ activities = [] }) => {
+  const navigate = useNavigate();
+
   if (!activities || activities.length === 0) {
     return (
       <div className="card">
@@ -32,7 +35,13 @@ const RecentActivity = ({ activities = [] }) => {
     <div className="card">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-lg font-bold">Recent Activity</h2>
-        <button className="text-sm font-bold text-[var(--coral)] hover:underline">View All</button>
+        <button 
+          type="button"
+          onClick={() => navigate('/teacher/progress')}
+          className="text-sm font-bold text-[var(--coral)] hover:underline cursor-pointer"
+        >
+          View All
+        </button>
       </div>
       
       <div className="space-y-6 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-[2px] before:bg-gradient-to-b before:from-transparent before:via-[var(--border-color)] before:to-transparent">

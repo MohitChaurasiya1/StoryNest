@@ -18,9 +18,12 @@ class TeacherClassroomSerializer(serializers.ModelSerializer):
 class ClassroomStudentSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField(source='child.id')
     name = serializers.CharField(source='child.name')
-    avatar_url = serializers.CharField(source='child.avatar_url')
+    avatar = serializers.CharField(source='child.avatar', default='🦁')
+    avatar_url = serializers.SerializerMethodField()
+    grade = serializers.CharField(source='child.grade_level', default='Grade 2')
+    age = serializers.IntegerField(source='child.age', default=7)
+    reading_level = serializers.CharField(source='child.reading_level', default='Beginner')
     
-    # We can add mock stats or annotated stats here if needed
     reading_streak = serializers.SerializerMethodField()
     stories_completed = serializers.SerializerMethodField()
     average_progress = serializers.SerializerMethodField()
@@ -28,23 +31,37 @@ class ClassroomStudentSerializer(serializers.ModelSerializer):
     class Meta:
         model = ClassStudent
         fields = [
-            'id', 'name', 'avatar_url', 'status', 'enrolled_at',
+            'id', 'name', 'avatar', 'avatar_url', 'grade', 'age', 'reading_level',
+            'status', 'enrolled_at',
             'reading_streak', 'stories_completed', 'average_progress'
         ]
+
+    def get_avatar_url(self, obj):
+        if not obj.child:
+            return "https://api.dicebear.com/7.x/fun-emoji/svg?seed=Student"
+        avatar_str = obj.child.avatar or '🦁'
+        if avatar_str.startswith('http') or '/' in avatar_str:
+            return avatar_str
+        return f"https://api.dicebear.com/7.x/fun-emoji/svg?seed={obj.child.name}"
 
     def get_reading_streak(self, obj):
         try:
             return obj.child.streak.current_streak
-        except AttributeError:
+        except Exception:
             return 0
             
     def get_stories_completed(self, obj):
-        # We can optimize this with annotations later, but for now we query
-        return obj.child.reading_logs.filter(completed=True).count()
+        try:
+            return obj.child.reading_logs.filter(completed=True).count()
+        except Exception:
+            return 0
         
     def get_average_progress(self, obj):
-        avg = obj.child.quiz_attempts.aggregate(avg=Avg('percentage'))['avg']
-        return int(round(avg)) if avg else 0
+        try:
+            avg = obj.child.quiz_attempts.aggregate(avg=Avg('percentage'))['avg']
+            return int(round(avg)) if avg else 0
+        except Exception:
+            return 0
 
 
 class ContentCreatorSerializer(serializers.Serializer):

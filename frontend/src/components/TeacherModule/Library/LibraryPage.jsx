@@ -99,6 +99,10 @@ const LibraryPage = () => {
           content={content} 
           loading={loading && page === 1} 
           onPreview={(item) => setPreviewItem(item)} 
+          filters={filters}
+          onClearFilters={() => {
+            handleFilterChange({ type: 'all', search: '', grade: '', created_by_me: false });
+          }}
         />
       )}
       

@@ -167,8 +167,8 @@ class TeacherClassroomStudentDetailView(APIView):
             raise PermissionDenied("You do not have permission to access classrooms.")
             
         try:
-            summary = TeacherClassroomService.get_student_summary(request.user, classroom_id, student_id)
-            return Response(summary)
+            dashboard = TeacherClassroomService.get_student_dashboard(request.user, classroom_id, student_id)
+            return Response(dashboard)
         except DjangoValidationError as e:
             return Response({"error": {"message": str(e.message) if hasattr(e, 'message') else str(e)}}, status=404)
         except Exception as e:
@@ -181,6 +181,62 @@ class TeacherClassroomStudentDetailView(APIView):
         try:
             TeacherClassroomService.remove_student(request.user, classroom_id, student_id)
             return Response({"message": "Student removed successfully."}, status=status.HTTP_204_NO_CONTENT)
+        except DjangoValidationError as e:
+            return Response({"error": {"message": str(e.message) if hasattr(e, 'message') else str(e)}}, status=400)
+        except Exception as e:
+            return Response({"error": {"message": str(e)}}, status=500)
+
+
+class TeacherStudentReadingLogView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, classroom_id, student_id):
+        if request.user.role not in [User.Role.TEACHER, User.Role.ADMIN]:
+            raise PermissionDenied("You do not have permission to view student reading logs.")
+        try:
+            logs = TeacherClassroomService.get_student_reading_logs(request.user, classroom_id, student_id)
+            return Response(logs)
+        except DjangoValidationError as e:
+            return Response({"error": {"message": str(e.message) if hasattr(e, 'message') else str(e)}}, status=400)
+        except Exception as e:
+            return Response({"error": {"message": str(e)}}, status=500)
+
+    def post(self, request, classroom_id, student_id):
+        if request.user.role not in [User.Role.TEACHER, User.Role.ADMIN]:
+            raise PermissionDenied("You do not have permission to log reading sessions.")
+        try:
+            log = TeacherClassroomService.create_student_reading_log(request.user, classroom_id, student_id, request.data)
+            return Response(log, status=status.HTTP_201_CREATED)
+        except DjangoValidationError as e:
+            return Response({"error": {"message": str(e.message) if hasattr(e, 'message') else str(e)}}, status=400)
+        except Exception as e:
+            return Response({"error": {"message": str(e)}}, status=400)
+
+
+class TeacherStudentReadingLogDetailView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request, classroom_id, student_id, log_id):
+        if request.user.role not in [User.Role.TEACHER, User.Role.ADMIN]:
+            raise PermissionDenied("You do not have permission to delete reading logs.")
+        try:
+            TeacherClassroomService.delete_student_reading_log(request.user, classroom_id, student_id, log_id)
+            return Response({"message": "Reading log deleted successfully."}, status=status.HTTP_204_NO_CONTENT)
+        except DjangoValidationError as e:
+            return Response({"error": {"message": str(e.message) if hasattr(e, 'message') else str(e)}}, status=400)
+        except Exception as e:
+            return Response({"error": {"message": str(e)}}, status=500)
+
+
+class TeacherStudentAssignmentsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, classroom_id, student_id):
+        if request.user.role not in [User.Role.TEACHER, User.Role.ADMIN]:
+            raise PermissionDenied("You do not have permission to view student assignments.")
+        try:
+            assignments = TeacherClassroomService.get_student_assignments(request.user, classroom_id, student_id)
+            return Response(assignments)
         except DjangoValidationError as e:
             return Response({"error": {"message": str(e.message) if hasattr(e, 'message') else str(e)}}, status=400)
         except Exception as e:
