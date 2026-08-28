@@ -15,6 +15,15 @@ import axios from "axios";
 
 const getBaseUrl = () => {
   const envUrl = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL;
+  
+  if (typeof window !== "undefined") {
+    const host = window.location.hostname;
+    const isCloudDeploy = host.includes("onrender.com") || host.includes("netlify.app") || host.includes("vercel.app");
+    if (isCloudDeploy && (!envUrl || envUrl.includes("localhost") || envUrl.includes("127.0.0.1"))) {
+      return "https://storynest-backend.onrender.com/api";
+    }
+  }
+
   if (!envUrl) return "http://127.0.0.1:8000/api";
   const cleaned = envUrl.trim().replace(/\/+$/, "");
   return cleaned.endsWith("/api") ? cleaned : `${cleaned}/api`;

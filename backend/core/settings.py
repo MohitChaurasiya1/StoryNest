@@ -190,13 +190,19 @@ SIMPLE_JWT = {
 }
 
 # CORS configuration
-# In production set CORS_ALLOWED_ORIGINS via env var as comma-separated list
 _cors_origins = os.getenv('CORS_ALLOWED_ORIGINS', '')
-if not DEBUG and _cors_origins:
+if _cors_origins:
     CORS_ALLOW_ALL_ORIGINS = False
     CORS_ALLOWED_ORIGINS = [o.strip() for o in _cors_origins.split(',') if o.strip()]
 else:
+    # Allow all in dev OR if no specific origins are configured
     CORS_ALLOW_ALL_ORIGINS = True
+
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    r"^https://.*\.netlify\.app$",
+    r"^https://.*\.onrender\.com$",
+    r"^https://.*\.vercel\.app$",
+]
 
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_HEADERS = [
@@ -213,7 +219,10 @@ CORS_ALLOW_HEADERS = [
 
 # Production security settings — only active when DEBUG=False
 if not DEBUG:
-    SECURE_SSL_REDIRECT = True
+    # NOTE: Do NOT set SECURE_SSL_REDIRECT=True on Render/Heroku/Railway.
+    # SSL is terminated at the load balancer — Django sees plain HTTP internally.
+    # Setting this causes an infinite redirect loop (HTTP 301 → 301 → 301...).
+    # SECURE_SSL_REDIRECT = True  # <-- intentionally disabled for Render
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
     SECURE_HSTS_SECONDS = 31536000  # 1 year
