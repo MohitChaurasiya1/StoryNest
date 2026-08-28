@@ -808,31 +808,31 @@ function ChildDetails() {
                         </div>
                     </section>
 
-                        <div className="grid gap-5 p-6 sm:grid-cols-2 xl:grid-cols-4">
-                            <ProfileDetail
-                                label="Date of Birth"
-                                value={child.dob || "-"}
-                            />
+                    <div className="grid gap-5 p-6 sm:grid-cols-2 xl:grid-cols-4">
+                        <ProfileDetail
+                            label="Date of Birth"
+                            value={child.dob || "-"}
+                        />
 
-                            <ProfileDetail
-                                label="Favourite Colour"
-                                value={child.favourite_colour || "-"}
-                            />
+                        <ProfileDetail
+                            label="Favourite Colour"
+                            value={child.favourite_colour || "-"}
+                        />
 
-                            <ProfileDetail
-                                label="Favourite Animal"
-                                value={child.favourite_animal || "-"}
-                            />
+                        <ProfileDetail
+                            label="Favourite Animal"
+                            value={child.favourite_animal || "-"}
+                        />
 
-                            <ProfileDetail
-                                label="Interests"
-                                value={
-                                    Array.isArray(child.interests)
-                                        ? child.interests.join(", ")
-                                        : child.interests || "-"
-                                }
-                            />
-                        </div>
+                        <ProfileDetail
+                            label="Interests"
+                            value={
+                                Array.isArray(child.interests)
+                                    ? child.interests.join(", ")
+                                    : child.interests || "-"
+                            }
+                        />
+                    </div>
 
                     <section className="mt-6 grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
                         <StatsCard
@@ -868,28 +868,31 @@ function ChildDetails() {
                         />
                     </section>
 
-                    <section className="mt-8 overflow-x-auto rounded-2xl border border-slate-200 bg-white p-2 shadow-sm">
-                        <div className="flex min-w-max gap-2">
+
+                    <div className="flex overflow-x-auto border-b border-slate-200/80 dark:border-slate-800 bg-white/70 dark:bg-slate-900/70 px-4 sm:px-6 backdrop-blur-md">
+                        <div className="flex gap-2 py-3">
                             {tabs.map((tab) => {
                                 const Icon = tab.icon;
+                                const isActive = activeTab === tab.id;
 
                                 return (
                                     <button
                                         key={tab.id}
                                         type="button"
                                         onClick={() => setActiveTab(tab.id)}
-                                        className={`flex items-center gap-2 rounded-xl px-5 py-3 text-sm font-bold transition ${activeTab === tab.id
-                                            ? "bg-gradient-to-r from-rose-500 to-amber-500 text-white shadow-md shadow-rose-500/20"
-                                            : "text-slate-600 hover:bg-rose-50 hover:text-rose-600"
+                                        className={`flex items-center gap-2 rounded-2xl px-5 py-2.5 text-xs font-extrabold transition-all duration-200 whitespace-nowrap cursor-pointer ${isActive
+                                            ? "bg-gradient-to-r from-rose-500 to-amber-500 text-white shadow-md shadow-rose-500/25"
+                                            : "text-slate-600 dark:text-slate-300 hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-slate-800 dark:hover:text-rose-400"
                                             }`}
                                     >
-                                        <Icon />
-                                        {tab.label}
+                                        <Icon className="text-sm shrink-0" />
+                                        <span>{tab.label}</span>
                                     </button>
                                 );
                             })}
                         </div>
-                    </section>
+                    </div>
+
 
                     {activeTab === "overview" && (
                         <section className="mt-6 space-y-6">
