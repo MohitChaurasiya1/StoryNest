@@ -316,6 +316,7 @@ class ParentNote(models.Model):
 
 class Certificate(models.Model):
     CERT_TYPE_CHOICES = [
+        ('reading_completion', 'Reading Completion'),
         ('reading_excellence', 'Reading Excellence'),
         ('story_explorer', 'Story Explorer'),
         ('quiz_champion', 'Quiz Champion'),

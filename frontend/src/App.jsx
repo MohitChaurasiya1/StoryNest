@@ -43,7 +43,15 @@ import ClassroomsPage from './components/TeacherModule/Classrooms/ClassroomsPage
 import ClassroomDetailsPage from './components/TeacherModule/Classrooms/ClassroomDetails/ClassroomDetailsPage';
 import StudentProfilePage from './components/TeacherModule/Classrooms/Student/StudentProfilePage';
 import LibraryPage from './components/TeacherModule/Library/LibraryPage';
+import CreateStoryPage from './components/TeacherModule/Library/StoryCreator/CreateStoryPage';
 import ComingSoonPlaceholder from './components/TeacherModule/ComingSoonPlaceholder';
+import AssignmentsPage from './components/TeacherModule/Assignments/AssignmentsPage';
+import CreateAssignmentPage from './components/TeacherModule/Assignments/CreateAssignment/CreateAssignmentPage';
+import AssignmentDetailsPage from './components/TeacherModule/Assignments/AssignmentDetails/AssignmentDetailsPage';
+import ProgressPage from './components/TeacherModule/Progress/ProgressPage';
+import StudentProgressPage from './components/TeacherModule/Progress/StudentProgress/StudentProgressPage';
+import ClassroomProgressPage from './components/TeacherModule/Progress/ClassroomProgress/ClassroomProgressPage';
+import SettingsPage from './components/TeacherModule/Settings/SettingsPage';
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -306,25 +314,23 @@ function App() {
             <Route path="classrooms/:id/students/:studentId" element={<StudentProfilePage />} />
             <Route path="library" element={<LibraryPage />} />
             
-            {/* Placeholders for future modules */}
-            <Route path="assignments/create" element={
-              <ComingSoonPlaceholder 
-                title="Create Assignment" 
-                description="The Assignment Builder is coming soon. You'll be able to assign stories and quizzes to your classrooms here." 
-              />
-            } />
+            <Route path="assignments" element={<AssignmentsPage />} />
+            <Route path="assignments/create" element={<CreateAssignmentPage />} />
+            <Route path="assignments/:id" element={<AssignmentDetailsPage />} />
+
+            <Route path="progress" element={<ProgressPage />} />
+            <Route path="progress/classrooms/:classroomId" element={<ClassroomProgressPage />} />
+            <Route path="progress/students/:studentId" element={<StudentProgressPage />} />
+
+            <Route path="settings" element={<SettingsPage />} />
+            <Route path="settings/:tab" element={<SettingsPage />} />
             <Route path="library/create-lesson" element={
               <ComingSoonPlaceholder 
                 title="Lesson Builder" 
                 description="The Lesson Builder is coming soon. You'll be able to create custom lessons for your students here." 
               />
             } />
-            <Route path="library/create-story" element={
-              <ComingSoonPlaceholder 
-                title="Story Creator" 
-                description="The Teacher Story Creator is coming soon. Generate amazing AI stories tailored to your curriculum." 
-              />
-            } />
+            <Route path="library/create-story" element={<CreateStoryPage />} />
             <Route path="library/create-quiz" element={
               <ComingSoonPlaceholder 
                 title="Quiz Creator" 

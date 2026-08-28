@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiPlus as Plus, FiBookOpen as BookOpen, FiEdit3 as PenTool, FiGrid as LayoutDashboard, FiUserPlus as UserPlus } from 'react-icons/fi';
+import { FiPlus as Plus, FiBookOpen as BookOpen, FiEdit3 as PenTool, FiGrid as LayoutDashboard, FiUserPlus as UserPlus, FiSearch as Search } from 'react-icons/fi';
 import CreateClassroomModal from '../Classrooms/CreateClassroomModal';
+import CreateStudentModal from '../Classrooms/CreateStudentModal';
 import DashboardAddStudentModal from './DashboardAddStudentModal';
 
 const ActionButton = ({ icon: Icon, label, colorClass, onClick }) => (
@@ -22,6 +23,7 @@ const ActionButton = ({ icon: Icon, label, colorClass, onClick }) => (
 const QuickActions = ({ onUpdateDashboard }) => {
   const navigate = useNavigate();
   const [showCreateClassroom, setShowCreateClassroom] = useState(false);
+  const [showCreateStudent, setShowCreateStudent] = useState(false);
   const [showAddStudent, setShowAddStudent] = useState(false);
 
   const handleAction = (actionType) => {
@@ -38,7 +40,10 @@ const QuickActions = ({ onUpdateDashboard }) => {
       case 'classroom':
         setShowCreateClassroom(true);
         break;
-      case 'student':
+      case 'create_student':
+        setShowCreateStudent(true);
+        break;
+      case 'search_student':
         setShowAddStudent(true);
         break;
       default:
@@ -51,7 +56,12 @@ const QuickActions = ({ onUpdateDashboard }) => {
     if (onUpdateDashboard) onUpdateDashboard();
   };
 
-  const handleStudentAdded = () => {
+  const handleStudentCreated = () => {
+    setShowCreateStudent(false);
+    if (onUpdateDashboard) onUpdateDashboard();
+  };
+
+  const handleStudentEnrolled = () => {
     setShowAddStudent(false);
     if (onUpdateDashboard) onUpdateDashboard();
   };
@@ -65,6 +75,12 @@ const QuickActions = ({ onUpdateDashboard }) => {
           label="Create Assignment" 
           colorClass="bg-[#E0F4FE] text-[#6BCBF5] dark:bg-[#1A3A4A]" 
           onClick={() => handleAction('assignment')}
+        />
+        <ActionButton 
+          icon={Plus} 
+          label="Create Student" 
+          colorClass="bg-rose-100 text-rose-600 dark:bg-rose-950/60 dark:text-rose-300" 
+          onClick={() => handleAction('create_student')}
         />
         <ActionButton 
           icon={BookOpen} 
@@ -85,10 +101,10 @@ const QuickActions = ({ onUpdateDashboard }) => {
           onClick={() => handleAction('classroom')}
         />
         <ActionButton 
-          icon={UserPlus} 
-          label="Add Student" 
+          icon={Search} 
+          label="Enroll Existing" 
           colorClass="bg-[#FCE7F3] text-[#F472B6] dark:bg-[#4A2535]" 
-          onClick={() => handleAction('student')}
+          onClick={() => handleAction('search_student')}
         />
       </div>
 
@@ -99,10 +115,17 @@ const QuickActions = ({ onUpdateDashboard }) => {
         />
       )}
 
+      {showCreateStudent && (
+        <CreateStudentModal 
+          onClose={() => setShowCreateStudent(false)} 
+          onSuccess={handleStudentCreated} 
+        />
+      )}
+
       {showAddStudent && (
         <DashboardAddStudentModal 
           onClose={() => setShowAddStudent(false)} 
-          onSuccess={handleStudentAdded} 
+          onSuccess={handleStudentEnrolled} 
         />
       )}
     </div>

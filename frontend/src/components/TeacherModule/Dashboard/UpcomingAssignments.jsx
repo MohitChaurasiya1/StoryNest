@@ -1,14 +1,21 @@
 import React from 'react';
 import { FiCalendar as Calendar, FiCheckCircle as CheckCircle2 } from 'react-icons/fi';
+import { useNavigate } from 'react-router-dom';
 
 const UpcomingAssignments = ({ assignments = [] }) => {
+  const navigate = useNavigate();
+
   if (!assignments || assignments.length === 0) {
     return (
       <div className="card">
         <h2 className="text-lg font-bold mb-4">Upcoming Assignments</h2>
         <div className="empty-card" style={{ padding: '2rem' }}>
           <p className="text-muted mb-3">No assignments yet.</p>
-          <button className="btn btn-outline" style={{ padding: '0.5rem 1rem', fontSize: '0.85rem' }}>
+          <button 
+            className="btn btn-outline" 
+            style={{ padding: '0.5rem 1rem', fontSize: '0.85rem' }}
+            onClick={() => navigate('/teacher/assignments/create')}
+          >
             Create Assignment
           </button>
         </div>
@@ -30,7 +37,11 @@ const UpcomingAssignments = ({ assignments = [] }) => {
       <h2 className="text-lg font-bold mb-4">Upcoming Assignments</h2>
       <div className="flex flex-col gap-4">
         {assignments.map((assignment) => (
-          <div key={assignment.id} className="p-4 rounded-[var(--radius-sm)] border border-[var(--border-color)]">
+          <div 
+            key={assignment.id} 
+            className="p-4 rounded-[var(--radius-sm)] border border-[var(--border-color)] cursor-pointer hover:shadow-md transition-shadow"
+            onClick={() => navigate(`/teacher/assignments/${assignment.id}`)}
+          >
             <div className="flex justify-between items-start mb-2">
               <h3 className="font-bold">{assignment.title}</h3>
               <span className={`pill ${getStatusClass(assignment.status)}`} style={{ fontSize: '0.75rem', padding: '0.15rem 0.5rem' }}>

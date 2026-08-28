@@ -74,6 +74,10 @@ const teacherClassroomService = {
     }
   },
 
+  getClassroomStudents: async (classroomId, params = {}) => {
+    return teacherClassroomService.getStudents(classroomId, params);
+  },
+
   /**
    * Add multiple students to a classroom.
    */
@@ -113,6 +117,104 @@ const teacherClassroomService = {
   },
 
   /**
+   * Get an individual student's learning dashboard.
+   */
+  getStudentDashboard: async (classroomId, studentId) => {
+    try {
+      const response = await api.get(`/teacher/classrooms/${classroomId}/students/${studentId}/dashboard/`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data?.error || new Error("Failed to fetch student dashboard");
+    }
+  },
+
+  /**
+   * Get an individual student's reading logs.
+   */
+  getStudentReadingLogs: async (classroomId, studentId) => {
+    try {
+      const response = await api.get(`/teacher/classrooms/${classroomId}/students/${studentId}/reading-logs/`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data?.error || new Error("Failed to fetch student reading logs");
+    }
+  },
+
+  /**
+   * Log a reading session for a student.
+   */
+  createStudentReadingLog: async (classroomId, studentId, data) => {
+    try {
+      const response = await api.post(`/teacher/classrooms/${classroomId}/students/${studentId}/reading-logs/`, data);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data?.error || new Error("Failed to log reading session");
+    }
+  },
+
+  /**
+   * Delete a student's reading log.
+   */
+  deleteStudentReadingLog: async (classroomId, studentId, logId) => {
+    try {
+      const response = await api.delete(`/teacher/classrooms/${classroomId}/students/${studentId}/reading-logs/${logId}/`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data?.error || new Error("Failed to delete reading log");
+    }
+  },
+
+  /**
+   * Get a student's classroom assignments.
+   */
+  getStudentAssignments: async (classroomId, studentId) => {
+    try {
+      const response = await api.get(`/teacher/classrooms/${classroomId}/students/${studentId}/assignments/`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data?.error || new Error("Failed to fetch student assignments");
+    }
+  },
+
+  /**
+   * Get all certificates issued to a student in a classroom.
+   */
+  getStudentCertificates: async (classroomId, studentId) => {
+    try {
+      const response = await api.get(`/teacher/classrooms/${classroomId}/students/${studentId}/certificates/`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data?.error || new Error("Failed to fetch student certificates");
+    }
+  },
+
+  /**
+   * Issue a certificate to a student.
+   */
+  issueStudentCertificate: async (classroomId, studentId, data) => {
+    try {
+      const response = await api.post(`/teacher/classrooms/${classroomId}/students/${studentId}/certificates/`, data);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data?.error || new Error("Failed to issue certificate");
+    }
+  },
+
+  /**
+   * Revoke a certificate.
+   */
+  revokeStudentCertificate: async (classroomId, studentId, certId, reason) => {
+    try {
+      const response = await api.delete(`/teacher/classrooms/${classroomId}/students/${studentId}/certificates/${certId}/`, {
+        data: { reason }
+      });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data?.error || new Error("Failed to revoke certificate");
+    }
+  },
+
+  /**
    * Search globally for students to add.
    */
   searchStudents: async (query) => {
@@ -123,6 +225,19 @@ const teacherClassroomService = {
       throw error.response?.data?.error || new Error("Failed to search students");
     }
   },
+
+  /**
+   * Create a new student (ChildProfile) and optionally enroll in a classroom.
+   */
+  createStudent: async (data) => {
+    try {
+      const response = await api.post("/teacher/students/create/", data);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data?.error || new Error("Failed to create student");
+    }
+  },
 };
 
 export default teacherClassroomService;
+

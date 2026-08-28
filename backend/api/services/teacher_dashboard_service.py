@@ -35,12 +35,10 @@ class TeacherDashboardService:
             status__in=['active', 'scheduled']
         ).count()
         
-        # Average progress: simplified as average quiz score across all students
-        quiz_avg = QuizAttempt.objects.filter(
-            child_id__in=children_ids
-        ).aggregate(avg=Avg('percentage'))['avg']
-        
-        average_progress = int(round(quiz_avg)) if quiz_avg else 85 # fallback to a good number if no data yet
+        # Average progress: computed accurately from TeacherProgressService
+        from api.services.teacher_progress_service import TeacherProgressService
+        progress_overview = TeacherProgressService.get_overview(user)
+        average_progress = progress_overview.get('average_progress') or 0
 
         summary = {
             "classrooms": total_classrooms,
@@ -134,41 +132,37 @@ class TeacherDashboardService:
 
     @staticmethod
     def _get_upcoming_assignments(user, active_classrooms):
+        from api.services.teacher_assignment_service import TeacherAssignmentService
         upcoming = []
+        now = timezone.localdate()
         assignments = ClassAssignment.objects.filter(
             teacher=user,
             status='active'
         ).select_related('classroom').order_by('due_date')[:5]
         
         for assignment in assignments:
-            total_assigned = assignment.target_students.count() or (
-                assignment.classroom.enrolled_students.filter(status='active').count() if assignment.target_all_students else 0
-            )
-            completed = assignment.target_students.filter(status='completed').count()
-            
-            percentage = round((completed / total_assigned) * 100) if total_assigned > 0 else 0
+            stats = TeacherAssignmentService.get_assignment_stats(assignment)
             
             # calculate status
-            now = timezone.now().date()
             if assignment.due_date:
                 if assignment.due_date < now:
-                    status = "Overdue"
+                    status_text = "Overdue"
                 elif assignment.due_date == now:
-                    status = "Due Today"
+                    status_text = "Due Today"
                 else:
-                    status = "Upcoming"
+                    status_text = "Upcoming"
             else:
-                status = "Ongoing"
+                status_text = "Active"
                 
             upcoming.append({
                 "id": assignment.id,
                 "title": assignment.title,
-                "classroom_name": assignment.classroom.name,
+                "classroom_name": assignment.classroom.name if assignment.classroom else "Classroom",
                 "due_date": assignment.due_date.isoformat() if assignment.due_date else None,
-                "completed_count": completed,
-                "total_count": total_assigned,
-                "completion_percentage": percentage,
-                "status": status
+                "completed_count": stats['completed'],
+                "total_count": stats['assigned'],
+                "completion_percentage": stats['completion_percentage'],
+                "status": status_text
             })
             
         return upcoming

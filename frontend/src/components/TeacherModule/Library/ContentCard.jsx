@@ -1,86 +1,140 @@
 import React from 'react';
-import { FaBook as BookIcon, FaList as ListIcon, FaQuestionCircle as QuizIcon, FaUser as UserIcon, FaBuilding as BuildingIcon, FaClock as ClockIcon, FaEllipsisV as DotsIcon } from 'react-icons/fa';
+import { 
+  FaBook as BookIcon, 
+  FaList as ListIcon, 
+  FaQuestionCircle as QuizIcon, 
+  FaUser as UserIcon, 
+  FaBuilding as BuildingIcon, 
+  FaClock as ClockIcon, 
+  FaEye as EyeIcon 
+} from 'react-icons/fa';
 
 const ContentCard = ({ item, onPreview }) => {
   const getIcon = () => {
     switch(item.type) {
-      case 'story': return <BookIcon size={16} />;
-      case 'lesson': return <ListIcon size={16} />;
-      case 'quiz': return <QuizIcon size={16} />;
-      default: return <BookIcon size={16} />;
+      case 'story': return <BookIcon className="text-xs" />;
+      case 'lesson': return <ListIcon className="text-xs" />;
+      case 'quiz': return <QuizIcon className="text-xs" />;
+      default: return <BookIcon className="text-xs" />;
     }
   };
 
   const getTheme = () => {
     switch(item.type) {
-      case 'story': return { bg: '#e0f2fe', color: '#0ea5e9', label: 'Story' };
-      case 'lesson': return { bg: '#fef08a', color: '#ca8a04', label: 'Lesson' };
-      case 'quiz': return { bg: '#fce7f3', color: '#db2777', label: 'Quiz' };
-      default: return { bg: '#f1f5f9', color: '#64748b', label: 'Item' };
+      case 'story': return { 
+        bg: 'bg-sky-50 dark:bg-sky-950/40', 
+        pillBg: 'bg-sky-100 dark:bg-sky-900/60 text-sky-700 dark:text-sky-300 border-sky-200 dark:border-sky-800',
+        label: 'Story',
+        placeholderGrad: 'from-sky-400 to-indigo-500'
+      };
+      case 'lesson': return { 
+        bg: 'bg-amber-50 dark:bg-amber-950/40', 
+        pillBg: 'bg-amber-100 dark:bg-amber-900/60 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800',
+        label: 'Lesson',
+        placeholderGrad: 'from-amber-400 to-orange-500'
+      };
+      case 'quiz': return { 
+        bg: 'bg-rose-50 dark:bg-rose-950/40', 
+        pillBg: 'bg-rose-100 dark:bg-rose-900/60 text-rose-700 dark:text-rose-300 border-rose-200 dark:border-rose-800',
+        label: 'Quiz',
+        placeholderGrad: 'from-rose-400 to-pink-500'
+      };
+      default: return { 
+        bg: 'bg-slate-50 dark:bg-slate-900', 
+        pillBg: 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700',
+        label: 'Item',
+        placeholderGrad: 'from-slate-400 to-slate-600'
+      };
     }
   };
 
   const theme = getTheme();
+  const isStoryNestSuggested = item.creator?.type === 'system' || item.creator?.name === 'StoryNest';
 
   return (
-    <div className="card" style={{ padding: '0', overflow: 'hidden', display: 'flex', flexDirection: 'column', height: '100%' }}>
-      {/* Cover Image or Pattern */}
+    <div className="card p-0 overflow-hidden flex flex-col h-full hover:-translate-y-1 hover:shadow-lg transition-all duration-200 border border-slate-200/80 dark:border-slate-800 group">
+      {/* Cover Image or Gradient Header */}
       <div 
-        style={{ 
-          height: '140px', 
-          background: item.cover_image ? `url(${item.cover_image}) center/cover no-repeat` : theme.bg,
-          position: 'relative'
-        }}
+        className={`h-36 relative overflow-hidden flex items-center justify-center ${
+          item.cover_image ? '' : `bg-gradient-to-br ${theme.placeholderGrad}`
+        }`}
+        style={item.cover_image ? { background: `url(${item.cover_image}) center/cover no-repeat` } : {}}
       >
-        <div style={{ position: 'absolute', top: '10px', left: '10px', display: 'flex', gap: '0.5rem' }}>
-          <span className="pill" style={{ background: 'white', color: theme.color, border: `1px solid ${theme.bg}`, display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-            {getIcon()} {theme.label}
+        {!item.cover_image && (
+          <span className="text-4xl opacity-80 group-hover:scale-110 transition-transform duration-300 select-none">
+            {item.type === 'story' ? '📖' : item.type === 'lesson' ? '📝' : '🎯'}
           </span>
-          {item.grade && (
-            <span className="pill" style={{ background: 'rgba(255,255,255,0.9)', color: '#334155' }}>
-              {item.grade}
+        )}
+
+        {/* Top Badges */}
+        <div className="absolute top-3 left-3 right-3 flex items-center justify-between pointer-events-none">
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <span className={`px-2.5 py-1 rounded-xl text-[11px] font-extrabold uppercase tracking-wide border flex items-center gap-1.5 shadow-sm bg-white/95 dark:bg-slate-900/95 backdrop-blur-sm ${theme.pillBg}`}>
+              {getIcon()} {theme.label}
+            </span>
+            {item.grade && (
+              <span className="px-2 py-0.5 rounded-xl text-[11px] font-bold bg-white/90 dark:bg-slate-900/90 text-slate-700 dark:text-slate-200 border border-white/50 dark:border-slate-700 shadow-sm backdrop-blur-sm">
+                {item.grade}
+              </span>
+            )}
+          </div>
+
+          {isStoryNestSuggested && (
+            <span className="px-2.5 py-1 rounded-xl text-[10px] font-black uppercase tracking-wider bg-gradient-to-r from-amber-500 to-rose-500 text-white shadow-md flex items-center gap-1 backdrop-blur-sm">
+              ✨ Suggested
             </span>
           )}
         </div>
       </div>
 
-      {/* Content */}
-      <div style={{ padding: '1rem', flex: 1, display: 'flex', flexDirection: 'column' }}>
-        <h3 style={{ margin: '0 0 0.5rem 0', color: 'var(--text-color)', fontSize: '1.1rem' }}>
-          {item.title}
-        </h3>
-        
-        <p style={{ margin: '0 0 1rem 0', color: 'var(--text-light)', fontSize: '0.9rem', flex: 1 }}>
-          {item.description?.length > 80 ? item.description.substring(0, 80) + '...' : item.description}
-        </p>
-
-        {/* Metadata */}
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', marginBottom: '1rem', fontSize: '0.85rem', color: '#64748b' }}>
-          {item.estimated_minutes && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-              <ClockIcon /> {item.estimated_minutes} min
-            </div>
-          )}
-          {item.creator && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-              {item.creator.type === 'system' ? <BuildingIcon /> : <UserIcon />}
-              {item.creator.name}
-            </div>
-          )}
+      {/* Card Body */}
+      <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
+        <div>
+          <h3 className="font-extrabold text-base text-slate-900 dark:text-white leading-snug line-clamp-2 mb-1.5 group-hover:text-rose-500 transition-colors">
+            {item.title}
+          </h3>
+          
+          <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed">
+            {item.description || 'Interactive educational content designed for classroom learning.'}
+          </p>
         </div>
 
-        {/* Actions */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid #f1f5f9', paddingTop: '1rem', marginTop: 'auto' }}>
+        {/* Metadata Footer */}
+        <div className="space-y-3 pt-3 border-t border-slate-100 dark:border-slate-800">
+          <div className="flex items-center justify-between text-xs text-slate-400 font-medium">
+            <div className="flex items-center gap-1.5">
+              {isStoryNestSuggested ? (
+                <>
+                  <span className="text-amber-500 text-xs">✨</span>
+                  <span className="truncate max-w-[130px] font-bold text-slate-700 dark:text-slate-300">
+                    StoryNest (Suggested)
+                  </span>
+                </>
+              ) : (
+                <>
+                  <UserIcon className="text-rose-400" />
+                  <span className="truncate max-w-[130px] font-bold text-slate-700 dark:text-slate-300">
+                    {item.creator?.name || 'Me'}
+                  </span>
+                </>
+              )}
+            </div>
+
+            {item.estimated_minutes && (
+              <div className="flex items-center gap-1">
+                <ClockIcon className="text-slate-400" />
+                <span>{item.estimated_minutes} min</span>
+              </div>
+            )}
+          </div>
+
+          {/* Action Button */}
           <button 
-            className="btn btn-secondary" 
-            style={{ padding: '0.5rem 1rem', fontSize: '0.9rem' }}
+            type="button"
+            className="w-full btn btn-secondary text-xs py-2 flex items-center justify-center gap-2 group-hover:border-rose-300 dark:group-hover:border-rose-900 transition-colors"
             onClick={() => onPreview(item)}
           >
-            Preview
-          </button>
-          
-          <button style={{ background: 'transparent', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: '0.5rem' }}>
-            <DotsIcon />
+            <EyeIcon className="text-xs" /> Preview Content
           </button>
         </div>
       </div>

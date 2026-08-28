@@ -7,6 +7,7 @@ import './ReadingLogModal.css';
 export default function ReadingLogModal({ isOpen, onClose, onSave, childName = "Child", stories = [] }) {
   const [storyTitle, setStoryTitle] = useState('');
   const [selectedStoryId, setSelectedStoryId] = useState('');
+  const [selectedAssignmentId, setSelectedAssignmentId] = useState(null);
   const [readDate, setReadDate] = useState(new Date().toISOString().split('T')[0]);
   const [readingTimeMinutes, setReadingTimeMinutes] = useState(20);
   const [pagesRead, setPagesRead] = useState(5);
@@ -35,9 +36,16 @@ export default function ReadingLogModal({ isOpen, onClose, onSave, childName = "
     if (sId) {
       const storyObj = stories.find(s => String(s.id) === String(sId));
       if (storyObj) {
-        setStoryTitle(storyObj.title_en);
-        setPagesRead(storyObj.num_pages || 5);
+        setStoryTitle(storyObj.title_en || storyObj.title || '');
+        setPagesRead(storyObj.num_pages || storyObj.pages || 5);
+        if (storyObj.assignment_id || storyObj.is_assignment) {
+          setSelectedAssignmentId(storyObj.assignment_id || storyObj.id);
+        } else {
+          setSelectedAssignmentId(null);
+        }
       }
+    } else {
+      setSelectedAssignmentId(null);
     }
   };
 
@@ -54,6 +62,7 @@ export default function ReadingLogModal({ isOpen, onClose, onSave, childName = "
     try {
       await onSave({
         story: selectedStoryId ? parseInt(selectedStoryId, 10) : null,
+        assignment_id: selectedAssignmentId ? parseInt(selectedAssignmentId, 10) : null,
         story_title: storyTitle.trim(),
         read_date: readDate,
         reading_time_minutes: parseInt(readingTimeMinutes, 10) || 15,
@@ -66,6 +75,7 @@ export default function ReadingLogModal({ isOpen, onClose, onSave, childName = "
       // Reset form
       setStoryTitle('');
       setSelectedStoryId('');
+      setSelectedAssignmentId(null);
       setReadingTimeMinutes(20);
       setPagesRead(5);
       setNotes('');
@@ -77,6 +87,12 @@ export default function ReadingLogModal({ isOpen, onClose, onSave, childName = "
       setSubmitting(false);
     }
   };
+
+  // Group stories if category is provided
+  const assignmentsList = stories.filter(s => s.is_assignment || s.category === 'assignment');
+  const libraryList = stories.filter(s => s.category === 'library' || (!s.is_assignment && s.category !== 'recent'));
+  const recentList = stories.filter(s => s.category === 'recent');
+  const hasCategories = assignmentsList.length > 0 || recentList.length > 0;
 
   return createPortal(
     <div 
@@ -95,12 +111,46 @@ export default function ReadingLogModal({ isOpen, onClose, onSave, childName = "
           {error && <div className="modal-error-banner">{error}</div>}
           {stories.length > 0 && (
             <div className="form-group">
-              <label>Select From Library (Optional)</label>
+              <label>Select Assigned Task or Story (Optional)</label>
               <select className="form-input" value={selectedStoryId} onChange={handleStorySelect}>
-                <option value="">-- Choose existing story --</option>
-                {stories.map(s => (
-                  <option key={s.id} value={s.id}>{s.title_en} ({s.language})</option>
-                ))}
+                <option value="">-- Choose existing story or assignment --</option>
+                {hasCategories ? (
+                  <>
+                    {assignmentsList.length > 0 && (
+                      <optgroup label="📋 Assigned to Student">
+                        {assignmentsList.map(s => (
+                          <option key={`asg-${s.id}`} value={s.id}>
+                            {s.title_en || s.title} {s.due_date ? `(Due ${new Date(s.due_date).toLocaleDateString()})` : ''}
+                          </option>
+                        ))}
+                      </optgroup>
+                    )}
+                    {libraryList.length > 0 && (
+                      <optgroup label="📚 Classroom & Library Stories">
+                        {libraryList.map(s => (
+                          <option key={`lib-${s.id}`} value={s.id}>
+                            {s.title_en || s.title} {s.language ? `(${s.language})` : ''}
+                          </option>
+                        ))}
+                      </optgroup>
+                    )}
+                    {recentList.length > 0 && (
+                      <optgroup label="📖 Recent Reads">
+                        {recentList.map(s => (
+                          <option key={`rec-${s.id}`} value={s.id}>
+                            {s.title_en || s.title}
+                          </option>
+                        ))}
+                      </optgroup>
+                    )}
+                  </>
+                ) : (
+                  stories.map(s => (
+                    <option key={s.id} value={s.id}>
+                      {s.title_en || s.title} {s.language ? `(${s.language})` : ''}
+                    </option>
+                  ))
+                )}
               </select>
             </div>
           )}

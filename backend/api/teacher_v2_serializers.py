@@ -18,9 +18,12 @@ class TeacherClassroomSerializer(serializers.ModelSerializer):
 class ClassroomStudentSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField(source='child.id')
     name = serializers.CharField(source='child.name')
-    avatar_url = serializers.CharField(source='child.avatar_url')
+    avatar = serializers.CharField(source='child.avatar', default='🦁')
+    avatar_url = serializers.SerializerMethodField()
+    grade = serializers.CharField(source='child.grade_level', default='Grade 2')
+    age = serializers.IntegerField(source='child.age', default=7)
+    reading_level = serializers.CharField(source='child.reading_level', default='Beginner')
     
-    # We can add mock stats or annotated stats here if needed
     reading_streak = serializers.SerializerMethodField()
     stories_completed = serializers.SerializerMethodField()
     average_progress = serializers.SerializerMethodField()
@@ -28,23 +31,37 @@ class ClassroomStudentSerializer(serializers.ModelSerializer):
     class Meta:
         model = ClassStudent
         fields = [
-            'id', 'name', 'avatar_url', 'status', 'enrolled_at',
+            'id', 'name', 'avatar', 'avatar_url', 'grade', 'age', 'reading_level',
+            'status', 'enrolled_at',
             'reading_streak', 'stories_completed', 'average_progress'
         ]
+
+    def get_avatar_url(self, obj):
+        if not obj.child:
+            return "https://api.dicebear.com/7.x/fun-emoji/svg?seed=Student"
+        avatar_str = obj.child.avatar or '🦁'
+        if avatar_str.startswith('http') or '/' in avatar_str:
+            return avatar_str
+        return f"https://api.dicebear.com/7.x/fun-emoji/svg?seed={obj.child.name}"
 
     def get_reading_streak(self, obj):
         try:
             return obj.child.streak.current_streak
-        except AttributeError:
+        except Exception:
             return 0
             
     def get_stories_completed(self, obj):
-        # We can optimize this with annotations later, but for now we query
-        return obj.child.reading_logs.filter(completed=True).count()
+        try:
+            return obj.child.reading_logs.filter(completed=True).count()
+        except Exception:
+            return 0
         
     def get_average_progress(self, obj):
-        avg = obj.child.quiz_attempts.aggregate(avg=Avg('percentage'))['avg']
-        return int(round(avg)) if avg else 0
+        try:
+            avg = obj.child.quiz_attempts.aggregate(avg=Avg('percentage'))['avg']
+            return int(round(avg)) if avg else 0
+        except Exception:
+            return 0
 
 
 class ContentCreatorSerializer(serializers.Serializer):
@@ -64,3 +81,65 @@ class LibraryContentCardSerializer(serializers.Serializer):
     creator = ContentCreatorSerializer(required=False)
     status = serializers.CharField(required=False)
     created_at = serializers.DateTimeField()
+
+from api.models import ClassAssignment, ClassAssignmentStudent
+
+class ClassAssignmentSerializer(serializers.ModelSerializer):
+    classroom_name = serializers.CharField(source='classroom.name', read_only=True)
+    content_id = serializers.SerializerMethodField()
+    content_title = serializers.SerializerMethodField()
+    stats = serializers.SerializerMethodField()
+
+    class Meta:
+        model = ClassAssignment
+        fields = [
+            'id', 'title', 'assignment_type', 'description', 'instructions',
+            'start_date', 'due_date', 'status', 'reading_level',
+            'target_all_students', 'created_at', 'updated_at',
+            'classroom_id', 'classroom_name', 'content_id', 'content_title', 'stats'
+        ]
+        read_only_fields = ['id', 'created_at', 'updated_at', 'status']
+
+    def get_content_id(self, obj):
+        if obj.assignment_type == 'story' and obj.story:
+            return obj.story.id
+        elif obj.assignment_type == 'quiz' and obj.quiz:
+            return obj.quiz.id
+        elif obj.assignment_type == 'lesson' and obj.lesson:
+            return obj.lesson.id
+        return None
+
+    def get_content_title(self, obj):
+        if obj.assignment_type == 'story' and obj.story:
+            return obj.story.title_en
+        elif obj.assignment_type == 'quiz' and obj.quiz:
+            return obj.quiz.title
+        elif obj.assignment_type == 'lesson' and obj.lesson:
+            return obj.lesson.title
+        return None
+
+    def get_stats(self, obj):
+        # We can dynamically get stats using the service if passed in context,
+        # or calculate here directly for simplicity if it's already prefetched,
+        # but to avoid N+1 queries, we should ideally fetch in bulk. 
+        # For this prototype, querying here is acceptable but can be optimized.
+        # Alternatively, if stats are passed in context or attached to object:
+        if hasattr(obj, 'annotated_stats'):
+            return obj.annotated_stats
+            
+        from .services.teacher_assignment_service import TeacherAssignmentService
+        return TeacherAssignmentService.get_assignment_stats(obj)
+
+class ClassAssignmentStudentSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(source='child.id', read_only=True)
+    name = serializers.CharField(source='child.name', read_only=True)
+    avatar_url = serializers.CharField(source='child.avatar', read_only=True)
+
+    class Meta:
+        model = ClassAssignmentStudent
+        fields = [
+            'id', 'name', 'avatar_url', 'status', 'completion_percentage',
+            'score', 'feedback', 'started_at', 'submitted_at', 'completed_at',
+            'reviewed_at'
+        ]
+

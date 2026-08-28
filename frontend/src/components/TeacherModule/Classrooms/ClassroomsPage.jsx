@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { FaPlus, FaSearch, FaChalkboardTeacher, FaExclamationTriangle, FaSpinner } from 'react-icons/fa';
+import { FaPlus, FaUserPlus, FaSearch, FaChalkboardTeacher, FaExclamationTriangle, FaSpinner } from 'react-icons/fa';
 import teacherClassroomService from '../../../services/teacherClassroomService';
 import ClassroomCard from './ClassroomCard';
 import CreateClassroomModal from './CreateClassroomModal';
+import CreateStudentModal from './CreateStudentModal';
 
 const ClassroomsPage = () => {
   const [classrooms, setClassrooms] = useState([]);
@@ -10,6 +11,7 @@ const ClassroomsPage = () => {
   const [error, setError] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isCreateStudentModalOpen, setIsCreateStudentModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('active'); // active, archived
 
   const fetchClassrooms = async () => {
@@ -33,6 +35,11 @@ const ClassroomsPage = () => {
     setIsCreateModalOpen(false);
   };
 
+  const handleStudentCreated = () => {
+    fetchClassrooms();
+    setIsCreateStudentModalOpen(false);
+  };
+
   const filteredClassrooms = classrooms.filter(c => 
     c.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -43,10 +50,16 @@ const ClassroomsPage = () => {
         <div className="parent-header-left">
           <h2 className="serif-heading text-white">My Classrooms</h2>
           <p className="text-white/85 mt-2" style={{ fontSize: '0.95rem' }}>
-            Manage your classrooms and the students inside.
+            Manage your classrooms, student rosters, and learning environments.
           </p>
         </div>
-        <div className="parent-header-right">
+        <div className="parent-header-right flex flex-wrap items-center gap-3">
+          <button 
+            className="btn btn-secondary"
+            onClick={() => setIsCreateStudentModalOpen(true)}
+          >
+            <FaUserPlus /> Create Student
+          </button>
           <button 
             className="btn btn-primary"
             onClick={() => setIsCreateModalOpen(true)}
@@ -89,34 +102,32 @@ const ClassroomsPage = () => {
       {loading ? (
         <div className="dashboard-loading-state">
           <FaSpinner className="spinner-icon" />
-          <p>Loading classrooms...</p>
+          <p>Loading your classrooms...</p>
         </div>
       ) : error ? (
         <div className="card error-banner">
           <FaExclamationTriangle className="error-icon" />
           <div>
-            <h4>Oops! Could not load classrooms</h4>
+            <h4>Could not load classrooms</h4>
             <p>{error}</p>
-            <button onClick={fetchClassrooms} className="btn btn-secondary mt-2">Retry</button>
           </div>
         </div>
       ) : filteredClassrooms.length === 0 ? (
-        <div className="empty-card bg-white dark:bg-slate-800 border-2 border-dashed border-[var(--border-color)]">
-          <FaChalkboardTeacher className="empty-icon text-5xl mb-4 opacity-50" />
-          <h4 className="font-bold text-lg mb-2">
-            {searchQuery ? 'No classrooms found' : activeTab === 'active' ? 'Your classroom journey starts here' : 'No archived classrooms'}
-          </h4>
+        <div className="card text-center py-12">
+          <FaChalkboardTeacher className="text-4xl text-muted mx-auto mb-4" />
+          <h3 className="text-xl font-bold mb-2">No classrooms found</h3>
           <p className="text-muted mb-6">
-            {searchQuery 
-              ? 'Try a different search term.' 
-              : activeTab === 'active' 
-                ? 'Create your first classroom and start managing your students.' 
-                : 'Archived classrooms will appear here.'}
+            {searchQuery ? "No classrooms match your search." : "You don't have any classrooms in this view yet."}
           </p>
-          {activeTab === 'active' && !searchQuery && (
-            <button className="btn btn-primary" onClick={() => setIsCreateModalOpen(true)}>
-              <FaPlus /> Create Classroom
-            </button>
+          {!searchQuery && activeTab === 'active' && (
+            <div className="flex justify-center gap-3">
+              <button className="btn btn-secondary" onClick={() => setIsCreateStudentModalOpen(true)}>
+                <FaUserPlus /> Create Student
+              </button>
+              <button className="btn btn-primary" onClick={() => setIsCreateModalOpen(true)}>
+                <FaPlus /> Create Classroom
+              </button>
+            </div>
           )}
         </div>
       ) : (
@@ -135,6 +146,13 @@ const ClassroomsPage = () => {
         <CreateClassroomModal 
           onClose={() => setIsCreateModalOpen(false)}
           onSuccess={handleClassroomCreated}
+        />
+      )}
+
+      {isCreateStudentModalOpen && (
+        <CreateStudentModal 
+          onClose={() => setIsCreateStudentModalOpen(false)}
+          onSuccess={handleStudentCreated}
         />
       )}
     </div>

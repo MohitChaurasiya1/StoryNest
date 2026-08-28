@@ -1,26 +1,20 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from rest_framework_simplejwt.views import (
-    TokenObtainPairView,
-    TokenRefreshView,
-)
+from rest_framework_simplejwt.views import TokenRefreshView
 
-from .views import StoryViewSet, generate_story_api
+from .views import (
+    StoryViewSet,
+    generate_story_api,
+)
 from .parent_views import (
     RegisterView,
     MeView,
     ChangePasswordView,
     UpdateProfileView,
     DeleteAccountView,
-    ForgotPasswordView,
-    ResetPasswordView,
     ParentProfileView,
     ChildProfileViewSet,
     ParentDashboardView,
-    ChildDashboardView,
-    ChildInsightsView,
-    ReadingLogViewSet,
-    ReadingProgressView,
     ParentStoryLibraryView,
     ToggleFavouriteView,
     ChildStoriesView,
@@ -32,6 +26,12 @@ from .parent_views import (
     CertificateListView,
     IssueCertificateView,
     FamilyReadingLogsView,
+    ForgotPasswordView,
+    ResetPasswordView,
+    ChildDashboardView,
+    ChildInsightsView,
+    ReadingProgressView,
+    ReadingLogViewSet,
 )
 from .teacher_v2_views import (
     TeacherDashboardAPIView,
@@ -40,11 +40,45 @@ from .teacher_v2_views import (
     TeacherClassroomArchiveView,
     TeacherClassroomStudentsView,
     TeacherClassroomStudentDetailView,
+    TeacherStudentReadingLogView,
+    TeacherStudentReadingLogDetailView,
+    TeacherStudentAssignmentsView,
+    TeacherStudentCertificatesView,
+    TeacherStudentCertificateDetailView,
     TeacherGlobalStudentSearchView,
+    TeacherStudentCreateView,
     TeacherLibraryListView,
-    TeacherLibraryPreviewView
+    TeacherLibraryPreviewView,
+    TeacherAssignmentListCreateView,
+    TeacherAssignmentDetailView,
+    TeacherAssignmentPublishView,
+    TeacherAssignmentArchiveView,
+    TeacherAssignmentDuplicateView,
+    TeacherAssignmentRecipientsView,
+    TeacherDirectStudentAssignmentsView,
 )
-
+from .teacher_progress_views import (
+    TeacherProgressOverviewView,
+    TeacherReadingAnalyticsView,
+    TeacherQuizAnalyticsView,
+    TeacherAssignmentAnalyticsView,
+    TeacherNeedsAttentionView,
+    TeacherStudentProgressListView,
+    TeacherStudentProgressDetailView,
+    TeacherProgressExportView,
+)
+from .teacher_settings_views import (
+    TeacherSettingsAllView,
+    TeacherSettingsProfileView,
+    TeacherSettingsPreferencesView,
+    TeacherSettingsNotificationsView,
+)
+from .teacher_story_views import (
+    TeacherStoryGenerateView,
+    TeacherStoryListCreateView,
+    TeacherStoryDetailView,
+    TeacherStoryPublishView,
+)
 from .parent_views_extended import (
     StoryApprovalViewSet, NotificationViewSet, ChildGoalViewSet,
     ReadingAnalyticsView, ReadingStreakView, ReadingScheduleViewSet,
@@ -85,8 +119,6 @@ urlpatterns = [
     path('admin/users/<int:user_id>/', AdminUserDetailView.as_view(), name='admin_user_detail'),
     path('admin/users/<int:user_id>/toggle/', AdminUserToggleActiveView.as_view(), name='admin_user_toggle'),
 
-
-
     # Auth JWT & Profile endpoints
     path('auth/register/', RegisterView.as_view(), name='auth_register'),
     path('auth/me/', MeView.as_view(), name='auth_me'),
@@ -100,6 +132,7 @@ urlpatterns = [
     path('parent/auth/update-profile/', UpdateProfileView.as_view(), name='parent_update_profile'),
     path('parent/auth/delete-account/', DeleteAccountView.as_view(), name='parent_delete_account'),
     path('parent/profile/', ParentProfileView.as_view(), name='parent_profile'),
+
     # Teacher Module Endpoints
     path('teacher/dashboard/', TeacherDashboardAPIView.as_view(), name='teacher_dashboard_v2'),
     path('teacher/classrooms/', TeacherClassroomListCreateView.as_view(), name='teacher_classrooms_list_create'),
@@ -107,11 +140,48 @@ urlpatterns = [
     path('teacher/classrooms/<int:classroom_id>/archive/', TeacherClassroomArchiveView.as_view(), name='teacher_classroom_archive'),
     path('teacher/classrooms/<int:classroom_id>/students/', TeacherClassroomStudentsView.as_view(), name='teacher_classroom_students'),
     path('teacher/classrooms/<int:classroom_id>/students/<int:student_id>/', TeacherClassroomStudentDetailView.as_view(), name='teacher_classroom_student_detail'),
+    path('teacher/classrooms/<int:classroom_id>/students/<int:student_id>/dashboard/', TeacherClassroomStudentDetailView.as_view(), name='teacher_classroom_student_dashboard'),
+    path('teacher/classrooms/<int:classroom_id>/students/<int:student_id>/reading-logs/', TeacherStudentReadingLogView.as_view(), name='teacher_student_reading_logs'),
+    path('teacher/classrooms/<int:classroom_id>/students/<int:student_id>/reading-logs/<int:log_id>/', TeacherStudentReadingLogDetailView.as_view(), name='teacher_student_reading_log_detail'),
+    path('teacher/classrooms/<int:classroom_id>/students/<int:student_id>/assignments/', TeacherStudentAssignmentsView.as_view(), name='teacher_student_assignments'),
+    path('teacher/classrooms/<int:classroom_id>/students/<int:student_id>/certificates/', TeacherStudentCertificatesView.as_view(), name='teacher_student_certificates'),
+    path('teacher/classrooms/<int:classroom_id>/students/<int:student_id>/certificates/<int:cert_id>/', TeacherStudentCertificateDetailView.as_view(), name='teacher_student_certificate_detail'),
+    path('teacher/students/<int:student_id>/assignments/', TeacherDirectStudentAssignmentsView.as_view(), name='teacher_direct_student_assignments'),
     path('teacher/students/search/', TeacherGlobalStudentSearchView.as_view(), name='teacher_global_student_search'),
+    path('teacher/students/create/', TeacherStudentCreateView.as_view(), name='teacher_student_create'),
+    path('teacher/students/', TeacherStudentCreateView.as_view(), name='teacher_students'),
 
-    # Teacher Library Endpoints
+    # Teacher Library & Stories Endpoints
     path('teacher/library/', TeacherLibraryListView.as_view(), name='teacher-library-list'),
     path('teacher/library/<str:content_type>/<int:content_id>/', TeacherLibraryPreviewView.as_view(), name='teacher-library-preview'),
+    path('teacher/stories/generate/', TeacherStoryGenerateView.as_view(), name='teacher_story_generate'),
+    path('teacher/stories/', TeacherStoryListCreateView.as_view(), name='teacher_stories_list_create'),
+    path('teacher/stories/<int:story_id>/', TeacherStoryDetailView.as_view(), name='teacher_story_detail'),
+    path('teacher/stories/<int:story_id>/publish/', TeacherStoryPublishView.as_view(), name='teacher_story_publish'),
+
+    # Teacher Assignments Endpoints
+    path('teacher/assignments/', TeacherAssignmentListCreateView.as_view(), name='teacher_assignments_list_create'),
+    path('teacher/assignments/<int:assignment_id>/', TeacherAssignmentDetailView.as_view(), name='teacher_assignment_detail'),
+    path('teacher/assignments/<int:assignment_id>/publish/', TeacherAssignmentPublishView.as_view(), name='teacher_assignment_publish'),
+    path('teacher/assignments/<int:assignment_id>/archive/', TeacherAssignmentArchiveView.as_view(), name='teacher_assignment_archive'),
+    path('teacher/assignments/<int:assignment_id>/duplicate/', TeacherAssignmentDuplicateView.as_view(), name='teacher_assignment_duplicate'),
+    path('teacher/assignments/<int:assignment_id>/recipients/', TeacherAssignmentRecipientsView.as_view(), name='teacher_assignment_recipients'),
+
+    # Teacher Progress & Reports Endpoints
+    path('teacher/progress/overview/', TeacherProgressOverviewView.as_view(), name='teacher_progress_overview'),
+    path('teacher/progress/reading/', TeacherReadingAnalyticsView.as_view(), name='teacher_progress_reading'),
+    path('teacher/progress/quizzes/', TeacherQuizAnalyticsView.as_view(), name='teacher_progress_quizzes'),
+    path('teacher/progress/assignments/', TeacherAssignmentAnalyticsView.as_view(), name='teacher_progress_assignments'),
+    path('teacher/progress/attention/', TeacherNeedsAttentionView.as_view(), name='teacher_progress_attention'),
+    path('teacher/progress/students/', TeacherStudentProgressListView.as_view(), name='teacher_progress_student_list'),
+    path('teacher/progress/students/<int:student_id>/', TeacherStudentProgressDetailView.as_view(), name='teacher_progress_student_detail'),
+    path('teacher/progress/export/', TeacherProgressExportView.as_view(), name='teacher_progress_export'),
+
+    # Teacher Settings & Profile Endpoints
+    path('teacher/settings/all/', TeacherSettingsAllView.as_view(), name='teacher_settings_all'),
+    path('teacher/settings/profile/', TeacherSettingsProfileView.as_view(), name='teacher_settings_profile'),
+    path('teacher/settings/preferences/', TeacherSettingsPreferencesView.as_view(), name='teacher_settings_preferences'),
+    path('teacher/settings/notifications/', TeacherSettingsNotificationsView.as_view(), name='teacher_settings_notifications'),
 
     # Forgot/Reset Password (public, no auth required)
     path('auth/forgot-password/', ForgotPasswordView.as_view(), name='forgot_password'),
@@ -164,5 +234,3 @@ urlpatterns = [
     # Standard DRF Router URLs
     path('', include(router.urls)),
 ]
-
-

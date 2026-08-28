@@ -286,16 +286,34 @@ button {
 
 .dashboard-layout {
   display: flex;
-  min-height: 100vh;
-  width: 100%;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
 }
 
 .dashboard-content {
   flex: 1;
+  height: 100vh;
+  overflow-y: auto;
+  overflow-x: hidden;
   padding: 2.5rem;
-  max-width: 1400px;
-  margin: 0 auto;
   width: 100%;
+  min-width: 0;
+}
+
+@media (max-width: 768px) {
+  .dashboard-layout {
+    height: auto;
+    min-height: 100vh;
+    overflow-y: auto;
+    flex-direction: column;
+  }
+
+  .dashboard-content {
+    height: auto;
+    overflow-y: visible;
+    padding: 1.5rem 1rem;
+  }
 }
 
 /* Typography Helpers */
