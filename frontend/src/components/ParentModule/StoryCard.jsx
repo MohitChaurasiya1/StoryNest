@@ -111,7 +111,12 @@ function StoryCard({
                 <div className="mt-6 grid grid-cols-2 gap-3">
                     <button
                         onClick={() => onRead?.(story)}
-                        className="flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-rose-500 to-amber-500 px-4 py-3 font-bold text-white transition hover:from-rose-600 hover:to-amber-600 shadow-md shadow-rose-500/20"
+                        style={{
+                            background: 'linear-gradient(135deg, #f43f5e 0%, #f97316 100%)',
+                            color: '#ffffff',
+                            boxShadow: '0 4px 12px rgba(244, 63, 94, 0.3)',
+                        }}
+                        className="flex items-center justify-center gap-2 rounded-xl px-4 py-3 font-bold text-white transition hover:opacity-90 cursor-pointer"
                     >
                         <FaBookOpen />
                         Read
