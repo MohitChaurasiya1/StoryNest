@@ -30,6 +30,7 @@ export function AuthProvider({ children: childrenComponents }) {
         localStorage.setItem('storynest_active_child_id', fetchedChildren[0].id);
       } else {
         setActiveChildId(null);
+        localStorage.removeItem('storynest_active_child_id');
       }
 
       setToken(tokenService.getAccessToken());
@@ -62,8 +63,12 @@ export function AuthProvider({ children: childrenComponents }) {
   }, []);
 
   const changeActiveChild = (id) => {
-    setActiveChildId(id);
-    localStorage.setItem('storynest_active_child_id', id);
+    setActiveChildId(id || null);
+    if (id) {
+      localStorage.setItem('storynest_active_child_id', id);
+    } else {
+      localStorage.removeItem('storynest_active_child_id');
+    }
   };
 
   const login = async (username, password) => {
@@ -121,10 +126,12 @@ export function AuthProvider({ children: childrenComponents }) {
     await parentChildrenApi.deleteChild(id);
     const remaining = childrenList.filter(c => c.id !== id);
     setChildrenList(remaining);
-    if (activeChildId === id && remaining.length > 0) {
-      changeActiveChild(remaining[0].id);
-    } else if (remaining.length === 0) {
-      setActiveChildId(null);
+    if (remaining.length > 0) {
+      if (activeChildId === id || !remaining.some(c => c.id === activeChildId)) {
+        changeActiveChild(remaining[0].id);
+      }
+    } else {
+      changeActiveChild(null);
     }
   };
 

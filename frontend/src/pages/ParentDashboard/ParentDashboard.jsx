@@ -35,7 +35,8 @@ export default function ParentDashboard() {
     setActiveChildId, 
     createChild, 
     updateChild, 
-    deleteChild 
+    deleteChild,
+    refreshChildren
   } = useAuth();
 
   const location = useLocation();
@@ -57,10 +58,20 @@ export default function ParentDashboard() {
   const [childToEdit, setChildToEdit] = useState(null);
   const [isLogModalOpen, setIsLogModalOpen] = useState(false);
 
-  // Fetch data whenever activeChildId or tab changes
+  // Sync children from server on mount
+  useEffect(() => {
+    refreshChildren();
+  }, []);
+
+  // Fetch data whenever activeChildId changes
   const fetchParentData = async () => {
     if (!activeChildId) {
       setLoading(false);
+      setDashboardData(null);
+      setAchievements([]);
+      setReadingLogs([]);
+      setChildStories([]);
+      setInsightsData(null);
       return;
     }
     setLoading(true);
@@ -239,7 +250,7 @@ export default function ParentDashboard() {
           {/* Dynamic Badges */}
           <div className="card badges-card">
             <div className="badges-card-header">
-              <h4>{activeChild?.name}'s Achievements</h4>
+              <h4>{activeChild?.name ? `${activeChild.name}'s Achievements` : 'Achievements'}</h4>
               <span className="text-muted" style={{ fontSize: '0.8rem' }}>
                 {earnedCount}/{badgeList.length} earned
               </span>
@@ -270,8 +281,10 @@ export default function ParentDashboard() {
         <section className="ideas-section">
           <div className="ideas-header">
             <div>
-              <h4>Story Ideas for {activeChild?.name}</h4>
-              <p className="text-muted" style={{ fontSize: '0.85rem' }}>AI-suggested prompts based on {activeChild?.name}'s reading level.</p>
+              <h4>{activeChild?.name ? `Story Ideas for ${activeChild.name}` : 'Story Ideas'}</h4>
+              <p className="text-muted" style={{ fontSize: '0.85rem' }}>
+                {activeChild?.name ? `AI-suggested prompts based on ${activeChild.name}'s reading level.` : 'AI-suggested prompts for kids.'}
+              </p>
             </div>
             <Link to="/create" className="btn btn-secondary">
               <FaMagic /> Custom Prompt
@@ -516,25 +529,46 @@ export default function ParentDashboard() {
           {/* Top Header */}
           <header className="parent-header parent-hero-card">
             <div className="parent-header-left">
-              <h2 className="serif-heading text-white">{activeChild ? `${activeChild.name}'s Reading Hub` : "Parent Dashboard"}</h2>
+              <h2 className="serif-heading text-white">
+                {activeChild && childrenList.length > 0
+                  ? `${activeChild.name}'s Reading Hub`
+                  : "Parent Reading Hub"}
+              </h2>
               <p className="text-white/85" style={{ fontSize: '0.95rem' }}>
                 Track streaks, celebrate achievements, and create new stories together.
               </p>
             </div>
 
             <div className="parent-header-right">
-              <ChildSelector
-                childrenList={childrenList}
-                activeChildId={activeChildId}
-                onSelectChild={setActiveChildId}
-                onOpenAddModal={handleOpenAddChild}
-              />
+              <button 
+                onClick={handleOpenAddChild} 
+                className="btn btn-secondary"
+                style={{ background: 'rgba(255, 255, 255, 0.22)', color: '#ffffff', borderColor: 'rgba(255, 255, 255, 0.35)' }}
+              >
+                <FaPlus /> Add Child
+              </button>
+              <Link to="/create" className="btn btn-primary btn-header-create">
+                <FaMagic /> Create a Story
+              </Link>
+            </div>
+          </header>
 
-            <Link to="/create" className="btn btn-primary btn-header-create">
-              <FaMagic /> Create a Story
-            </Link>
-          </div>
-        </header>
+          {/* Child Switcher (Rendered BELOW the hero banner, if children exist) */}
+          {childrenList.length > 0 && (
+            <div className="mb-6 flex items-center justify-between bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200/80 dark:border-slate-700/60 shadow-sm">
+              <div className="flex items-center gap-3">
+                <span className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-400 pl-1">
+                  Active Reader:
+                </span>
+                <ChildSelector
+                  childrenList={childrenList}
+                  activeChildId={activeChildId}
+                  onSelectChild={setActiveChildId}
+                  onOpenAddModal={handleOpenAddChild}
+                />
+              </div>
+            </div>
+          )}
 
         {/* Loading State */}
         {loading ? (
@@ -553,13 +587,15 @@ export default function ParentDashboard() {
               </button>
             </div>
           </div>
-        ) : !activeChild ? (
-          <div className="card empty-card">
-            <FaUser className="empty-icon" />
-            <h4>No Child Profile Selected</h4>
-            <p className="text-muted">Create a child profile to track reading streaks and custom AI stories.</p>
-            <button onClick={handleOpenAddChild} className="btn btn-primary" style={{ marginTop: '1rem' }}>
-              <FaPlus /> Create Child Profile
+        ) : !activeChild || childrenList.length === 0 ? (
+          <div className="card empty-card" style={{ padding: '3rem 2rem', textAlign: 'center' }}>
+            <div style={{ fontSize: '3.5rem', marginBottom: '1rem' }}>🧒</div>
+            <h3 style={{ fontSize: '1.4rem', fontWeight: 800 }}>No Child Profiles Found</h3>
+            <p className="text-muted" style={{ maxWidth: '440px', margin: '0.5rem auto 1.5rem', fontSize: '0.95rem' }}>
+              Create a child profile to start generating custom AI stories, tracking reading streaks, and earning badges.
+            </p>
+            <button onClick={handleOpenAddChild} className="btn btn-primary" style={{ display: 'inline-flex', margin: '0 auto' }}>
+              <FaPlus /> Create First Child Profile
             </button>
           </div>
         ) : (

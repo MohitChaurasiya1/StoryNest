@@ -20,6 +20,7 @@ import {
   parentChildrenApi,
   parentDashboardApi,
 } from "../../services/api";
+import { useAuth } from "../../context/AuthContext";
 
 const initialFormData = {
   name: "",
@@ -40,6 +41,7 @@ const readingLevels = [
 ];
 
 function ChildrenList() {
+  const { refreshChildren } = useAuth();
   const [children, setChildren] = useState([]);
   const [dashboard, setDashboard] = useState({});
   const [loading, setLoading] = useState(true);
@@ -357,6 +359,7 @@ function ChildrenList() {
         setSuccessMessage("Child profile created successfully.");
       }
 
+      await refreshChildren();
       closeFormModal();
 
       window.setTimeout(() => {
@@ -400,6 +403,8 @@ function ChildrenList() {
       setChildren((previous) =>
         previous.filter((child) => child.id !== selectedChild.id)
       );
+
+      await refreshChildren();
 
       setDeleteModalOpen(false);
       setSelectedChild(null);
